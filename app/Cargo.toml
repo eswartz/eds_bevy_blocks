@@ -1,0 +1,126 @@
+[package]
+name = "eds_blocks"
+version = "0.0.1"
+edition = "2024"
+authors = ["Ed Swartz (github.com/eswartz)"]
+# license = "MIT OR Apache 2"
+# categories = ["game"]
+
+[features]
+# default = ["input_lim"]
+default = ["input_bei", "gltf/EXT_texture_webp"]
+input_lim = ["dep:leafwing-input-manager", "eds_bevy_common/input_lim"]
+input_bei = ["dep:bevy_enhanced_input", "eds_bevy_common/input_bei"]
+
+# bevy_cli required features
+release = [
+    "input_bei",
+    "gltf/EXT_texture_webp",
+]
+
+native = []
+
+dev = [
+    # Improve compile times for dev builds by linking Bevy as a dynamic library.
+    "bevy/dynamic_linking",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_ui_debug",
+    # Improve error messages coming from Bevy
+    "bevy/track_location",
+    # "dep:bevy-inspector-egui",
+    "avian3d/diagnostic_ui",
+    # "bevy_rerecast/debug_plugin",
+    # "bevy_rerecast/editor_integration",
+]
+dev_native = [
+    "dev",
+    "native",
+    "bevy/bevy_remote",
+    "bevy/basis-universal",
+
+    # Enable asset hot reloading for native dev builds.
+    "bevy/file_watcher",
+    # Enable embedded asset hot reloading for native dev builds.
+    "bevy/embedded_watcher",
+    # "bevy_rerecast/editor_integration",
+
+    "bevy/webgpu",
+]
+web = [
+    # "bevy/webgpu",
+    "bevy_seedling/web_audio",
+]
+
+[package.metadata.bevy_cli]
+default-features = false
+
+[package.metadata.bevy_cli.native]
+features = ["native"]
+
+[package.metadata.bevy_cli.native.dev]
+features = ["dev_native"]
+
+[package.metadata.bevy_cli.native.release]
+features = ["release"]
+
+[package.metadata.bevy_cli.web]
+features = ["web"]
+
+[package.metadata.bevy_cli.web.dev]
+features = ["dev"]
+
+[package.metadata.bevy_cli.web.release]
+features = ["release"]
+
+[package.metadata.bevy_cli.unstable]
+web-multi-threading = true
+
+
+[dependencies]
+eds_bevy_common.workspace = true
+
+log.workspace = true
+tracing.workspace = true
+console_log.workspace = true
+
+bevy.workspace = true
+gltf.workspace = true
+
+bevy_skein.workspace = true
+
+avian3d.workspace = true
+bevy_egui.workspace = true
+bevy-inspector-egui.workspace = true
+egui.workspace = true
+
+firewheel.workspace = true
+
+bevy_seedling.workspace = true
+
+crossbeam-channel.workspace = true
+
+rustc-hash.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+
+leafwing-input-manager.workspace = true
+leafwing-input-manager.optional = true
+bevy_enhanced_input.workspace = true
+bevy_enhanced_input.optional = true
+
+bevy_asset_loader.workspace = true
+serde.workspace = true
+rand.workspace = true
+
+getrandom.workspace = true
+image.workspace = true
+wgpu.workspace = true
+bytemuck.workspace = true
+anyhow.workspace = true
+bevy_tweening.workspace = true
+
+bevy_mod_outline.workspace = true
+
+csgrs.workspace = true
+
+wasm_thread.workspace = true

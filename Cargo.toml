@@ -1,0 +1,185 @@
+[workspace]
+resolver = "3"
+
+members = [
+    "app",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+authors = ["Ed Swartz (github.com/eswartz)"]
+# license = "MIT OR Apache 2"
+categories = ["game"]
+rust-version = "1.95"
+
+[workspace.lints.rust]
+# internal_features = "allow"
+# incomplete_features = "allow"
+
+[workspace.metadata.bevy_lint]
+# Enable the entire `pedantic` lint group, and make them all warnings.
+pedantic = "warn"
+unit_in_bundle = "allow"
+
+
+# Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
+# In some cases they may still signal poor code quality however, so consider commenting out these lines.
+[workspace.lints.clippy]
+# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
+# request more than 7 arguments -- which triggers this lint.
+too_many_arguments = "allow"
+# Queries that access many components may trigger this lint.
+type_complexity = "allow"
+
+# Enable a small amount of optimization in the dev profile.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package.avian3d]
+opt-level = 2
+[profile.dev.package.parry3d]
+opt-level = 3
+[profile.dev.package.csgrs]
+opt-level = 3
+# [profile.dev.package.rustysynth]
+# opt-level = 3
+# [profile.dev.package.xsynth-core]
+# opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 1
+
+# Remove expensive debug assertions due to <https://github.com/bevyengine/bevy/issues/14291>
+[profile.dev.package.wgpu-types]
+debug-assertions = false
+
+[profile.release]
+# Compile the entire crate as one unit.
+# Slows compile times, marginal improvements.
+# codegen-units = 1
+# Do a second optimization pass over the entire program, including dependencies.
+# Slows compile times, marginal improvements.
+# lto = "thin"
+# opt-level = 1
+
+[workspace.dependencies]
+eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", features = ["bevy_skein"] }
+game = { path = "game" }
+
+bevy = { version = "0.18.0", default-features = false, features = [
+    # 3d without sound.
+    "default_app",
+    "default_platform",
+    "3d_api",
+    "3d_bevy_render",
+    "scene",
+    # "audio",
+    "picking",
+
+    "ui",
+
+    # "dev",
+    "bevy_dev_tools",
+    # "file_watcher",   # crashes in glTF
+    # "async-io",
+    "jpeg",
+    "webp",
+    "exr",
+    "mp3",
+
+    "track_location",
+    "asset_processor",
+    "experimental_pbr_pcss",
+
+    "x11",
+    "wayland",
+
+    # "trace_tracy",
+] }
+gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
+
+bevy_skein = "0.5.0"
+
+log = { version = "0.4", features = [
+    "max_level_debug",
+    "release_max_level_info",
+] }
+tracing = { version = "0.1", features = [
+    "max_level_debug",
+    "release_max_level_info",
+] }
+console_log = "1.0.0"
+
+avian3d = { version = "0.6.0", default-features = false, features = [
+	"3d",
+    "default-collider",
+	"collider-from-mesh",
+    "f32",
+    # "f64",
+    "parry-f32",
+    # "parry-f64",
+    "diagnostic_ui",
+    "debug-plugin",
+    # "validate",
+    "xpbd_joints",
+    "bevy_scene",
+    "bevy_picking",
+] }
+
+bevy_egui = { version = "0.39", features = ["render", "serde"] }
+bevy-inspector-egui = { version = "0.36" }
+egui = { version = "0.33", features = ["bytemuck"] }
+
+firewheel = { version = "0.10" }
+
+bevy_seedling = { version = "0.7", default-features = false, features = [
+    "wav", "ogg", "rand", "loudness", "reflect",
+
+    "dev",
+    "stream", "hrtf",
+    "web_audio",
+] }
+
+# Latest version that works with bevy_seedling
+wasm-bindgen = { version = "=0.2.108" }
+web-thread = { version = "0.2" }
+wasm_thread = { version = "0.3" }
+
+rustc-hash = "2.1.1"
+strum = { version = "0.27.2", features = ["derive", "strum_macros"] }
+strum_macros = "0.27.2"
+
+leafwing-input-manager = { version = "0.20" }
+bevy_enhanced_input = { version = "0.24", features = ["reflect", "state", "serialize"] }
+
+bevy_asset_loader = { version = "0.25.0", features = [
+    "2d",
+    "3d",
+    # "progress_tracking",
+] }
+
+bevy_mod_outline = { version = "0.12" }
+
+serde = { version = "1.0", features = ["alloc", "derive", "serde_derive"] }
+rand = { version = "0.10.0" }
+
+getrandom = { version = "0.4.1", features = ["wasm_js"]}
+image = { version = "0.25", default-features = false }
+wgpu = "27.0.1"
+bytemuck = "1.25.0"
+anyhow = "1.0.101"
+bevy_tweening = "0.15.0"
+
+# csgrs = { version = "0.21.0", features = ["bevymesh"] }
+csgrs = { git = "https://github.com/timschmidt/csgrs.git", features = ["bevymesh"] }
+
+rustysynth = "1.3.6"
+# rustysynth = { path = "../rustysynth/rustysynth" }
+xsynth-core = "0.3.3"
+
+crossbeam-channel = "0.5.15"
+
+# glam = { version = "0.31", features = ["mint"] }
+
+thiserror = "2.0.12"

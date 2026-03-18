@@ -1,0 +1,6 @@
+# to install cross-tools:
+#
+# rustup target add x86_64-pc-windows-gnu
+[toolchain]
+channel = "nightly-2026-03-16"
+components = ["rustc", "clippy", "cargo", "rust-std", "rustfmt", "rustc-codegen-cranelift"]

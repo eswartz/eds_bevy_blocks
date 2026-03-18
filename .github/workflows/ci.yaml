@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  #push:
+  #  tags:
+  #    - '*'
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Run cargo build
+  test:
+    name: Build it
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.toml') }}
+      - name: Install nightly toolchain
+        uses:  dtolnay/rust-toolchain@nightly
+      - name: Install Dependencies
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
+      - name: Install cranelift
+        run: rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+      - name: Run cargo build
+        run: cargo build
