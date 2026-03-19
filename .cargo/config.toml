@@ -39,6 +39,9 @@ codegen-backend = "cranelift"
 codegen-backend = "llvm"
 
 [patch.crates-io]
+## Support webp
+gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
+
 # bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", branch = "master" }
 # firewheel = { git = "https://github.com/BillyDM/Firewheel.git", branch = "main" }
 # firewheel = { git = "https://github.com/BillyDM/Firewheel.git", rev = "fe1566f3677e655d35721e6cdb432db0e82e530e" }
@@ -47,7 +50,6 @@ codegen-backend = "llvm"
 # avian3d = { path = "../avian/crates/avian3d" }
 # bevy = { path = "../bevy" }
 # bevy = { git = "https://github.com/eswartz/bevy-fork.git", branch = "ejs-0.18" }
-gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
 
 # csgrs = { git = "https://github.com/eswartz/csgrs-fork.git", branch = "bevy-0.18", features = ["bevymesh"] }
 
@@ -128,6 +130,3 @@ gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
 # bevy_remote = { git = "https://github.com/eswartz/bevy-fork.git", branch = "ejs-0.18" }
 # bevy_time = { git = "https://github.com/eswartz/bevy-fork.git", branch = "ejs-0.18" }
 # bevy_diagnostic = { git = "https://github.com/eswartz/bevy-fork.git", branch = "ejs-0.18" }
-
-# [patch.'https://github.com/eswartz/eds_bevy_common.git']
-# eds_bevy_common = { path = "../eds_bevy_common" }

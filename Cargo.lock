@@ -3243,7 +3243,6 @@ dependencies = [
 [[package]]
 name = "eds_bevy_common"
 version = "0.0.8"
-source = "git+https://github.com/eswartz/eds_bevy_common.git#3d09bda2df4f85dbf5001c4d1a55b7f3bcc24a35"
 dependencies = [
  "anyhow",
  "avian3d",

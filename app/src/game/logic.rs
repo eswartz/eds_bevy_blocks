@@ -195,12 +195,6 @@ fn check_actions(
 
         *fire_power = 0.;
     }
-    if actions.just_released(&UserAction::ForceLose) {
-        commands.set_state(LevelState::Lost);
-    }
-    if actions.just_released(&UserAction::ForceWin) {
-        commands.set_state(LevelState::Won);
-    }
 }
 
 #[cfg(feature = "input_bei")]
@@ -208,8 +202,6 @@ fn check_actions(
     mut commands: Commands,
 
     fire_events: Query<&ActionEvents, (With<Action<actions::Firing>>, With<PlayerAction>)>,
-    lose_events: Query<&ActionEvents, (With<Action<actions::ForceLose>>, With<PlayerAction>)>,
-    win_events: Query<&ActionEvents, (With<Action<actions::ForceWin>>, With<PlayerAction>)>,
 
     player_q: Query<(Entity, &Transform, &ColliderAabb), With<Player>>,
     player_look_q: Query<&PlayerLook>,
@@ -263,13 +255,6 @@ fn check_actions(
         if cycle_events.contains(ActionEvents::COMPLETE) {
             cycle_ctr.reset();
         }
-    }
-
-    if lose_events.iter().next().unwrap().contains(ActionEvents::COMPLETE) {
-        commands.set_state(LevelState::Lost);
-    }
-    if win_events.iter().next().unwrap().contains(ActionEvents::COMPLETE) {
-        commands.set_state(LevelState::Won);
     }
 }
 

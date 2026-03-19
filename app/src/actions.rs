@@ -37,15 +37,6 @@ pub fn extra_input_map() -> InputMap<UserAction> {
     //     ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::MediaTrackPrevious),
     // );
 
-    input_map.insert(
-        ForceLose,
-        ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::PageDown),
-    );
-    input_map.insert(
-        ForceWin,
-        ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::PageUp),
-    );
-
     input_map
 }
 
@@ -89,20 +80,6 @@ pub fn assign_extra_actions(
         Action::<actions::ChangeCamera>::new(),
         bindings![
             KeyCode::KeyV.with_mod_keys(CTRL_COMMAND),
-        ],
-    ));
-    commands.spawn((
-        include.clone(),
-        Action::<actions::ForceLose>::new(),
-        bindings![
-            KeyCode::PageDown.with_mod_keys(CTRL_COMMAND),
-        ],
-    ));
-    commands.spawn((
-        include.clone(),
-        Action::<actions::ForceWin>::new(),
-        bindings![
-            KeyCode::PageUp.with_mod_keys(CTRL_COMMAND),
         ],
     ));
 }
