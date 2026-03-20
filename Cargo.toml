@@ -64,7 +64,8 @@ debug-assertions = false
 # opt-level = 1
 
 [workspace.dependencies]
-eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", features = ["bevy_skein"] }
+eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", features = ["firewheel", "bevy_skein", "highlighting", "input_bei"] }
+
 game = { path = "game" }
 
 bevy = { version = "0.18.0", default-features = false, features = [

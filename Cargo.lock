@@ -3251,6 +3251,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_egui",
  "bevy_enhanced_input",
+ "bevy_mod_outline",
  "bevy_seedling",
  "bevy_skein",
  "bevy_tweening",

@@ -56,7 +56,9 @@ pub fn assign_extra_actions(
     // ));
     commands.spawn((
         include.clone(),
-        Action::<actions::ToggleGrab>::new(),
+        Action::<actions::StartGrab>::new(),
+        // Hold::new(0.25),
+        // Cooldown::new(0.125),
         bindings![
             MouseButton::Right,
             KeyCode::AltLeft,
@@ -66,7 +68,17 @@ pub fn assign_extra_actions(
     ));
     commands.spawn((
         include.clone(),
-        Action::<actions::CycleExtendGrab>::new(),
+        Action::<actions::ReleaseGrab>::new(),
+        Hold::new(0.5),
+        // Cooldown::new(0.125),
+        bindings![
+            MouseButton::Left,
+            GamepadButton::RightTrigger2,
+        ],
+    ));
+    commands.spawn((
+        include.clone(),
+        Action::<actions::CycleHighlightedItem>::new(),
         Scale::splat(0.25),
         Bindings::spawn((
             Spawn((Binding::mouse_wheel(), SwizzleAxis::YYY)),
@@ -79,7 +91,7 @@ pub fn assign_extra_actions(
         include.clone(),
         Action::<actions::ChangeCamera>::new(),
         bindings![
-            KeyCode::KeyV.with_mod_keys(CTRL_COMMAND),
+            KeyCode::KeyV.with_mod_keys(MOD_CTRL_COMMAND),
         ],
     ));
 }
