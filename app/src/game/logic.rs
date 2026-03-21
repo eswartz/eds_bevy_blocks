@@ -29,6 +29,7 @@ impl Plugin for LogicPlugin {
                 max: 100.0,
                 start: 0.1,
             })
+
             .add_systems(
                 FixedUpdate,
                 (
@@ -41,6 +42,26 @@ impl Plugin for LogicPlugin {
                 .run_if(in_state(LevelState::Playing))
                 .run_if(in_state(ProgramState::InGame)),
             )
+
+            // .add_systems(
+            //     FixedUpdate,
+            //     (
+            //         decay_forces, //.run_if(input_just_pressed(KeyCode::Backslash)),
+            //     )
+            //     .before(PhysicsSystems::Writeback)
+            //     .run_if(not(is_user_paused))
+            //     .run_if(in_state(LevelState::Playing))
+            //     .run_if(in_state(ProgramState::InGame)),
+            // )
+            // .add_systems(
+            //     FixedUpdate,
+            //     decay_physics
+            //         .before(PhysicsSystems::StepSimulation)
+            //         .run_if(not(is_paused))
+            //         .run_if(in_state(LevelState::Playing))
+            //         .run_if(in_state(ProgramState::InGame))
+            //         // .run_if(is_in_level(ID))
+            // )
 
             .add_systems(
                 FixedUpdate,
@@ -61,12 +82,19 @@ impl Plugin for LogicPlugin {
     }
 }
 
+#[derive(Component, Default, Debug, Reflect)]
+#[reflect(Component)]
+#[type_path = "game"]
+pub struct FirePowerSound;
+
 #[derive(Resource, Default, Debug, Deref, DerefMut, Reflect)]
 #[reflect(Resource)]
+#[type_path = "game"]
 pub struct FirePower(pub f32);
 
 #[derive(Resource, Debug, Reflect)]
 #[reflect(Resource)]
+#[type_path = "game"]
 pub struct FirePowerStats {
     pub accel: f32,
     pub start: f32,
@@ -282,3 +310,69 @@ fn report_raycast(
         visibility.set_if_neq(Visibility::Hidden);
     }
 }
+
+fn decay_forces(
+    mut forces_q: Query<Forces, (With<Spawned>, With<RigidBody>)>,
+) {
+    forces_q.par_iter_mut().for_each(|mut forces| {
+        let lsq = forces.linear_velocity().length_squared();
+        let asq = forces.angular_velocity().length_squared();
+        if (lsq > 0. && lsq < 0.1) || (asq > 0. && asq < 0.1) {
+            let mut nw = forces.non_waking();
+            *nw.linear_velocity_mut() = default();
+            *nw.angular_velocity_mut() = default();
+            nw.reset_accumulated_linear_acceleration();
+            nw.reset_accumulated_angular_acceleration();
+        }
+    });
+}
+
+// const LIVE_LIN_DAMP: f32 = 0.125;
+// const LIVE_ANG_DAMP: f32 = 0.125;
+// const SLEEP_LIN_DAMP: f32 = 0.95;
+// const SLEEP_ANG_DAMP: f32 = 0.95;
+
+// const LIVE_VEL_LEN_SQ: f32 = 0.5;
+// const LIVE_ANG_LEN_SQ: f32 = 0.125;
+// const SLEEP_VEL_LEN_SQ: f32 = 0.125;
+// const SLEEP_ANG_LEN_SQ: f32 = 0.01;
+
+// fn decay_physics(
+//     mut coll_q: Query<
+//         (Forces, &mut LinearDamping, &mut AngularDamping),
+//         (With<Spawned>, With<Cube>, Without<Sleeping>)
+//     >) {
+
+//     coll_q.par_iter_mut().for_each(|(mut forces, mut lin_damp, mut ang_damp)| {
+//         let vel_sq = forces.linear_velocity().length_squared();
+//         let ang_sq = forces.angular_velocity().length_squared();
+
+//         if vel_sq >= LIVE_VEL_LEN_SQ {
+//             // Turn down damping when moving.
+//             if lin_damp.0 > LIVE_LIN_DAMP {
+//                 lin_damp.0 = LIVE_LIN_DAMP;
+//             }
+//         } else if vel_sq < SLEEP_VEL_LEN_SQ {
+//             if lin_damp.0 < SLEEP_LIN_DAMP {
+//                 let mut nw = forces.non_waking();
+//                 *nw.linear_velocity_mut() = default();
+//                 nw.reset_accumulated_linear_acceleration();
+//                 lin_damp.0 = SLEEP_LIN_DAMP;
+//             }
+//         }
+
+//         if ang_sq >= LIVE_ANG_LEN_SQ {
+//             // Turn down damping when rotating.
+//             if ang_damp.0 > LIVE_ANG_DAMP {
+//                 ang_damp.0 = LIVE_ANG_DAMP;
+//             }
+//         } else if ang_sq < SLEEP_ANG_LEN_SQ {
+//             if ang_damp.0 < SLEEP_ANG_DAMP {
+//                 let mut nw = forces.non_waking();
+//                 *nw.angular_velocity_mut() = default();
+//                 nw.reset_accumulated_angular_acceleration();
+//                 ang_damp.0 = SLEEP_ANG_DAMP;
+//             }
+//         }
+//     });
+// }

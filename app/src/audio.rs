@@ -99,11 +99,6 @@ fn initialize_audio(master: Single<Entity, With<MainBus>>, mut commands: Command
     ));
 }
 
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-struct BackgroundAudio;
-
 // /// Add background music, which resets when the game starts or stops.
 // #[allow(unused)]
 // pub(crate) fn init_background_audio(

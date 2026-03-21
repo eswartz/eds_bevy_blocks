@@ -22,13 +22,6 @@ impl Plugin for LevelPlugin {
                 on_level_loaded
                     .run_if(is_in_level(ID))
             )
-            .add_systems(
-                Update,
-                decay_physics
-                    .run_if(not(is_paused))
-                    .run_if(in_state(LevelState::Playing))
-                    .run_if(is_in_level(ID))
-            )
         ;
     }
 }
@@ -40,16 +33,6 @@ fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
         scene: maps.level_0.clone()
     });
 }
-
-const LIVE_LIN_DAMP: f32 = 0.1;
-const LIVE_ANG_DAMP: f32 = 0.1;
-const SLEEP_LIN_DAMP: f32 = 0.95;
-const SLEEP_ANG_DAMP: f32 = 0.95;
-
-const LIVE_VEL_LEN_SQ: f32 = 0.5;
-const LIVE_ANG_LEN_SQ: f32 = 0.125;
-const SLEEP_VEL_LEN_SQ: f32 = 0.125;
-const SLEEP_ANG_LEN_SQ: f32 = 0.01;
 
 fn on_level_loaded(
     mut commands: Commands,
@@ -95,14 +78,14 @@ fn on_level_loaded(
                         RigidBody::Dynamic,
                         Collider::cuboid(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
                         // Collider::round_cuboid(cuboid_size, cuboid_size, cuboid_size, cuboid_round),
-                        Restitution::new(0.05),
+                        Restitution::new(0.0),
                         Friction::new(0.9),
                         SleepThreshold {
                             linear: 0.125,
                             angular: 0.125,
                         },
-                        LinearDamping(LIVE_LIN_DAMP),
-                        AngularDamping(LIVE_ANG_DAMP),
+                        LinearDamping(0.5),
+                        AngularDamping(0.25),
                         // CenterOfMass::new(0., -cube_size / 4.0, 0.0),
                         Mass(CUBE_MASS),
                         CollisionMargin(0.),
@@ -121,35 +104,4 @@ fn on_level_loaded(
     // commands.insert_resource(SpawnDelay(Duration::from_secs(1)));
     // commands.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)));
     // commands.insert_resource(ShakeTime(Duration::ZERO));
-}
-
-fn decay_physics(
-    mut coll_q: Query<
-        (&LinearVelocity, &AngularVelocity, &mut LinearDamping, &mut AngularDamping),
-        (With<Spawned>, With<Cube>, Without<Sleeping>)
-    >) {
-
-    coll_q.par_iter_mut().for_each(|(vel, ang, mut lin_damp, mut ang_damp)| {
-        if vel.0.length_squared() >= LIVE_VEL_LEN_SQ {
-            // Turn down damping when moving.
-            if lin_damp.0 > LIVE_LIN_DAMP {
-                lin_damp.0 = LIVE_LIN_DAMP;
-            }
-        } else if vel.0.length_squared() < SLEEP_VEL_LEN_SQ {
-            if lin_damp.0 < SLEEP_LIN_DAMP {
-                lin_damp.0 = SLEEP_LIN_DAMP;
-            }
-        }
-
-        if ang.0.length_squared() >= LIVE_ANG_LEN_SQ {
-            // Turn down damping when rotating.
-            if ang_damp.0 > LIVE_ANG_DAMP {
-                ang_damp.0 = LIVE_ANG_DAMP;
-            }
-        } else if ang.0.length_squared() < SLEEP_ANG_LEN_SQ {
-            if ang_damp.0 < SLEEP_ANG_DAMP {
-                ang_damp.0 = SLEEP_ANG_DAMP;
-            }
-        }
-    });
 }

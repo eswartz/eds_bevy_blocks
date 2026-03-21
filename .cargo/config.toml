@@ -46,7 +46,7 @@ gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
 # firewheel = { git = "https://github.com/BillyDM/Firewheel.git", branch = "main" }
 # firewheel = { git = "https://github.com/BillyDM/Firewheel.git", rev = "fe1566f3677e655d35721e6cdb432db0e82e530e" }
 # firewheel-graph = { git = "https://github.com/BillyDM/Firewheel.git", rev = "fe1566f3677e655d35721e6cdb432db0e82e530e" }
-# avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main" }
+avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main" }
 # avian3d = { path = "../avian/crates/avian3d" }
 # bevy = { path = "../bevy" }
 # bevy = { git = "https://github.com/eswartz/bevy-fork.git", branch = "ejs-0.18" }
