@@ -102,6 +102,22 @@ impl Plugin for GamePlugin {
                 hide_instructions,
             )
 
+            .add_systems(OnEnter(LevelState::Playing),
+                show_power_bar
+                    .run_if(in_state(ProgramState::InGame))
+            )
+            .add_systems(OnExit(LevelState::Playing),
+                remove_power_bar
+                    .run_if(in_state(ProgramState::InGame))
+            )
+            .add_systems(
+                Update,
+                update_power_bar
+                    .run_if(not(is_paused))
+                    .run_if(in_state(ProgramState::InGame))
+                    .run_if(in_state(GameplayState::Playing))
+            )
+
             .add_systems(
                 OnEnter(LevelState::Won),
                 won_level,
@@ -781,4 +797,80 @@ fn check_lost_level(
 
     // Restarts level.
     commands.set_state(LevelState::Advance);
+}
+
+/// The power bar image inside [HandStatusArea].
+#[derive(Component)]
+pub struct PowerBarImage;
+
+/// The power bar text inside [HandStatusArea].
+#[derive(Component)]
+pub struct PowerBarText;
+
+fn show_power_bar(
+    mut commands: Commands,
+    hand_q: Single<Entity, With<HandStatusArea>>,
+    assets: Res<CommonGuiAssets>,
+) {
+    commands.entity(*hand_q)
+        .insert(UiNodeAlpha(0.0))
+        .with_children(|builder| {
+        builder.spawn((
+            Name::new("PowerBar"),
+            PowerBarImage,
+            Visibility::Inherited,
+            UiNodeAlpha(1.0),
+            ImageNode::new(assets.power_bar.clone())
+                .with_color(Color::WHITE),
+            Node {
+                width: Val::Vw(10.),
+                max_width: Val::Vw(10.),
+                min_width: Val::Px(128.),
+                aspect_ratio: Some(4.0),
+                align_content: AlignContent::Stretch,
+                ..default()
+            },
+        ));
+        builder.spawn((
+            Name::new("InHandText"),
+            PowerBarText,
+            Visibility::Inherited,
+            UiNodeAlpha(1.0),
+            Node {
+                ..default()
+            },
+            TextFont {
+                font: assets.std_ui.clone(),
+                font_size: 24.0,
+                weight: FontWeight::BOLD,
+                .. default()
+            },
+            TextColor(Color::Srgba(tailwind::RED_700)),
+            TextShadow {
+                offset: Vec2::splat(1.0),
+                color: Color::WHITE,
+            },
+            Text::new("POWER"),
+        ));
+    });
+}
+
+fn remove_power_bar(
+    mut commands: Commands,
+    child_q: Query<&Children>,
+    hand_q: Single<Entity, With<HandStatusArea>>,
+) {
+    let ent = *hand_q;
+    for kid in child_q.iter_descendants(ent) {
+        commands.entity(kid).try_despawn();
+    }
+}
+
+fn update_power_bar(
+    mut alpha_q: Single<&mut UiNodeAlpha, With<HandStatusArea>>,
+    fire_power: Res<FirePower>,
+) {
+    if fire_power.is_changed() {
+        alpha_q.0 = (**fire_power / 50.0).clamp(0.0, 1.0);
+    }
 }
