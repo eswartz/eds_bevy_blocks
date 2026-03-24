@@ -22,7 +22,7 @@ impl Plugin for LogicPlugin {
         app
             .add_plugins(HighlightingPlugin)
             .add_plugins(GrabbingPlugin)
-            .insert_resource(HighlightingMode::Enabled)
+            .insert_resource(HighlightingMode::Disabled)
             .init_resource::<FirePower>()
             .insert_resource(FirePowerStats {
                 accel: 1.1,
@@ -32,12 +32,7 @@ impl Plugin for LogicPlugin {
 
             .add_systems(
                 FixedUpdate,
-                (
-                    play_player_out_of_bounds,
-                )
-                .before(TransformSystems::Propagate)
-                .after(PhysicsSystems::Writeback)
-                .run_if(resource_exists::<CurrentScore>)
+                play_player_out_of_bounds
                 .run_if(not(is_user_paused))
                 .run_if(in_state(LevelState::Playing))
                 .run_if(in_state(ProgramState::InGame)),
@@ -179,20 +174,28 @@ fn check_actions(
 
     fire_events: Query<&ActionEvents, (With<Action<actions::Firing>>, With<PlayerAction>)>,
 
+    select_events: Query<&ActionEvents, (With<Action<actions::Interact>>, With<PlayerAction>)>,
+    mut highlighting_mode: ResMut<HighlightingMode>,
+
     player_q: Query<(Entity, &Transform, &ColliderAabb), With<Player>>,
     player_look_q: Query<&PlayerLook>,
-
-    grabbed_opt: Option<Res<GrabbedItem>>,
 
     exist_q: Query<Entity>,
     fx: Res<CommonFxAssets>,
     materials: ResMut<Assets<StandardMaterial>>,
     meshes: ResMut<Assets<Mesh>>,
 
+    grabbed_opt: Option<Res<GrabbedItem>>,
     mut fire_power: ResMut<FirePower>,
     fire_power_stats: Res<FirePowerStats>,
     time: Res<Time>,
 ) {
+    if let Ok(select) = select_events.single() {
+        if select.contains(ActionEvents::START) {
+            *highlighting_mode = (*highlighting_mode).toggle_enabled();
+        }
+    }
+
     // Only one player...
     let Ok((player, player_xfrm, aabb)) = player_q.single() else {
         log::error!("no single Player");
@@ -206,22 +209,24 @@ fn check_actions(
     let eyes = player_eyes(player_xfrm, aabb, look);
     let position = player_gun(&look.rotation, eyes);
 
-    let fire = fire_events.iter().next().unwrap();
-    if fire.contains(ActionEvents::START) {
-        **fire_power = fire_power_stats.start;
-    }
-    else if fire.contains(ActionEvents::FIRE) {
-        **fire_power = fire_power_stats.apply_force(time.delta(), **fire_power);
-    }
-    else if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
-        // Fire something.
+    if let Ok(fire) = fire_events.single() {
+        if fire.contains(ActionEvents::START) {
+            **fire_power = fire_power_stats.start;
+        }
+        else if fire.contains(ActionEvents::FIRE) {
+            **fire_power = fire_power_stats.apply_force(time.delta(), **fire_power);
+        }
+        else if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
+            // Fire something.
 
-        let xfrm = Transform::from_translation(position).with_rotation(look.rotation);
-        let power = **fire_power;
+            let xfrm = Transform::from_translation(position).with_rotation(look.rotation);
+            let power = **fire_power;
 
-        do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q, fx, materials, meshes);
+            do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
+                fx, materials, meshes, highlighting_mode);
 
-        **fire_power = 0.;
+            **fire_power = 0.;
+        }
     }
 }
 
@@ -238,6 +243,7 @@ fn do_fire(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
+    mut highlighting_mode: ResMut<HighlightingMode>,
 ) -> bool {
     let vel = xfrm.rotation * Vec3::NEG_Z * power;
     let mut any = false;
@@ -253,7 +259,6 @@ fn do_fire(
         } else {
             commands.write_message(GrabbingCommand::CancelGrabItems);
         }
-        // commands.remove_resource::<GrabbedItem>();
     } else {
         // Fire a new item.
         let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
@@ -283,6 +288,8 @@ fn do_fire(
     }
 
     if any {
+        *highlighting_mode = HighlightingMode::Enabled;
+
         commands.spawn((
             UiSfx,
             SamplePlayer::new(fx.swoosh.clone()),
@@ -294,6 +301,7 @@ fn do_fire(
 
 fn report_raycast(
     mut info_q: Single<(&mut Text, &mut TextColor, &mut Visibility), With<InfoArea>>,
+    highlighting_mode: Res<HighlightingMode>,
     crosshair_target: Res<CrosshairTargets>,
     names_q: Query<Option<&Name>>,
 ) {
@@ -302,7 +310,8 @@ fn report_raycast(
     }
 
     let (ref mut text, ref mut color, ref mut visibility) = *info_q;
-    if let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
+    if highlighting_mode.is_enabled()
+    && let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
         visibility.set_if_neq(Visibility::Inherited);
         text.0 = message;
         color.0 = Color::Srgba(tailwind::GRAY_100);
