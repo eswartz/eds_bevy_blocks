@@ -98,9 +98,9 @@ fn main() -> AppExit {
         .insert_resource(SubstepCount(8))
 
         .insert_resource(SolverConfig {
-            contact_damping_ratio: 5.0,
-            contact_frequency_factor: 1.5,
-            max_overlap_solve_speed: 4.0,
+            contact_damping_ratio: 10.0,
+            contact_frequency_factor: 3.0,
+            max_overlap_solve_speed: 10.0,
             restitution_threshold: 1.0,
             ..default()
         })

@@ -357,7 +357,11 @@ fn extract_mesh_cube(mesh: &Mesh, center: Vec3, half_size: Vec3) -> Option<(Mesh
 
     // Some(mesh)
 
-    let positions = pos.into_iter().map(Vec3::from_array).collect::<Vec<_>>();
+    let positions = pos
+        .into_iter()
+        .map(|v| Vec3::from_array(v)
+            .into())
+        .collect::<Vec<_>>();
     Some((mesh, indices, positions))
 }
 

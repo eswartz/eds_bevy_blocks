@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use crate::game::*;
 
+use avian3d::math::AdjustPrecision as _;
+use avian3d::math::Scalar;
 use bevy_seedling::sample::PlaybackSettings;
 use bevy_seedling::prelude::*;
 
@@ -252,7 +254,7 @@ fn do_fire(
         if exist_q.contains(grabbed.entity) {
             commands.queue(WakeBody(grabbed.entity));
             commands.entity(grabbed.entity).insert((
-                LinearVelocity(vel),
+                LinearVelocity(vel.adjust_precision()),
             ));
             commands.write_message(GrabbingCommand::ReleaseItems);
             any = true;
@@ -276,13 +278,13 @@ fn do_fire(
             Projectile,
             CrosshairTargetable,
             CollisionEventsEnabled,
-            LinearVelocity(vel),
+            LinearVelocity(vel.adjust_precision()),
             Mass(250.0),
             Friction::new(0.25),
             Restitution::new(0.5),
             SweptCcd::default(),
             RigidBody::Dynamic,
-            Collider::cuboid(size.x, size.y, size.z),
+            Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar),
         )));
         any = true;
     }
