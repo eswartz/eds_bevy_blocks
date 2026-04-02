@@ -91,7 +91,6 @@ bevy_skein.workspace = true
 avian3d.workspace = true
 bevy_egui.workspace = true
 bevy-inspector-egui.workspace = true
-egui.workspace = true
 
 firewheel.workspace = true
 

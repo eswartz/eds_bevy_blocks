@@ -3292,7 +3292,6 @@ dependencies = [
  "crossbeam-channel",
  "csgrs",
  "eds_bevy_common",
- "egui",
  "firewheel",
  "getrandom 0.4.2",
  "gltf",
