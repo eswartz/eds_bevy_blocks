@@ -8,6 +8,7 @@ use bevy::prelude::*;
 use fedry_bevy_plugin::asset::ScriptModule;
 use fedry_bevy_plugin::component::Script;
 use fedry_bevy_plugin::runtime::ScriptRuntime;
+use fedry_runtime::prelude::RtSInt;
 
 pub(crate) const ID: &str = "level0";
 pub(crate) const NAME: &str = "Level 0";
@@ -67,9 +68,14 @@ fn on_level_loaded(
         .get(&script_assets.count)
         .ok_or(anyhow::anyhow!("missing script asset"))?,
     )?;
+    let D = if let Some(side_length) = script.get_module().map().get(&scripting.rt.pool.for_str("side_length"))
+    && let Some(side_length) = RtSInt::new(&side_length) {
+        *side_length as i32 / 2
+    } else {
+        6
+    };
 
     let center = Vec3::new(-5.0, 0.0, 5.0);
-    const D: i32 = 6;
     for x in -D..D {
         for y in 0..D * 2 {
             for z in -D..D {
