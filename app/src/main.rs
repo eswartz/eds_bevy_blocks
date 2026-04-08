@@ -164,6 +164,7 @@ fn main() -> AppExit {
                 .load_collection::<SkyboxAssets>()
                 .load_collection::<MapAssets>()
                 .load_collection::<ModelAssets>()
+                .load_collection::<ScriptAssets>()
         )
         .add_systems(
             OnEnter(GameplayState::Playing),

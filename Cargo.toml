@@ -181,3 +181,6 @@ crossbeam-channel = "0.5.15"
 # glam = { version = "0.31", features = ["mint"] }
 
 thiserror = "2.0.12"
+
+fedry_runtime = { git = "https://github.com/eswartz/fedry.git" }
+fedry_bevy_plugin = { git = "https://github.com/eswartz/fedry.git" }

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
+use fedry_bevy_plugin::asset::ScriptModule;
 
 #[derive(Resource, AssetCollection)]
 pub struct GuiAssets {
@@ -31,4 +32,10 @@ pub struct SkyboxAssets {
 
 #[derive(Resource, AssetCollection)]
 pub struct ModelAssets {
+}
+
+#[derive(Resource, AssetCollection)]
+pub struct ScriptAssets {
+    #[asset(path = "scripts/count.das")]
+    pub count: Handle<ScriptModule>,
 }

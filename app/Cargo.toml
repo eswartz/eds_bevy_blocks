@@ -123,3 +123,6 @@ bevy_mod_outline.workspace = true
 csgrs.workspace = true
 
 wasm_thread.workspace = true
+
+fedry_runtime.workspace = true
+fedry_bevy_plugin.workspace = true

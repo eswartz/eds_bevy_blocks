@@ -12,6 +12,7 @@ use bevy::color::palettes::tailwind;
 use bevy::mesh::{VertexAttributeValues, triangle_normal};
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
+use fedry_bevy_plugin::FedryScriptingPlugin;
 pub use logic::*;
 use strum::{EnumIter, VariantArray};
 
@@ -38,6 +39,7 @@ impl Plugin for GamePlugin {
         app
             .add_plugins(LogicPlugin)
             .add_plugins(SoundPlugin)
+            .add_plugins(FedryScriptingPlugin)
 
             .init_resource::<LevelDifficulty>()
 

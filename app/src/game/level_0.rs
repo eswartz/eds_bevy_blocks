@@ -3,8 +3,11 @@ use crate::game::Cube;
 use avian3d::math::Scalar;
 use eds_bevy_common::*;
 
-use bevy::prelude::*;
 use avian3d::prelude::*;
+use bevy::prelude::*;
+use fedry_bevy_plugin::asset::ScriptModule;
+use fedry_bevy_plugin::component::Script;
+use fedry_bevy_plugin::runtime::ScriptRuntime;
 
 pub(crate) const ID: &str = "level0";
 pub(crate) const NAME: &str = "Level 0";
@@ -13,17 +16,11 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(
-                OnEnter(ProgramState::New),
-                register_level
-            )
+        app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                on_level_loaded
-                    .run_if(is_in_level(ID))
-            )
-        ;
+                on_level_loaded.run_if(is_in_level(ID)),
+            );
     }
 }
 
@@ -31,7 +28,7 @@ fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
     list.0.push(LevelInfo {
         id: ID.to_string(),
         label: NAME.to_string(),
-        scene: maps.level_0.clone()
+        scene: maps.level_0.clone(),
     });
 }
 
@@ -40,7 +37,11 @@ fn on_level_loaded(
     world: Res<WorldMarkerEntity>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-) {
+
+    mut scripting: Res<ScriptRuntime>,
+    script_assets: Res<ScriptAssets>,
+    modules: Res<Assets<ScriptModule>>,
+) -> Result {
     const CUBE_SIZE: f32 = 0.75;
     const CUBE_MASS: f32 = 50.0 * 2.0 / 5.0;
 
@@ -56,14 +57,24 @@ fn on_level_loaded(
     const CUBE_GAP: f32 = 0.05;
     let axis_scale = Vec3::splat(CUBE_SIZE + CUBE_GAP);
 
-    let collider = Collider::cuboid(CUBE_SIZE as Scalar, CUBE_SIZE as Scalar, CUBE_SIZE as Scalar);
+    let collider = Collider::cuboid(
+        CUBE_SIZE as Scalar,
+        CUBE_SIZE as Scalar,
+        CUBE_SIZE as Scalar,
+    );
+
+    let script = Script::new(modules
+        .get(&script_assets.count)
+        .ok_or(anyhow::anyhow!("missing script asset"))?,
+    )?;
 
     let center = Vec3::new(-5.0, 0.0, 5.0);
     const D: i32 = 6;
     for x in -D..D {
-        for y in 0..D*2 {
+        for y in 0..D * 2 {
             for z in -D..D {
-                let position = Vec3::new(x as f32, (y as f32) * 1.05, z as f32) * axis_scale + center;
+                let position =
+                    Vec3::new(x as f32, (y as f32) * 1.05, z as f32) * axis_scale + center;
                 commands.spawn((
                     (
                         ChildOf(world.0),
@@ -100,6 +111,7 @@ fn on_level_loaded(
                     //     // SweptCcd::default(),
                     //     SweptCcd::LINEAR,
                     // )
+                    (script.clone(),),
                 ));
             }
         }
@@ -109,4 +121,5 @@ fn on_level_loaded(
     // commands.insert_resource(SpawnDelay(Duration::from_secs(1)));
     // commands.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)));
     // commands.insert_resource(ShakeTime(Duration::ZERO));
+    Ok(())
 }
