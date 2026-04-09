@@ -36,6 +36,6 @@ pub struct ModelAssets {
 
 #[derive(Resource, AssetCollection)]
 pub struct ScriptAssets {
-    #[asset(path = "scripts/count.das")]
-    pub count: Handle<ScriptModule>,
+    #[asset(path = "scripts/level_0.das")]
+    pub level_0: Handle<ScriptModule>,
 }

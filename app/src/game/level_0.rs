@@ -5,9 +5,7 @@ use eds_bevy_common::*;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use fedry_bevy_plugin::asset::ScriptModule;
-use fedry_bevy_plugin::component::Script;
-use fedry_bevy_plugin::runtime::ScriptRuntime;
+use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtSInt;
 
 pub(crate) const ID: &str = "level0";
@@ -20,9 +18,24 @@ impl Plugin for LevelPlugin {
         app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                on_level_loaded.run_if(is_in_level(ID)),
-            );
+                    on_level_loaded.run_if(is_in_level(ID)),
+            )
+            .add_systems(
+                Update,
+                    check_pause_request,
+            )
+        ;
     }
+}
+
+fn check_pause_request(
+    paused: ResMut<PauseState>,
+    mut control: ResMut<ScriptControl>,
+) {
+    if !paused.is_changed() {
+        return
+    }
+    control.set_paused(paused.is_paused());
 }
 
 fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
@@ -39,7 +52,7 @@ fn on_level_loaded(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
-    mut scripting: Res<ScriptRuntime>,
+    scripting: Res<ScriptRuntime>,
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
@@ -65,22 +78,29 @@ fn on_level_loaded(
     );
 
     let script = Script::new(modules
-        .get(&script_assets.count)
+        .get(&script_assets.level_0)
         .ok_or(anyhow::anyhow!("missing script asset"))?,
     )?;
-    let D = if let Some(side_length) = script.get_module().map().get(&scripting.rt.pool.for_str("side_length"))
+    let half_size = if let Some(side_length) = script.get_module().map().get(&scripting.rt.pool.for_str("side_length"))
     && let Some(side_length) = RtSInt::new(&side_length) {
         *side_length as i32 / 2
     } else {
         6
     };
 
-    let center = Vec3::new(-5.0, 0.0, 5.0);
-    for x in -D..D {
-        for y in 0..D * 2 {
-            for z in -D..D {
+    let rigid_body = if let Some(is_static) = script.get_module().map().get(&scripting.rt.pool.for_str("static"))
+    && is_static.as_bool() {
+        RigidBody::Static
+    } else {
+        RigidBody::Dynamic
+    };
+
+    let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
+    for x in -half_size..half_size {
+        for y in 0..half_size * 2 {
+            for z in -half_size..half_size {
                 let position =
-                    Vec3::new(x as f32, (y as f32) * 1.05, z as f32) * axis_scale + center;
+                    Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
                 commands.spawn((
                     (
                         ChildOf(world.0),
@@ -95,7 +115,8 @@ fn on_level_loaded(
                     ),
                     (
                         // CollisionEventsEnabled,
-                        RigidBody::Dynamic,
+                        // RigidBody::Dynamic,
+                        rigid_body.clone(),
                         collider.clone(),
                         // Collider::round_cuboid(cuboid_size, cuboid_size, cuboid_size, cuboid_round),
                         // Restitution::new(0.0),

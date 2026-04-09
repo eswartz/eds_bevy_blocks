@@ -10314,3 +10314,7 @@ dependencies = [
 [[patch.unused]]
 name = "fedry"
 version = "0.1.0"
+
+[[patch.unused]]
+name = "fedry"
+version = "0.1.0"

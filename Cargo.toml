@@ -82,7 +82,7 @@ bevy = { version = "0.18.0", default-features = false, features = [
 
     # "dev",
     "bevy_dev_tools",
-    # "file_watcher",   # crashes in glTF
+    "file_watcher",   # crashes in glTF
     # "async-io",
     "jpeg",
     "webp",
@@ -182,5 +182,5 @@ crossbeam-channel = "0.5.15"
 
 thiserror = "2.0.12"
 
-fedry_runtime = { git = "https://github.com/eswartz/fedry.git" }
-fedry_bevy_plugin = { git = "https://github.com/eswartz/fedry.git" }
+fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git" }
+fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git" }
