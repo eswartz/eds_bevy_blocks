@@ -221,7 +221,10 @@ fn check_actions(
         else if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
             // Fire something.
 
-            let xfrm = Transform::from_translation(position).with_rotation(look.rotation);
+            // FIXME: needs to be outside character collider.
+            let pos = position + look.rotation * Vec3::NEG_Z * 0.5;
+
+            let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
             let power = **fire_power;
 
             do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
