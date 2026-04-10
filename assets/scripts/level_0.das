@@ -41,11 +41,11 @@
     %on_update = CALL %make_on_update, []
 
     %module = NEW_STRUCT [
-        `side_length, 10,
-        `on_update, %on_update,
-        `boom_mass, 25000.0,
-        `block_mass, 250.0,
-        `static, false,
+        `side_length: 10,
+        `on_update: %on_update,
+        `boom_mass: 25000.0,
+        `block_mass: 250.0,
+        `static: false,
     ]
     CONSUME_FUEL 3
     RETURN %module
