@@ -1,11 +1,14 @@
 use crate::assets::*;
+use crate::game::BoomMass;
 use crate::game::Cube;
+use crate::game::ScriptMain;
 use avian3d::math::Scalar;
 use eds_bevy_common::*;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use fedry_bevy_plugin::prelude::*;
+use fedry_runtime::prelude::RtNumber;
 use fedry_runtime::prelude::RtSInt;
 
 pub(crate) const ID: &str = "level0";
@@ -77,22 +80,40 @@ fn on_level_loaded(
         CUBE_SIZE as Scalar,
     );
 
-    let script = Script::new(modules
+    let script: Script<ScriptMain> = Script::new(modules
         .get(&script_assets.level_0)
-        .ok_or(anyhow::anyhow!("missing script asset"))?,
+        .ok_or(anyhow::anyhow!("missing script asset"),
+        )?,
+        "on_update",
+        ExecutionMode::RunInChunks,
     )?;
-    let half_size = if let Some(side_length) = script.get_module().map().get(&scripting.rt.pool.for_str("side_length"))
+    let half_size = if let Some(side_length) = script.get_module().map().get(&scripting.atom_side_length)
     && let Some(side_length) = RtSInt::new(&side_length) {
         *side_length as i32 / 2
     } else {
         6
     };
 
-    let rigid_body = if let Some(is_static) = script.get_module().map().get(&scripting.rt.pool.for_str("static"))
+    let rigid_body = if let Some(is_static) = script.get_module().map().get(&scripting.atom_static)
     && is_static.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
+    };
+
+    let boom_mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_boom_mass)
+        && let Some(mass) = RtNumber::new(&mass) {
+        mass.value_real() as f32
+    } else {
+        50.0f32
+    };
+    commands.insert_resource(BoomMass(boom_mass));
+
+    let mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_block_mass)
+    && let Some(mass) = RtNumber::new(&mass) {
+        mass.value_real() as f32
+    } else {
+        10.0f32
     };
 
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);

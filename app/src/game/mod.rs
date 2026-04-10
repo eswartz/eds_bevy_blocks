@@ -9,10 +9,12 @@ mod level_0;
 use avian3d::math::Vector;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
+use bevy::ecs::query::QueryData;
 use bevy::mesh::{VertexAttributeValues, triangle_normal};
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::FedryScriptingPlugin;
+use fedry_bevy_plugin::prelude::register_script_key;
 pub use logic::*;
 use strum::{EnumIter, VariantArray};
 
@@ -163,8 +165,9 @@ impl Plugin for GamePlugin {
                     .run_if(in_state(ProgramState::InGame))
                 ,
             )
-
         ;
+
+        register_script_key::<ScriptMain>(app);
     }
 }
 
@@ -174,6 +177,21 @@ impl Plugin for GamePlugin {
 #[type_path = "game"]
 pub struct LevelDifficulty(pub Difficulty);
 
+#[derive(Resource, Debug, Clone, Reflect)]
+#[reflect(Resource)]
+#[type_path = "game"]
+pub(crate) struct BoomMass(f32);
+
+impl std::ops::Deref for BoomMass {
+    type Target = f32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Reflect, QueryData)]
+pub(crate) struct ScriptMain;
 
 /// Difficulty rating.
 #[derive(

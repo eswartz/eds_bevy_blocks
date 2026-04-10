@@ -11,16 +11,20 @@
         %new = ADD %cnt, 1
         STORE %outer, cnt, %new
 
-        CONSUME_FUEL 1000
+        CONSUME_FUEL 1
 
-        CALL_INTRINSIC print, ["[", %task, " > ", %ent, ":", %new, " "]
+        //CALL_INTRINSIC print, ["[", %task, " > ", %ent, ":", %new, "] "]
 
-        CONSUME_FUEL 100
+        // CALL_INTRINSIC print, ["[", %task, " > ", %ent, ":", %new, " "]
 
-        CALL_INTRINSIC print, [%ent, ":", %new, " "]
+        // CONSUME_FUEL 100
 
-        CONSUME_FUEL 1000
-        CALL_INTRINSIC print, [%ent, ":", %new, "]\n"]
+        // CALL_INTRINSIC print, [%ent, ":", %new, " "]
+
+        // CONSUME_FUEL 1000
+        // CALL_INTRINSIC print, [%ent, ":", %new, "]\n"]
+
+        //CONSUME_FUEL 100000
 
         RETURN nil
     }
@@ -36,6 +40,12 @@
 
     %on_update = CALL %make_on_update, []
 
-    %module = NEW_STRUCT [`side_length, 2, `on_update, %on_update, `static, false]
+    %module = NEW_STRUCT [
+        `side_length, 10,
+        `on_update, %on_update,
+        `boom_mass, 25000.0,
+        `block_mass, 250.0,
+        `static, false,
+    ]
     CONSUME_FUEL 3
     RETURN %module

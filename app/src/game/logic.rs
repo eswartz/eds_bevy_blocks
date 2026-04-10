@@ -26,7 +26,7 @@ impl Plugin for LogicPlugin {
             .add_plugins(GrabbingPlugin)
             .insert_resource(HighlightingMode::Disabled)
             .init_resource::<FirePower>()
-            .insert_resource(FirePowerStats {
+            .insert_resource(FirePowerWindup {
                 accel: 1.1,
                 max: 100.0,
                 start: 0.1,
@@ -92,13 +92,13 @@ pub struct FirePower(pub f32);
 #[derive(Resource, Debug, Reflect)]
 #[reflect(Resource)]
 #[type_path = "game"]
-pub struct FirePowerStats {
+pub struct FirePowerWindup {
     pub accel: f32,
     pub start: f32,
     pub max: f32,
 }
 
-impl FirePowerStats {
+impl FirePowerWindup {
     pub(crate) fn apply_force(&self, dt: Duration, power: f32) -> f32 {
         let q = (dt.as_secs_f32() * 64.0).min(1.0);
         let mul = 1.0.lerp(self.accel, q);
@@ -114,6 +114,7 @@ pub(crate) fn play_player_out_of_bounds(
 ) {
     let mut rng = rand::rng();
     for hit in reader.read() {
+        // Emit sound effect is we're about to be sent to start.
         if let HitDeathboxMessage::Player(_) = hit {
             commands.spawn((
                 UiSfx,
@@ -140,7 +141,7 @@ fn check_actions(
     player_q: Query<(Entity, &Transform, &ColliderAabb), With<Player>>,
     player_look_q: Query<&PlayerLook>,
     mut fire_power: ResMut<FirePower>,
-    fire_power_stats: Res<FirePowerStats>,
+    fire_power_windup: Res<FirePowerWindup>,
     time: Res<Time>,
 ) {
     // Only one player...
@@ -154,10 +155,10 @@ fn check_actions(
     };
 
     if actions.just_pressed(&UserAction::Fire) {
-        **fire_power = fire_power_stats.start;
+        **fire_power = fire_power_windup.start;
     }
     else if actions.pressed(&UserAction::Fire) {
-        **fire_power = fire_power_stats.apply_force(time.delta(), **fire_power);
+        **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
     }
     if actions.just_released(&UserAction::Fire) && **fire_power > 0. {
         // Fire something.
@@ -189,7 +190,9 @@ fn check_actions(
 
     grabbed_opt: Option<Res<GrabbedItem>>,
     mut fire_power: ResMut<FirePower>,
-    fire_power_stats: Res<FirePowerStats>,
+    fire_power_windup: Res<FirePowerWindup>,
+
+    boom_mass: Res<BoomMass>,
     time: Res<Time>,
 ) {
     if let Ok(select) = select_events.single() {
@@ -213,10 +216,10 @@ fn check_actions(
 
     if let Ok(fire) = fire_events.single() {
         if fire.contains(ActionEvents::START) {
-            **fire_power = fire_power_stats.start;
+            **fire_power = fire_power_windup.start;
         }
         else if fire.contains(ActionEvents::FIRE) {
-            **fire_power = fire_power_stats.apply_force(time.delta(), **fire_power);
+            **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
         }
         else if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
             // Fire something.
@@ -228,7 +231,7 @@ fn check_actions(
             let power = **fire_power;
 
             do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
-                fx, materials, meshes, highlighting_mode);
+                fx, materials, meshes, &boom_mass, highlighting_mode);
 
             **fire_power = 0.;
         }
@@ -248,6 +251,7 @@ fn do_fire(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
+    boom_mass: &BoomMass,
     mut highlighting_mode: ResMut<HighlightingMode>,
 ) -> bool {
     let vel = xfrm.rotation * Vec3::NEG_Z * power;
@@ -275,14 +279,14 @@ fn do_fire(
             Mesh3d(mesh.clone()),
             MeshMaterial3d(mat.clone()),
             xfrm,
-            DespawnAfter(Duration::from_secs(120)),
+            // DespawnAfter(Duration::from_secs(120)),
         ), (
             Spawned,
             Projectile,
             CrosshairTargetable,
             CollisionEventsEnabled,
             LinearVelocity(vel.adjust_precision()),
-            Mass(250.0),
+            Mass(boom_mass.0),
             Friction::new(0.25),
             Restitution::new(0.5),
             SweptCcd::default(),

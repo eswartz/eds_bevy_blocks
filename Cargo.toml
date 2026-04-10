@@ -39,9 +39,9 @@ opt-level = 1
 [profile.dev.package.avian3d]
 opt-level = 2
 [profile.dev.package.parry3d]
-opt-level = 3
+opt-level = 2
 [profile.dev.package.csgrs]
-opt-level = 3
+opt-level = 2
 # [profile.dev.package.rustysynth]
 # opt-level = 3
 # [profile.dev.package.xsynth-core]
@@ -112,7 +112,7 @@ tracing = { version = "0.1", features = [
 ] }
 console_log = "1.0.0"
 
-avian3d = { version = "0.6", default-features = false, features = [
+avian3d = { version = "0.7.0-dev", default-features = false, features = [
 	"3d",
     "default-collider",
 	"collider-from-mesh",
@@ -184,3 +184,7 @@ thiserror = "2.0.12"
 
 fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git" }
 fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git" }
+
+[patch.crates-io]
+# bevy = { path = "../bevy-fork" }
+avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main" }

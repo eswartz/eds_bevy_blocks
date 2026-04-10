@@ -119,7 +119,7 @@ fn main() -> AppExit {
             },
         )
 
-        .insert_resource(TimeToSleep(0.02))
+        .insert_resource(TimeToSleep(0.05))
 
         .add_plugins(AppPlugin)
 
