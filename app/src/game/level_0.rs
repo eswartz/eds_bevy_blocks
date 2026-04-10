@@ -60,7 +60,6 @@ fn on_level_loaded(
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
     const CUBE_SIZE: f32 = 0.75;
-    const CUBE_MASS: f32 = 50.0 * 2.0 / 5.0;
 
     // Spawn cube stacks
     let mat = materials.add(Color::srgb(0.2, 0.7, 0.9));
@@ -109,7 +108,7 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_block_mass)
+    let cube_mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_block_mass)
     && let Some(mass) = RtNumber::new(&mass) {
         mass.value_real() as f32
     } else {
@@ -150,7 +149,7 @@ fn on_level_loaded(
                         LinearDamping(0.25),
                         AngularDamping(0.25),
                         // CenterOfMass::new(0., -cube_size / 4.0, 0.0),
-                        Mass(CUBE_MASS),
+                        Mass(cube_mass),
                         CollisionMargin(0.0),
                         // CollisionMargin(0.01),
                     ),
