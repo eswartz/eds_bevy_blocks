@@ -1,6 +1,7 @@
 
 mod logic;
 mod sound;
+mod script_debug;
 mod level_0;
 // mod level_1;
 // mod level_2;
@@ -15,12 +16,12 @@ use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::FedryScriptingPlugin;
 use fedry_bevy_plugin::prelude::register_script_key;
-use fedry_bevy_plugin::script::ScriptMarker;
 pub use logic::*;
 use strum::{EnumIter, VariantArray};
 
 use std::time::Duration;
 
+use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
 use eds_bevy_common::*;
 use crate::player_spawning::spawn_player;
@@ -43,6 +44,7 @@ impl Plugin for GamePlugin {
             .add_plugins(LogicPlugin)
             .add_plugins(SoundPlugin)
             .add_plugins(FedryScriptingPlugin)
+            .add_plugins(ScriptDebugPlugin)
 
             .init_resource::<LevelDifficulty>()
 
@@ -166,36 +168,10 @@ impl Plugin for GamePlugin {
                     .run_if(in_state(ProgramState::InGame))
                 ,
             )
-
-            .add_systems(
-                Startup,
-                add_script_provider.run_if(resource_exists::<StatsRegistry>)
-            )
         ;
 
         register_script_key::<ScriptMain>(app);
     }
-}
-
-#[derive(Default)]
-pub struct ScriptCountProvider;
-
-impl StatsProvider for ScriptCountProvider {
-    fn get_label(&self) -> String {
-        "Script Entities".to_string()
-    }
-
-    fn format_value(&self, world: &World) -> String {
-        if let Some(mut query) = world.try_query::<&ScriptMarker>() {
-            format!("{}", query.iter(world).len())
-        } else {
-            String::new()
-        }
-    }
-}
-
-fn add_script_provider(mut regy: ResMut<eds_bevy_common::StatsRegistry>) {
-    regy.add_provider(Box::new(ScriptCountProvider));
 }
 
 /// Current difficulty.
