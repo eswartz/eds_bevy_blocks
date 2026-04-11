@@ -112,7 +112,7 @@ tracing = { version = "0.1", features = [
 ] }
 console_log = "1.0.0"
 
-avian3d = { version = "0.6", default-features = false, features = [
+avian3d = { version = "0.7.0-dev", default-features = false, features = [
 	"3d",
     "default-collider",
 	"collider-from-mesh",

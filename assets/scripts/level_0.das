@@ -17,7 +17,7 @@
 
         // CALL_INTRINSIC print, ["[", %task, " > ", %ent, ":", %new, " "]
 
-        // CONSUME_FUEL 100
+        CONSUME_FUEL 100
 
         // CALL_INTRINSIC print, [%ent, ":", %new, " "]
 
@@ -41,10 +41,10 @@
     %on_update = CALL %make_on_update, []
 
     %module = NEW_STRUCT [
-        `side_length: 10,
+        `side_length: 11,
         `on_update: %on_update,
         `boom_mass: 25000.0,
-        `block_mass: 250.0,
+        `block_mass: 50.0,
         `static: false,
     ]
     CONSUME_FUEL 3

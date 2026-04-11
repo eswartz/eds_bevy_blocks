@@ -552,9 +552,8 @@ dependencies = [
 
 [[package]]
 name = "avian3d"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0751cde05c2be789fad86cd19219daf8a8907e0c6c2175f2c8144706493f010"
+version = "0.7.0-dev"
+source = "git+https://github.com/Jondolf/avian.git?branch=main#25db6df55aaa1fa460b005d3ee2f341cbf10b918"
 dependencies = [
  "approx",
  "avian_derive",
@@ -577,8 +576,7 @@ dependencies = [
 [[package]]
 name = "avian_derive"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12b257f601a1535e0d4a7a7796f535e3a13de62fd422b16dff7c14d27f0d4048"
+source = "git+https://github.com/Jondolf/avian.git?branch=main#25db6df55aaa1fa460b005d3ee2f341cbf10b918"
 dependencies = [
  "proc-macro-error2",
  "proc-macro2",
@@ -10385,8 +10383,3 @@ version = "0.1.0"
 [[patch.unused]]
 name = "fedry"
 version = "0.1.0"
-
-[[patch.unused]]
-name = "avian3d"
-version = "0.7.0-dev"
-source = "git+https://github.com/Jondolf/avian.git?branch=main#25db6df55aaa1fa460b005d3ee2f341cbf10b918"
