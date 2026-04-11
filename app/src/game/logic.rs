@@ -188,6 +188,8 @@ fn check_actions(
     materials: ResMut<Assets<StandardMaterial>>,
     meshes: ResMut<Assets<Mesh>>,
 
+    world: Res<WorldMarkerEntity>,
+
     grabbed_opt: Option<Res<GrabbedItem>>,
     mut fire_power: ResMut<FirePower>,
     fire_power_windup: Res<FirePowerWindup>,
@@ -231,7 +233,7 @@ fn check_actions(
             let power = **fire_power;
 
             do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
-                fx, materials, meshes, &boom_mass, highlighting_mode);
+                fx, materials, meshes, world, &boom_mass, highlighting_mode);
 
             **fire_power = 0.;
         }
@@ -250,6 +252,8 @@ fn do_fire(
     fx: Res<CommonFxAssets>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
+
+    world: Res<WorldMarkerEntity>,
 
     boom_mass: &BoomMass,
     mut highlighting_mode: ResMut<HighlightingMode>,
@@ -275,6 +279,7 @@ fn do_fire(
         let mesh = meshes.add(Cuboid::from_size(size));
 
         commands.spawn(((
+            ChildOf(world.0),
             Name::new("BOOM"),
             Mesh3d(mesh.clone()),
             MeshMaterial3d(mat.clone()),
