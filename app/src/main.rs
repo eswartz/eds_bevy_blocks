@@ -201,7 +201,7 @@ fn main() -> AppExit {
                     bevy::dev_tools::states::log_transitions::<LevelState>,
                 ),
             )
-            .add_plugins(crate::fps::FpsOverlayPlugin)
+            .add_plugins(crate::stats::StatsOverlayPlugin)
             .insert_resource(GuiState {
                 show_fps: true,
                 ..default()
