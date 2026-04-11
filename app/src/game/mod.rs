@@ -169,7 +169,7 @@ impl Plugin for GamePlugin {
 
             .add_systems(
                 Startup,
-                add_script_provider
+                add_script_provider.run_if(resource_exists::<StatsRegistry>)
             )
         ;
 
