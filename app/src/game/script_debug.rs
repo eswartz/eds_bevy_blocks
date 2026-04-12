@@ -2,7 +2,7 @@
 use fedry_bevy_plugin::script::ScriptMarker;
 use eds_bevy_common::*;
 use bevy::prelude::*;
-use fedry_bevy_plugin::script::ScriptStatsDebug;
+use fedry_bevy_plugin::script::ScriptStatsHistory;
 
 pub struct ScriptDebugPlugin;
 
@@ -43,7 +43,7 @@ impl StatsProvider for ScriptTimeProvider {
     }
 
     fn format_value(&self, world: &World) -> String {
-        if let Some(stats) = world.get_resource::<ScriptStatsDebug>() {
+        if let Some(stats) = world.get_resource::<ScriptStatsHistory>() {
             format!("{:.2?}", stats.recent_avg.script_time)
         } else {
             String::new()
