@@ -128,6 +128,7 @@ avian3d = { version = "0.7.0-dev", default-features = false, features = [
 
 bevy_egui = { version = "0.39", features = ["render", "serde"] }
 bevy-inspector-egui = { version = "0.36" }
+egui = { version = "0.33", features = ["bytemuck"] }
 
 firewheel = { version = "0.10" }
 

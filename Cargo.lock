@@ -3503,7 +3503,6 @@ dependencies = [
 [[package]]
 name = "eds_bevy_common"
 version = "0.0.8"
-source = "git+https://github.com/eswartz/eds_bevy_common.git#bec05e042129d043bfcfeed778bb0cb14cb1217c"
 dependencies = [
  "anyhow",
  "avian3d",
@@ -3882,10 +3881,12 @@ dependencies = [
 [[package]]
 name = "fedry_bevy_plugin"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eswartz/fedry.git#6afcf48ae8962ff6e303b6beea2e0f53ce0dc9e8"
 dependencies = [
  "arraydeque",
  "bevy",
+ "bevy-inspector-egui",
+ "bevy_egui",
+ "egui",
  "fedry_runtime",
  "thiserror 2.0.18",
 ]
@@ -3893,7 +3894,6 @@ dependencies = [
 [[package]]
 name = "fedry_runtime"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eswartz/fedry.git#6afcf48ae8962ff6e303b6beea2e0f53ce0dc9e8"
 dependencies = [
  "anyhow",
  "arraydeque",
@@ -10378,3 +10378,11 @@ checksum = "27bc9d5b815bc103f142aa054f561d9187d191692ec7c2d1e2b4737f8dbd7296"
 dependencies = [
  "zune-core",
 ]
+
+[[patch.unused]]
+name = "fedry"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "fedry"
+version = "0.1.0"
