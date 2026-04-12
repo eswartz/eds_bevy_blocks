@@ -59,7 +59,8 @@
     %on_update = CALL %make_on_update, []
 
     %module = NEW_STRUCT [
-        `side_length: 15,
+        `block_size: 0.25,
+        `side_length: 12,
         `on_update: %on_update,
         `boom_mass: 25000.0,
         `block_mass: 500.0,

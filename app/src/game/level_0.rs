@@ -9,6 +9,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtNumber;
+use fedry_runtime::prelude::RtReal;
 use fedry_runtime::prelude::RtSInt;
 
 pub(crate) const ID: &str = "level0";
@@ -59,25 +60,6 @@ fn on_level_loaded(
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
-    const CUBE_SIZE: f32 = 0.75;
-
-    // Spawn cube stacks
-    let mat = materials.add(Color::srgb(0.2, 0.7, 0.9));
-    let cube_mesh = meshes.add(Cuboid::new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE));
-
-    #[allow(unused)]
-    let cuboid_size = CUBE_SIZE * 0.95;
-    #[allow(unused)]
-    let cuboid_round = (CUBE_SIZE - cuboid_size) / 2.0;
-
-    const CUBE_GAP: f32 = 0.05;
-    let axis_scale = Vec3::splat(CUBE_SIZE + CUBE_GAP);
-
-    let collider = Collider::cuboid(
-        CUBE_SIZE as Scalar,
-        CUBE_SIZE as Scalar,
-        CUBE_SIZE as Scalar,
-    );
 
     let script: Script<ScriptMain> = Script::new(modules
         .get(&script_assets.level_0)
@@ -86,6 +68,32 @@ fn on_level_loaded(
         "on_update",
         ExecutionMode::RunInChunks,
     )?;
+
+    let cube_size = if let Some(size) = script.get_module().map().get(&scripting.rt.pool.for_str("block_size"))
+    && let Some(size) = RtReal::new(&size) {
+        *size as f32
+    } else {
+        0.75
+    };
+
+    // Spawn cube stacks
+    let mat = materials.add(Color::srgb(0.2, 0.7, 0.9));
+    let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
+
+    #[allow(unused)]
+    let cuboid_size = cube_size * 0.95;
+    #[allow(unused)]
+    let cuboid_round = (cube_size - cuboid_size) / 2.0;
+
+    const CUBE_GAP: f32 = 0.05;
+    let axis_scale = Vec3::splat(cube_size + CUBE_GAP);
+
+    let collider = Collider::cuboid(
+        cube_size as Scalar,
+        cube_size as Scalar,
+        cube_size as Scalar,
+    );
+
     let half_size = if let Some(side_length) = script.get_module().map().get(&scripting.atom_side_length)
     && let Some(side_length) = RtSInt::new(&side_length) {
         *side_length as i32 / 2
