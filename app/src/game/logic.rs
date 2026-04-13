@@ -186,11 +186,17 @@ fn check_actions(
     exist_q: Query<Entity>,
     fx: Res<CommonFxAssets>,
     materials: ResMut<Assets<StandardMaterial>>,
-    meshes: ResMut<Assets<Mesh>>,
+
+    mut mesh_params: ParamSet<(
+        (ResMut<Assets<Mesh>>,),
+        (MeshRayCast,)
+    )
+    >,
 
     world: Res<WorldMarkerEntity>,
 
     grabbed_opt: Option<Res<GrabbedItem>>,
+
     mut fire_power: ResMut<FirePower>,
     fire_power_windup: Res<FirePowerWindup>,
 
@@ -227,13 +233,25 @@ fn check_actions(
             // Fire something.
 
             // FIXME: needs to be outside character collider.
-            let pos = position + look.rotation * Vec3::NEG_Z * 0.5;
+            let mut pos = position + look.rotation * Vec3::NEG_Z;
+
+            let ray = Ray3d::new(player_xfrm.translation, look.rotation * Dir3::NEG_Z);
+            let mut params = mesh_params.p1();
+            let hits = params.0.cast_ray(ray, &MeshRayCastSettings::default()
+                .always_early_exit()
+                .with_visibility(RayCastVisibility::Visible),
+            );
+            if let Some(hit) = hits.get(0) {
+                // Adjust to world.
+                // pos = hit.1.distance;
+                pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.min(1.0));
+            }
 
             let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
             let power = **fire_power;
 
             do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
-                fx, materials, meshes, world, &boom_mass, highlighting_mode);
+                fx, materials, mesh_params.p0().0, world, &boom_mass, highlighting_mode);
 
             **fire_power = 0.;
         }
