@@ -76,6 +76,13 @@ fn on_level_loaded(
         0.75
     };
 
+    let cube_mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_block_mass)
+    && let Some(mass) = RtNumber::new(&mass) {
+        mass.value_real() as f32
+    } else {
+        10.0f32
+    };
+
     // Spawn cube stacks
     let mat = materials.add(Color::srgb(0.2, 0.7, 0.9));
     let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
@@ -93,6 +100,12 @@ fn on_level_loaded(
         cube_size as Scalar,
         cube_size as Scalar,
     );
+    // let collider = Collider::round_cuboid(
+    //     (cube_size - 0.05 * 2.0) as Scalar,
+    //     (cube_size - 0.05 * 2.0) as Scalar,
+    //     (cube_size - 0.05 * 2.0) as Scalar,
+    //     0.05
+    // );
 
     let half_size = if let Some(side_length) = script.get_module().map().get(&scripting.atom_side_length)
     && let Some(side_length) = RtSInt::new(&side_length) {
@@ -115,13 +128,6 @@ fn on_level_loaded(
         50.0f32
     };
     commands.insert_resource(BoomMass(boom_mass));
-
-    let cube_mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_block_mass)
-    && let Some(mass) = RtNumber::new(&mass) {
-        mass.value_real() as f32
-    } else {
-        10.0f32
-    };
 
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
     for x in -half_size..half_size {
