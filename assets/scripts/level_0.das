@@ -32,12 +32,12 @@
         CONSUME_FUEL 10
         CALL_INTRINSIC spin, [1000]
         CONSUME_FUEL 1000
-        CALL_INTRINSIC spin, [1000]
-        CONSUME_FUEL 1000
-        CALL_INTRINSIC spin, [1000]
-        CONSUME_FUEL 1000
-        CALL_INTRINSIC spin, [1000]
-        CONSUME_FUEL 1000
+        // CALL_INTRINSIC spin, [100]
+        // CONSUME_FUEL 1000
+        // CALL_INTRINSIC spin, [100]
+        // CONSUME_FUEL 1000
+        CALL_INTRINSIC spin, [100]
+        CONSUME_FUEL 100
         CALL_INTRINSIC spin, [1000]
         CONSUME_FUEL 1000
 
@@ -59,10 +59,10 @@
     %on_update = CALL %make_on_update, []
 
     %module = NEW_STRUCT [
-        `block_size: 0.25,
-        `side_length: 12,
+        `block_size: 0.333,
+        `side_length: 11,
         `on_update: %on_update,
-        `boom_mass: 25000.0,
+        `boom_mass: 250000.0,
         `block_mass: 500.0,
         `static: false,
     ]
