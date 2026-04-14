@@ -14,8 +14,8 @@ use bevy::ecs::query::QueryData;
 use bevy::mesh::{VertexAttributeValues, triangle_normal};
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
-use fedry_bevy_plugin::FedryScriptingPlugin;
-use fedry_bevy_plugin::prelude::register_script_key;
+use fedry_bevy_plugin::{FedryScriptingPlugin, pause_scripting, unpause_scripting};
+use fedry_bevy_plugin::prelude::{ScriptControl, register_script_key};
 pub use logic::*;
 use strum::{EnumIter, VariantArray};
 
@@ -101,21 +101,22 @@ impl Plugin for GamePlugin {
                 (
                     start_skybox_setup,
                     show_instructions,
+                    unpause_scripting,
                 ).chain()
-                    .run_if(in_state(ProgramState::InGame))
             )
 
             .add_systems(OnExit(LevelState::Playing),
-                hide_instructions,
+                (
+                    hide_instructions,
+                    pause_scripting,
+                )
             )
 
             .add_systems(OnEnter(LevelState::Playing),
                 show_power_bar
-                    .run_if(in_state(ProgramState::InGame))
             )
             .add_systems(OnExit(LevelState::Playing),
                 remove_power_bar
-                    .run_if(in_state(ProgramState::InGame))
             )
             .add_systems(
                 Update,
@@ -601,6 +602,18 @@ fn init_player_settings(
     } else {
         log::warn!("no PlayerCameraMode in LevelRoot");
     }
+}
+
+fn start_scripting(
+    mut control: ResMut<ScriptControl>,
+) {
+    control.set_paused(false);
+}
+
+fn stop_scripting(
+    mut control: ResMut<ScriptControl>,
+) {
+    control.set_paused(true);
 }
 
 fn start_skybox_setup(

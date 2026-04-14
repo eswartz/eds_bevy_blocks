@@ -13,7 +13,7 @@
         //%tns2 = ADD %t, %tns
         //%tn = MOD %tns2, 0xa00
         %tn = MOD %t, 0xa00
-        %tnc = ADD %tn, 0x2000
+        %tnc = ADD %tn, 0x1f400
         %ts = CALL_INTRINSIC char_to_string, [%tnc]
 
         CONSUME_FUEL 5
