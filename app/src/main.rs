@@ -85,7 +85,31 @@ fn main() -> AppExit {
                         address_mode_w: ImageAddressMode::Repeat,
                         ..ImageSamplerDescriptor::linear()
                     },
-                }),
+                })
+                // .set(TaskPoolPlugin {
+                //     task_pool_options: TaskPoolOptions {
+                //         min_total_threads: 1,
+                //         max_total_threads: std::usize::MAX, // unlimited threads
+                //         async_compute: TaskPoolThreadAssignmentPolicy {
+                //             min_threads: 4,
+                //             max_threads: 8,
+                //             percent: 1.0,
+                //             on_thread_spawn: None,
+                //             on_thread_destroy: None,
+
+                //         },
+                //         compute: TaskPoolThreadAssignmentPolicy {
+                //             min_threads: 4,
+                //             max_threads: 8,
+                //             percent: 0.25,
+                //             on_thread_spawn: None,
+                //             on_thread_destroy: None,
+
+                //         },
+                //         .. default()
+                //     }
+                // })
+                ,
             SkeinPlugin::default(),
         ))
 

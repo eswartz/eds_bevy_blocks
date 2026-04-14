@@ -67,6 +67,7 @@ fn on_level_loaded(
         )?,
         "on_update",
         ExecutionMode::RunInChunks,
+        // ExecutionMode::RunFully,
     )?;
 
     let cube_size = if let Some(size) = script.get_module().map().get(&scripting.rt.pool.for_str("block_size"))
@@ -76,7 +77,7 @@ fn on_level_loaded(
         0.75
     };
 
-    let cube_mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_block_mass)
+    let cube_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "block_mass")
     && let Some(mass) = RtNumber::new(&mass) {
         mass.value_real() as f32
     } else {
@@ -107,21 +108,22 @@ fn on_level_loaded(
     //     0.05
     // );
 
-    let half_size = if let Some(side_length) = script.get_module().map().get(&scripting.atom_side_length)
-    && let Some(side_length) = RtSInt::new(&side_length) {
-        *side_length as i32 / 2
+    let half_size = if let Some(half_side_length) = scripting.get_struct_value(script.get_module(),
+    "half_side_length")
+    && let Some(half_side_length) = RtSInt::new(&half_side_length) {
+        *half_side_length as i32
     } else {
         6
     };
 
-    let rigid_body = if let Some(is_static) = script.get_module().map().get(&scripting.atom_static)
+    let rigid_body = if let Some(is_static) = scripting.get_struct_value(script.get_module(), "static")
     && is_static.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
     };
 
-    let boom_mass = if let Some(mass) = script.get_module().map().get(&scripting.atom_boom_mass)
+    let boom_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
         mass.value_real() as f32
     } else {
