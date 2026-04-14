@@ -65,6 +65,7 @@ fn on_level_loaded(
         .get(&script_assets.level_0)
         .ok_or(anyhow::anyhow!("missing script asset"),
         )?,
+        &scripting.rt,
         "on_update",
         ExecutionMode::RunInChunks,
         // ExecutionMode::RunFully,
