@@ -8,10 +8,11 @@ authors = ["Ed Swartz (github.com/eswartz)"]
 
 [features]
 # default = ["input_lim"]
-default = ["reqs",]
+default = ["reqs", "ebc"]
 reqs = ["input_bei", "gltf/EXT_texture_webp", "eds_bevy_common/highlighting", "eds_bevy_common/grabbing"]
 input_lim = ["dep:leafwing-input-manager", "eds_bevy_common/input_lim"]
 input_bei = ["dep:bevy_enhanced_input", "eds_bevy_common/input_bei"]
+ebc = ["fedry_bevy_plugin/ebc"]
 
 # bevy_cli required features
 release = [
