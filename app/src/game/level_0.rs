@@ -61,10 +61,8 @@ fn on_level_loaded(
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
 
-    let script: Script<ScriptMain> = Script::new(modules
-        .get(&script_assets.level_0)
-        .ok_or(anyhow::anyhow!("missing script asset"),
-        )?,
+    let script: Script<ScriptMain> = Script::new(&modules,
+        script_assets.level_0.clone(),
         &scripting.rt,
         "on_update",
         ExecutionMode::Async,
