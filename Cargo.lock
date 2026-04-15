@@ -3886,6 +3886,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_egui",
+ "eds_bevy_common",
  "egui",
  "fedry_runtime",
  "thiserror 2.0.18",

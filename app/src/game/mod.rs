@@ -15,7 +15,7 @@ use bevy::mesh::{VertexAttributeValues, triangle_normal};
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::{FedryScriptingPlugin, pause_scripting, unpause_scripting};
-use fedry_bevy_plugin::prelude::{ScriptControl, register_script_key};
+use fedry_bevy_plugin::prelude::register_script_key;
 pub use logic::*;
 use strum::{EnumIter, VariantArray};
 
@@ -602,18 +602,6 @@ fn init_player_settings(
     } else {
         log::warn!("no PlayerCameraMode in LevelRoot");
     }
-}
-
-fn start_scripting(
-    mut control: ResMut<ScriptControl>,
-) {
-    control.set_paused(false);
-}
-
-fn stop_scripting(
-    mut control: ResMut<ScriptControl>,
-) {
-    control.set_paused(true);
 }
 
 fn start_skybox_setup(

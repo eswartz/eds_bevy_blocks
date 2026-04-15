@@ -59,7 +59,7 @@
 
     %module = NEW_STRUCT [
         `block_size: 0.5,
-        `half_side_length: 5,
+        `half_side_length: 8,
         `on_update: %on_update,
         `boom_mass: 250000.0,
         `block_mass: 500.0,
