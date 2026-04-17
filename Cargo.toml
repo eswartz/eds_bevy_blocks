@@ -64,7 +64,9 @@ debug-assertions = false
 # opt-level = 1
 
 [workspace.dependencies]
-eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", features = ["firewheel", "bevy_skein", "highlighting", "input_bei"] }
+eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", features = ["firewheel", "bevy_skein", "highlighting", "grabbing", "input_bei", "midi_synth"] }
+fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git" }
+fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git", features = ["egui", "ebc", "midi_synth"] }
 
 game = { path = "game" }
 
@@ -112,7 +114,7 @@ tracing = { version = "0.1", features = [
 ] }
 console_log = "1.0.0"
 
-avian3d = { version = "0.7.0-dev", default-features = false, features = [
+avian3d = { version = "0.6.0", default-features = false, features = [
 	"3d",
     "default-collider",
 	"collider-from-mesh",
@@ -182,9 +184,6 @@ crossbeam-channel = "0.5.15"
 # glam = { version = "0.31", features = ["mint"] }
 
 thiserror = "2.0.12"
-
-fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git" }
-fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git" }
 
 [patch.crates-io]
 # bevy = { path = "../bevy-fork" }

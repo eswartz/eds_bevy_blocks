@@ -46,58 +46,59 @@ impl Plugin for AudioPlugin {
     }
 }
 
-fn initialize_audio(master: Single<Entity, With<MainBus>>, mut commands: Commands) {
-    commands.entity(*master).insert(UserVolume {
-        volume: Volume::Linear(0.5),
-        muted: false,
-    });
+// fn initialize_audio(master: Single<Entity, With<MainBus>>, mut commands: Commands) {
+//     commands.entity(*master).insert(UserVolume {
+//         volume: Volume::Linear(0.5),
+//         muted: false,
+//     });
 
-    const DEFAULT_POOL_VOLUME: Volume = Volume::Linear(1.0);
+//     const DEFAULT_POOL_VOLUME: Volume = Volume::Linear(1.0);
 
-    // For each new pool, we can provide non-default initial values for the volume.
-    commands.spawn((
-        Name::new("Music"),
-        SamplerPool(Music),
-        UserVolume {
-            volume: DEFAULT_POOL_VOLUME,
-            muted: false,
-        },
-        PoolSize(2 ..= 4),
+//     // For each new pool, we can provide non-default initial values for the volume.
+//     commands.spawn((
+//         Name::new("Music"),
+//         SamplerPool(Music),
+//         UserVolume {
+//             volume: DEFAULT_POOL_VOLUME,
+//             muted: false,
+//         },
+//         PoolSize(2 ..= 4),
 
-        MusicBus,
+//         MusicBus,
 
-        // So we can apply fading.
-        sample_effects![
-            VolumeNode::default(),
-        ],
+//         // So we can apply fading.
+//         sample_effects![
+//             VolumeNode::default(),
+//         ],
 
-    ))
-    ;
-    commands.spawn((
-        Name::new("SFX"),
-        SamplerPool(Sfx),
-        sample_effects![(
-            SpatialBasicNode {
-                panning_threshold: 0.9,
-                ..default()
-            },
-        )],
-        UserVolume {
-            volume: DEFAULT_POOL_VOLUME,
-            muted: false,
-        },
-        PoolSize(8 ..= 32),
-    ));
-    commands.spawn((
-        Name::new("UI"),
-        SamplerPool(UiSfx),
-        UserVolume {
-            volume: DEFAULT_POOL_VOLUME,
-            muted: false,
-        },
-        PoolSize(2 ..= 8),
-    ));
-}
+//     ))
+//     ;
+//     commands.spawn((
+//         Name::new("SFX"),
+//         SamplerPool(Sfx),
+//         sample_effects![(
+//             SpatialBasicNode {
+//                 panning_threshold: 0.9,
+//                 ..default()
+//             },
+//             SpatialScale(Vec3::splat(10.0))
+//         )],
+//         UserVolume {
+//             volume: DEFAULT_POOL_VOLUME,
+//             muted: false,
+//         },
+//         PoolSize(8 ..= 32),
+//     ));
+//     commands.spawn((
+//         Name::new("UI"),
+//         SamplerPool(UiSfx),
+//         UserVolume {
+//             volume: DEFAULT_POOL_VOLUME,
+//             muted: false,
+//         },
+//         PoolSize(2 ..= 8),
+//     ));
+// }
 
 // /// Add background music, which resets when the game starts or stops.
 // #[allow(unused)]

@@ -8,6 +8,9 @@ mod actions;
 mod camera;
 mod game;
 
+#[cfg(target_arch = "wasm32")]
+use console_log;
+
 use crate::assets::*;
 use crate::audio::AudioPlugin;
 use crate::camera::ensure_3d_camera;
@@ -31,13 +34,15 @@ use bevy::light::NotShadowCaster;
 use bevy_asset_loader::prelude::*;
 use bevy_skein::SkeinPlugin;
 
+use eds_bevy_common::synth::SynthPlugin;
+use eds_bevy_common::client_synth::ClientSynthPlugin;
+use eds_bevy_common::midi_synth::prelude::MidiSynthPlugin;
+
 #[cfg(feature = "input_lim")]
 use leafwing_input_manager::prelude::*;
 
 use eds_bevy_common::*;
 
-#[cfg(target_arch = "wasm32")]
-use console_log;
 
 fn main() -> AppExit {
     let res = find_runtime_base_directory_by_folder("assets");
@@ -154,12 +159,16 @@ fn main() -> AppExit {
         .add_plugins(GuiPlugin)
         .add_plugins(WorldUiPlugin)
         .add_plugins(WorldStatePlugin)
-        .add_plugins(AudioPlugin)
         .add_plugins(CrosshairPlugin)
         .add_plugins(EffectsPlugin)
         .add_plugins(SkyboxPlugin)
         .add_plugins(LevelsPlugin)
         .add_plugins(DeathboxPlugin::default())
+
+        .add_plugins(AudioPlugin)
+        .add_plugins(MidiSynthPlugin)
+        .add_plugins(SynthPlugin)
+        .add_plugins(ClientSynthPlugin)
 
         .add_plugins(PlayerCameraPlugin)
         .add_plugins(PlayerInputPlugin)

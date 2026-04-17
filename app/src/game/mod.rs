@@ -36,10 +36,15 @@ use bevy::{
     scene::SceneInstanceReady,
 };
 
+use eds_bevy_common::synth::*;
+use eds_bevy_common::client_synth::*;
+use eds_bevy_common::midi_synth::prelude::*;
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
+
         app
             .add_plugins(LogicPlugin)
             .add_plugins(SoundPlugin)
@@ -169,8 +174,14 @@ impl Plugin for GamePlugin {
                     .run_if(in_state(ProgramState::InGame))
                 ,
             )
-        ;
 
+            .add_systems(First,
+                spawn_midi_synths.run_if(resource_exists::<CommonSoundFontAssets>)
+                    .run_if(not(is_in_menu))
+                    .run_if(in_state(ProgramState::InGame)),
+            )
+
+        ;
         register_script_key::<ScriptMain>(app);
     }
 }
@@ -901,4 +912,45 @@ fn update_power_bar(
     if fire_power.is_changed() {
         alpha_q.0 = (**fire_power / 50.0).clamp(0.0, 1.0);
     }
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub(crate) struct OurMidiSynth;
+
+pub(crate) fn spawn_midi_synths(
+    mut commands: Commands,
+    sf_assets: Res<CommonSoundFontAssets>,
+    muted: Res<MidiSynthsPaused>,
+    synth_q: Query<Entity, (With<OurMidiSynth>, Without<MidiSynth>)>,
+    mut synth_map: ResMut<SynthProxyMap>,
+) -> Result<()> {
+    let params = MidiSynthParams::default();
+
+    // let ent = sfx_bus.iter().filter_map(|(ent, sfx)| if matches!(sfx, SamplerPool<Sfx>) { Some(ent) } else { None }).next().unwrap();
+
+    for ent in synth_q.iter() {
+        let (sample_sender, sample_receiver) = crossbeam_channel::unbounded();
+        let synth = MidiSynth::new(
+            params.clone(),
+            sf_assets.timgm6mb.clone(),
+            muted.0.clone(),
+            ent,
+            sample_sender,
+            sample_receiver,
+        )?;
+        commands.entity(ent).insert((
+            synth,
+            Sfx,
+        ));
+
+        synth_map.register_synth(ent);
+
+        commands.write_message(SynthMessage::new(ent, SynthCommand::Reset));
+
+        // let volume_id = commands.spawn(VolumeNode::default()).id();
+        // commands.entity(ent).connect(volume_id);
+    }
+
+    Ok(())
 }
