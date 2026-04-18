@@ -20,7 +20,7 @@ next:
 fwd:
         %note = MOD %t, 0x6f
         %note = ADD %note, 0x10
-        %delayi = MOD %t, 0x3f     // speed here
+        %delayi = MOD %t, 0xff     // speed here
         %delay: RealF = DIV %delayi, 256.0
 
         %xmsg = NEW_STRUCT [
@@ -43,7 +43,7 @@ fwd:
             entity: %ent,
             channel: %channel,
             note: %note,
-            velocity: 0.75,
+            velocity: 1,
         ]
         CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %onmsg]
 
@@ -88,7 +88,7 @@ fwd:
         `block_size: 0.375,
         `half_side_length: 4,
         `on_update: %on_update,
-        `boom_mass: 250000.0,
+        `boom_mass: 50000.0,
         `block_mass: 500.0,
         `static: false,
     ]

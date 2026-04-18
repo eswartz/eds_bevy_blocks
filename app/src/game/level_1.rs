@@ -37,7 +37,10 @@ impl Plugin for LevelPlugin {
         app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                    on_level_loaded.run_if(is_in_level(ID)),
+                (
+                    on_level_loaded,
+                    setup_skybox,
+                ).run_if(is_in_level(ID)),
             )
             .add_systems(
                 Update,
@@ -201,4 +204,35 @@ fn on_level_loaded(
     // commands.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)));
     // commands.insert_resource(ShakeTime(Duration::ZERO));
     Ok(())
+}
+
+fn setup_skybox(
+    mut commands: Commands,
+    cam_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
+    skyboxes: Res<SkyboxAssets>,
+) {
+    if let Ok(cam) = dbg!(cam_q.single()) {
+        let (brightness, skybox, transform) = (
+            bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
+            // bevy::prelude::light_consts::lux::CLEAR_SUNRISE,
+            skyboxes.station.clone(),
+            SkyboxTransform::From1_0_2f_3r_4_5,
+        );
+        // let with_reflection_probe = Some((cam, 100.0));
+        let with_reflection_probe = None;
+        commands.entity(cam).insert(SkyboxModel {
+            skybox: bevy::core_pipeline::Skybox {
+                image: skybox,
+                brightness,
+                ..default()
+            },
+            xfrm: transform,
+            with_reflection_probe,
+            enabled: true,
+        });
+        commands.insert_resource(SkyboxSetup {
+            waiting_skybox: true,
+            waiting_reflections: false,
+        });
+    }
 }

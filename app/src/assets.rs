@@ -30,6 +30,10 @@ pub struct MapAssets {
 
 #[derive(Resource, AssetCollection)]
 pub struct SkyboxAssets {
+    #[asset(path = "textures/dresden_station_night.exr")]
+    pub station: Handle<Image>,
+    #[asset(path = "textures/farm_field_puresky_4k.exr")]
+    pub farm_field: Handle<Image>,
 }
 
 #[derive(Resource, AssetCollection)]

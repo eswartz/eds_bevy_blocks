@@ -35,16 +35,7 @@ use bevy::prelude::*;
 use bevy::{
     scene::SceneInstanceReady,
 };
-use bevy::{
-    pbr::{ExtendedMaterial, MaterialExtension, OpaqueRendererMethod},
-    prelude::*,
-    render::render_resource::*,
-    shader::ShaderRef,
-};
 
-
-use eds_bevy_common::synth::*;
-use eds_bevy_common::client_synth::*;
 use eds_bevy_common::midi_synth::prelude::*;
 
 pub struct GamePlugin;
@@ -114,7 +105,9 @@ impl Plugin for GamePlugin {
 
             .add_systems(OnEnter(LevelState::LevelLoaded),
                 (
-                    start_skybox_setup,
+                    |mut commands: Commands| {
+                        commands.set_state(LevelState::Configuring);
+                    },
                     show_instructions,
                     unpause_scripting,
                 ).chain()
@@ -640,44 +633,44 @@ fn init_player_settings(
     }
 }
 
-fn start_skybox_setup(
-    mut commands: Commands,
-    // world_camera_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
-    // skybox_q: Query<&SkyboxSelection, With<LevelRoot>>,
-    // skyboxes: Res<SkyboxAssets>,
-) {
-    // let cam = world_camera_q.single().unwrap();
+// fn start_skybox_setup(
+//     mut commands: Commands,
+//     // world_camera_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
+//     // skybox_q: Query<&SkyboxSelection, With<LevelRoot>>,
+//     // skyboxes: Res<SkyboxAssets>,
+// ) {
+//     // let cam = world_camera_q.single().unwrap();
 
-    // let (brightness, skybox) = (light_consts::lux::CLEAR_SUNRISE, skyboxes.pure_sky.clone());
-    // // match selection {
-    // //     SkyboxSelection::Space => (100.0, skyboxes.star_map.clone()),
-    // //     SkyboxSelection::Farm => (light_consts::lux::CLEAR_SUNRISE, skyboxes.pure_sky.clone()),
-    // //     SkyboxSelection::Teeth => (light_consts::lux::LIVING_ROOM, skyboxes.mouth_sky.clone()),
-    // //     SkyboxSelection::Station => (light_consts::lux::LIVING_ROOM, skyboxes.station_sky.clone()),
-    // // };
-    // let with_reflection_probe = Some((cam, 100.0));
-    // // let with_reflection_probe = None;
-    // commands.entity(cam).insert(SkyboxModel {
-    //     skybox: Skybox {
-    //         image: skybox,
-    //         brightness,
-    //         ..default()
-    //     },
-    //     xfrm: SkyboxTransform::From1_0_2f_3f_4_5,
-    //     with_reflection_probe,
-    //     enabled: true, //state.show_skybox,
-    // });
+//     // let (brightness, skybox) = (light_consts::lux::CLEAR_SUNRISE, skyboxes.pure_sky.clone());
+//     // // match selection {
+//     // //     SkyboxSelection::Space => (100.0, skyboxes.star_map.clone()),
+//     // //     SkyboxSelection::Farm => (light_consts::lux::CLEAR_SUNRISE, skyboxes.pure_sky.clone()),
+//     // //     SkyboxSelection::Teeth => (light_consts::lux::LIVING_ROOM, skyboxes.mouth_sky.clone()),
+//     // //     SkyboxSelection::Station => (light_consts::lux::LIVING_ROOM, skyboxes.station_sky.clone()),
+//     // // };
+//     // let with_reflection_probe = Some((cam, 100.0));
+//     // // let with_reflection_probe = None;
+//     // commands.entity(cam).insert(SkyboxModel {
+//     //     skybox: Skybox {
+//     //         image: skybox,
+//     //         brightness,
+//     //         ..default()
+//     //     },
+//     //     xfrm: SkyboxTransform::From1_0_2f_3f_4_5,
+//     //     with_reflection_probe,
+//     //     enabled: true, //state.show_skybox,
+//     // });
 
 
-    // commands.insert_resource(SkyboxSetup {
-    //     waiting_skybox: true,
-    //     waiting_reflections: false,
-    // });
-    // commands.set_state(LevelState::Configuring);
-    // // } else {
-    // // }
-    commands.set_state(LevelState::Playing);
-}
+//     // commands.insert_resource(SkyboxSetup {
+//     //     waiting_skybox: true,
+//     //     waiting_reflections: false,
+//     // });
+//     // commands.set_state(LevelState::Configuring);
+//     // // } else {
+//     // // }
+//     commands.set_state(LevelState::Playing);
+// }
 
 fn show_instructions(
     mut commands: Commands,

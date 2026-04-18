@@ -53,8 +53,10 @@ fn spawn_noise_on_collision(
         let floor = floor_q.contains(event.collider1) || floor_q.contains(event.collider2);
         let target = if projectile_q.contains(event.collider1) {
             event.collider1
-        } else {
+        } else if projectile_q.contains(event.collider2) {
             event.collider2
+        } else {
+            continue
         };
         if let Ok((xfrm, vel)) = xfrm_vel_q.get(target) {
             let vel_length = vel.0.length();

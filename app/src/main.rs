@@ -177,10 +177,6 @@ fn main() -> AppExit {
         .add_plugins(PlayerMovementPlugin)
         .add_plugins(PlayerControllerPlugin)
 
-        // We need this even if !dev_tools_enabled, to avoid terrible performance
-        // along with midi_synth (why??)
-        .add_plugins(StatsOverlayPlugin)
-
         .insert_resource(OurUser(default()))
         .insert_resource(PlayerMode::Fps)
         .insert_resource(PlayerInputSettings::for_fps())
@@ -228,6 +224,9 @@ fn main() -> AppExit {
     app.add_systems(Startup, create_input_map);
 
     if dev_tools_enabled() {
+        if !app.is_plugin_added::<StatsOverlayPlugin>() {
+            app.add_plugins(StatsOverlayPlugin);
+        }
         app
             .add_plugins(DebugPlugin)
             .add_systems(
