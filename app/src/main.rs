@@ -177,6 +177,10 @@ fn main() -> AppExit {
         .add_plugins(PlayerMovementPlugin)
         .add_plugins(PlayerControllerPlugin)
 
+        // We need this even if !dev_tools_enabled, to avoid terrible performance
+        // along with midi_synth (why??)
+        .add_plugins(StatsOverlayPlugin)
+
         .insert_resource(OurUser(default()))
         .insert_resource(PlayerMode::Fps)
         .insert_resource(PlayerInputSettings::for_fps())
@@ -235,7 +239,6 @@ fn main() -> AppExit {
                     bevy::dev_tools::states::log_transitions::<LevelState>,
                 ),
             )
-            .add_plugins(crate::stats::StatsOverlayPlugin)
             .insert_resource(GuiState {
                 show_fps: true,
                 ..default()
