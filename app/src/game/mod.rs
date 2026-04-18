@@ -3,7 +3,7 @@ mod logic;
 mod sound;
 mod script_debug;
 mod level_0;
-// mod level_1;
+mod level_1;
 // mod level_2;
 // mod level_3;
 
@@ -24,7 +24,7 @@ use std::time::Duration;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
 use eds_bevy_common::*;
-use crate::player_spawning::spawn_player;
+// use crate::player_spawning::spawn_player;
 
 use bevy::asset::uuid::Uuid;
 use bevy::ecs::world::CommandQueue;
@@ -35,6 +35,13 @@ use bevy::prelude::*;
 use bevy::{
     scene::SceneInstanceReady,
 };
+use bevy::{
+    pbr::{ExtendedMaterial, MaterialExtension, OpaqueRendererMethod},
+    prelude::*,
+    render::render_resource::*,
+    shader::ShaderRef,
+};
+
 
 use eds_bevy_common::synth::*;
 use eds_bevy_common::client_synth::*;
@@ -51,10 +58,13 @@ impl Plugin for GamePlugin {
             .add_plugins(FedryScriptingPlugin)
             .add_plugins(ScriptDebugPlugin)
 
+            .add_plugins(DetailNormalPlugin)
+            .add_plugins(SplitIntoCubesPlugin)
+
             .init_resource::<LevelDifficulty>()
 
             .add_plugins(level_0::LevelPlugin)
-            // .add_plugins(level_1::LevelPlugin)
+            .add_plugins(level_1::LevelPlugin)
             // .add_plugins(level_2::LevelPlugin)
             // .add_plugins(level_3::LevelPlugin)
 
@@ -512,17 +522,19 @@ fn added_player_start(q: Query<&Transform, Added<PlayerStart>>) -> bool {
 }
 
 pub(crate) fn spawn_player_on_start(world: &mut World) {
-    // Make the player collision model and Player
-    let player_ent = spawn_player(world, Uuid::default());
-
-    // Move to start position/orientation.
     let mut start_q = world.query_filtered::<&Transform, With<PlayerStart>>();
     let Some(xfrm) = start_q.iter(world).next() else {
         log::error!("no PlayerStart");
         return;
     };
+
     drop(start_q);
     let xfrm = xfrm.clone();
+
+    // Make the player collision model and Player
+    let player_ent = spawn_fps_player(world, Uuid::default(),
+        Vec3::new(0.5, 1.5, 0.3),
+        xfrm.clone());
 
     let mut queue = CommandQueue::default();
     let mut commands = Commands::new(&mut queue, world);
@@ -532,6 +544,19 @@ pub(crate) fn spawn_player_on_start(world: &mut World) {
         PlayerLook { rotation: xfrm.rotation, .. default() },
         xfrm
     ));
+
+    // // Silliness
+    // commands.spawn((
+    //     ChildOf(player_ent),
+    //     Transform::from_translation(Vec3::new(0., 10.0, 0.0)),
+    //     PointLight {
+    //         color: bevy::prelude::Color::Srgba(tailwind::AMBER_50 * 5.0f32),
+    //         range: 15.0,
+    //         intensity: 1.0e5,
+    //         .. default()
+    //     },
+    //     Visibility::Visible,
+    // ));
 
     queue.apply(world);
 }
@@ -926,8 +951,6 @@ pub(crate) fn spawn_midi_synths(
     mut synth_map: ResMut<SynthProxyMap>,
 ) -> Result<()> {
     let params = MidiSynthParams::default();
-
-    // let ent = sfx_bus.iter().filter_map(|(ent, sfx)| if matches!(sfx, SamplerPool<Sfx>) { Some(ent) } else { None }).next().unwrap();
 
     for ent in synth_q.iter() {
         let (sample_sender, sample_receiver) = crossbeam_channel::unbounded();

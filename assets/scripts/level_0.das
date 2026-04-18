@@ -6,7 +6,7 @@
         %ent = GET_ARG 1, false, Cnt64
         %step: CntF = LOAD %ctx, `frame_step, true
 
-  //      CALL_INTRINSIC `print, ["<", %step]
+        CALL_INTRINSIC `print, ["<", %step]
 
         %t = COPY %ent
         //%tns = LSHR %t, 32
@@ -15,47 +15,6 @@
         %tn = MOD %t, 0xa00
         %tnc = ADD %tn, 0x1f400
         %ts = CALL_INTRINSIC char_to_string, [%tnc]
-
-        %channel = MOD %t, 9
-
-        %note = MOD %t, 0x40
-        %delayi = MOD %t, 0x100
-        %delay: RealF = DIV %delayi, 256.0
-
-        %xmsg = NEW_STRUCT [
-            command: `channel_volume,
-            entity: %ent,
-            channel: %channel,
-            velocity: 0.75,
-        ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %xmsg]
-        %chgmsg = NEW_STRUCT [
-            command: `program_change,
-            entity: %ent,
-            channel: %channel,
-            program: %note,
-        ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %chgmsg]
-
-        %onmsg = NEW_STRUCT [
-            command: `note_on,
-            entity: %ent,
-            channel: %channel,
-            note: %note,
-            velocity: 0.5,
-        ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %onmsg]
-
-        %delay2: RealF = ADD %delay, 0.125
-        %offmsg = NEW_STRUCT [
-            command: `note_off,
-            entity: %ent,
-            channel: %channel,
-            note: %note,
-        ]
-        //CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %offmsg]
-
-        //CALL_INTRINSIC `delay, [0.125]
 
         CONSUME_FUEL 5
         %task = GET_SYSTEM task
@@ -67,29 +26,23 @@
 
         CONSUME_FUEL 1
 
-       // CONSUME_FUEL 500
-     //CALL_INTRINSIC spin, [500]
-       // CONSUME_FUEL 500
-     //CALL_INTRINSIC spin, [500]
-       // CONSUME_FUEL 500
-     //CALL_INTRINSIC spin, [500]
-        //CONSUME_FUEL 500
-     //CALL_INTRINSIC spin, [500]
-
-        //CONSUME_FUEL 50
-        //CALL_INTRINSIC print, [%ts]
-        //CONSUME_FUEL 10
-        //CALL_INTRINSIC print, [%ts]
-        //CONSUME_FUEL 10
-
+        CONSUME_FUEL 10
         CALL_INTRINSIC spin, [50]
-        CONSUME_FUEL 100
-
+        CONSUME_FUEL 50
+        CONSUME_FUEL 10
+        CALL_INTRINSIC print, [%ts]
+        CONSUME_FUEL 10
         //CALL_INTRINSIC print, [%ts]
+        //CONSUME_FUEL 10
         CONSUME_FUEL 10
 
-//        CALL_INTRINSIC `print, [">"]
+        CALL_INTRINSIC spin, [10]
+        CONSUME_FUEL 10
 
+        CALL_INTRINSIC print, [%ts]
+        CONSUME_FUEL 10
+
+        CALL_INTRINSIC `print, [">"]
         RETURN nil
     }
 

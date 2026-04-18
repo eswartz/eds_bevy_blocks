@@ -3,7 +3,6 @@
 mod menus;
 mod assets;
 mod audio;
-mod player_spawning;
 mod actions;
 mod camera;
 mod game;
@@ -115,6 +114,8 @@ fn main() -> AppExit {
                 //     }
                 // })
                 ,
+
+            // bevy::render::experimental::occlusion_culling::OcclusionCullingPlugin, // already
             SkeinPlugin::default(),
         ))
 

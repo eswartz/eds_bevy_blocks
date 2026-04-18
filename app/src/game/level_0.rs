@@ -1,7 +1,6 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::Cube;
-use crate::game::OurMidiSynth;
 use crate::game::ScriptMain;
 use avian3d::math::Scalar;
 use eds_bevy_common::*;
@@ -15,12 +14,16 @@ use fedry_runtime::prelude::RtNumber;
 use fedry_runtime::prelude::RtReal;
 use fedry_runtime::prelude::RtSInt;
 
-use eds_bevy_common::synth::*;
-use eds_bevy_common::client_synth::*;
-use eds_bevy_common::midi_synth::prelude::*;
-
 pub(crate) const ID: &str = "level0";
 pub(crate) const NAME: &str = "Level 0";
+
+fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
+    list.0.push(LevelInfo {
+        id: ID.to_string(),
+        label: NAME.to_string(),
+        scene: maps.level_0.clone(),
+    });
+}
 
 pub struct LevelPlugin;
 
@@ -47,14 +50,6 @@ fn check_pause_request(
         return
     }
     control.set_paused(paused.is_paused());
-}
-
-fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
-    list.0.push(LevelInfo {
-        id: ID.to_string(),
-        label: NAME.to_string(),
-        scene: maps.level_0.clone(),
-    });
 }
 
 fn on_level_loaded(
@@ -182,15 +177,6 @@ fn on_level_loaded(
                     // )
 
                     (script.clone(),),
-
-                    OurMidiSynth,
-                    // Sfx,
-
-                    // // SpatialBasicNode::default(),
-                    // sample_effects![
-                    //     SpatialBasicNode::default(),
-                    //     VolumeNode::from_linear(1.0),
-                    // ],
                 ));
             }
         }

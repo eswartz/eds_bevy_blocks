@@ -88,8 +88,8 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
                 Hdr,
 
                 Projection::Perspective(PerspectiveProjection {
-                    // fov: std::f32::consts::PI / 5.0,
                     fov: 75f32.to_radians(),
+                    far: 1000.0,
                     ..default()
                 }),
 
