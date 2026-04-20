@@ -8,16 +8,11 @@ use eds_bevy_common::*;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_seedling::prelude::*;
 
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtNumber;
 use fedry_runtime::prelude::RtReal;
 use fedry_runtime::prelude::RtSInt;
-
-use eds_bevy_common::synth::*;
-use eds_bevy_common::client_synth::*;
-use eds_bevy_common::midi_synth::prelude::*;
 
 pub(crate) const ID: &str = "level1";
 pub(crate) const NAME: &str = "Level 1";
@@ -213,12 +208,13 @@ fn setup_skybox(
 ) {
     if let Ok(cam) = dbg!(cam_q.single()) {
         let (brightness, skybox, transform) = (
+            // bevy::prelude::light_consts::lux::FULL_MOON_NIGHT,
             bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
             // bevy::prelude::light_consts::lux::CLEAR_SUNRISE,
             skyboxes.station.clone(),
-            SkyboxTransform::From1_0_2f_3r_4_5,
+            SkyboxTransform::From1_0_2f_3f_4_5,
         );
-        // let with_reflection_probe = Some((cam, 100.0));
+        // let with_reflection_probe = Some((cam, 100.0));  // looks ... not so good when real lights are present
         let with_reflection_probe = None;
         commands.entity(cam).insert(SkyboxModel {
             skybox: bevy::core_pipeline::Skybox {
@@ -230,9 +226,6 @@ fn setup_skybox(
             with_reflection_probe,
             enabled: true,
         });
-        commands.insert_resource(SkyboxSetup {
-            waiting_skybox: true,
-            waiting_reflections: false,
-        });
+        commands.insert_resource(SkyboxSetup::WaitingSkybox);
     }
 }

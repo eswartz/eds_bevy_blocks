@@ -7,7 +7,6 @@ use eds_bevy_common::*;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_seedling::prelude::*;
 
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtNumber;
