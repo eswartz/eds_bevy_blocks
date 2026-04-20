@@ -1,7 +1,7 @@
 [build]
-rustflags = ["-Z", "threads=8",
+rustflags = ["-Z", "threads=4",
  # (Nightly) Make the current crate share its generic instantiations
-  "-Zshare-generics=y",
+  #"-Zshare-generics=y",
 ]
 
 [package.metadata.bevy_cli.unstable]
@@ -27,7 +27,7 @@ rustflags = [
 rustdocflags = [
     # Compile faster
     "-Zshare-generics=y",
-    "-Zthreads=8",
+    "-Zthreads=4",
 ]
 [unstable]
 codegen-backend = true

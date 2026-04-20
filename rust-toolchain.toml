@@ -2,5 +2,5 @@
 #
 # rustup target add x86_64-pc-windows-gnu
 [toolchain]
-channel = "nightly-2026-04-10"
+channel = "nightly-2026-04-19"
 components = ["rustc", "clippy", "cargo", "rust-std", "rustfmt", "rustc-codegen-cranelift"]
