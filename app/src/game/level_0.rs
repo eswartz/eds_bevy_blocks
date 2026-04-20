@@ -31,7 +31,11 @@ impl Plugin for LevelPlugin {
         app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                    on_level_loaded.run_if(is_in_level(ID)),
+                (
+                    on_level_loaded,
+                    setup_skybox,
+                )
+                    .run_if(is_in_level(ID)),
             )
             .add_systems(
                 Update,
@@ -62,7 +66,8 @@ fn on_level_loaded(
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
 
-    let script: Script<ScriptMain> = Script::new(&modules,
+    let script: Script<ScriptMain> = Script::new(
+        &*modules,
         script_assets.level_0.clone(),
         &scripting.rt,
         "on_update",
@@ -186,4 +191,29 @@ fn on_level_loaded(
     // commands.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)));
     // commands.insert_resource(ShakeTime(Duration::ZERO));
     Ok(())
+}
+
+
+fn setup_skybox(
+    mut commands: Commands,
+    skybox_q: Query<Entity, (With<SkyboxModel>,)>,
+    cam_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
+    skyboxes: Res<CommonSkyboxAssets>,
+) {
+    let Ok(cam) = cam_q.single() else { return };
+
+    // If there isn't one in the level, add a default?
+    if skybox_q.is_empty() {
+        // let with_reflection_probe = Some((cam, 100.0));  // looks ... not so good when real lights are present
+        let with_reflection_probe = None;
+
+        commands.entity(cam).insert(SkyboxModel {
+            image: Some(skyboxes.dresden_station_night.clone()),
+            brightness: bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
+            mapping: CubemapMapping::From1_0_2f_3f_4_5,
+            with_reflection_probe,
+            .. default()
+        });
+    }
+    commands.insert_resource(SkyboxSetup::WaitingSkybox);
 }

@@ -66,7 +66,8 @@ fn on_level_loaded(
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
 
-    let script: Script<ScriptMain> = Script::new(&modules,
+    let script: Script<ScriptMain> = Script::new(
+        &*modules,
         script_assets.level_1.clone(),
         &scripting.rt,
         "on_update",
@@ -203,29 +204,24 @@ fn on_level_loaded(
 
 fn setup_skybox(
     mut commands: Commands,
+    skybox_q: Query<Entity, (With<SkyboxModel>,)>,
     cam_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
-    skyboxes: Res<SkyboxAssets>,
+    skyboxes: Res<CommonSkyboxAssets>,
 ) {
-    if let Ok(cam) = dbg!(cam_q.single()) {
-        let (brightness, skybox, transform) = (
-            // bevy::prelude::light_consts::lux::FULL_MOON_NIGHT,
-            bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
-            // bevy::prelude::light_consts::lux::CLEAR_SUNRISE,
-            skyboxes.station.clone(),
-            SkyboxTransform::From1_0_2f_3f_4_5,
-        );
+    let Ok(cam) = cam_q.single() else { return };
+
+    // If there isn't one in the level, add a default?
+    if skybox_q.is_empty() {
         // let with_reflection_probe = Some((cam, 100.0));  // looks ... not so good when real lights are present
         let with_reflection_probe = None;
+
         commands.entity(cam).insert(SkyboxModel {
-            skybox: bevy::core_pipeline::Skybox {
-                image: skybox,
-                brightness,
-                ..default()
-            },
-            xfrm: transform,
+            image: Some(skyboxes.dresden_station_night.clone()),
+            brightness: bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
+            mapping: CubemapMapping::From1_0_2f_3f_4_5,
             with_reflection_probe,
-            enabled: true,
+            .. default()
         });
-        commands.insert_resource(SkyboxSetup::WaitingSkybox);
     }
+    commands.insert_resource(SkyboxSetup::WaitingSkybox);
 }

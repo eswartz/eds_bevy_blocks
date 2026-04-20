@@ -165,6 +165,7 @@ fn main() -> AppExit {
         .add_plugins(SkyboxPlugin)
         .add_plugins(LevelsPlugin)
         .add_plugins(DeathboxPlugin::default())
+        .add_plugins(ParallaxDepthPlugin)
 
         .add_plugins(AudioPlugin)
         .add_plugins(MidiSynthPlugin)
@@ -195,7 +196,6 @@ fn main() -> AppExit {
                 .continue_to_state(ProgramState::New)
                 .on_failure_continue_to_state(ProgramState::Error)
                 .load_collection::<GuiAssets>()
-                .load_collection::<SkyboxAssets>()
                 .load_collection::<MapAssets>()
                 .load_collection::<ModelAssets>()
                 .load_collection::<ScriptAssets>()
