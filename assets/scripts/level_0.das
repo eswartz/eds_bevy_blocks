@@ -4,7 +4,7 @@
     %update_cb = NEW_BLOCK `update_cb, (ctx, ent, ...) {
         %ctx = GET_ARG 0, false, Struct
         %ent = GET_ARG 1, false, Cnt64
-        %step: CntF = LOAD %ctx, `frame_step, true
+        %step: CntF = LOAD %ctx, `tick_count, true
 
         CALL_INTRINSIC `print, ["<", %step]
 

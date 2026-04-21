@@ -70,7 +70,6 @@ fn on_level_loaded(
         &*modules,
         script_assets.level_1.clone(),
         &scripting.rt,
-        "on_update",
         ExecutionMode::Async,
         // ExecutionMode::Sync,
     )?;
