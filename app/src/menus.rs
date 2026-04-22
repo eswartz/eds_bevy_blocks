@@ -30,7 +30,7 @@ impl Plugin for MenuPlugin {
 
 #[derive(Debug)]
 pub(crate) enum SimpleMenuActions {
-    PlayGame,
+    // PlayGame,
     GameMenu,
     OptionsMenu,
     AudioMenu,
@@ -58,10 +58,10 @@ impl MenuItemHandler for SimpleMenuActions {
                 SimpleMenuActions::Back => {
                     commands.insert_resource(GoBackInMenuRequest);
                 }
-                SimpleMenuActions::PlayGame => {
-                    // Do not modify current_level LevelIndex, etc. here, but in client.
-                    start_game(commands.reborrow());
-                }
+                // SimpleMenuActions::PlayGame => {
+                //     // Do not modify current_level LevelIndex, etc. here, but in client.
+                //     start_game(commands.reborrow());
+                // }
                 SimpleMenuActions::GameMenu => {
                     commands.insert_resource(GoIntoMenuRequest(OverlayState::GameMenu));
                 }
@@ -109,6 +109,7 @@ fn on_enter_main_menu(
     mut history: ResMut<MenuItemSelectionHistory>,
     // mut glyph_mats: ResMut<Assets<TitleShader>>,
     product_name: Res<ProductName>,
+    level_list: Res<LevelList>,
     current_level: Option<Res<CurrentLevel>>,
 ) {
     // Re-initialize state (on entry and on game exit).
@@ -139,25 +140,70 @@ fn on_enter_main_menu(
         Transform::from_xyz(0., 300.0, 0.),
     ));
 
-    MenuItemBuilder::new(
+    let mut builder = MenuItemBuilder::new(
         commands,
         OverlayState::MainMenu,
         ProgramState::LaunchMenu,
         gui_assets.std_ui.clone(),
         1.0,
         &history,
-    )
-    .add_item(
-        if let Some(level) = current_level {
-            format!("Reset ({})", level.label)
-        } else {
-            "Play".to_string()
-        },
-        (), SimpleMenuActions::PlayGame)
-    .add_item("Game", (), SimpleMenuActions::GameMenu)
+    );
+
+    add_level_selector(&mut builder,
+        &level_list,
+        current_level.as_deref());
+
+    // builder.add_item(
+    //     if let Some(level) = current_level {
+    //         format!("Reset ({})", level.label)
+    //     } else {
+    //         "Play".to_string()
+    //     },
+    //     (), SimpleMenuActions::PlayGame);
+
+    builder.add_item("Game", (), SimpleMenuActions::GameMenu)
     .add_item("Options", (), SimpleMenuActions::OptionsMenu)
     .add_item("Quit", (), SimpleMenuActions::Quit)
     .finish(&mut history);
+}
+
+fn add_level_selector(
+    builder: &mut MenuItemBuilder,
+    level_list: &LevelList,
+    current_level: Option<&CurrentLevel>,
+) {
+    fn get_level(In(entity): In<Entity>, mut enum_q: Query<&mut MenuEnum>, next_level_index: Option<Res<LevelIndex>>) {
+        let index = next_level_index.map_or(0, |nli| nli.0);
+        enum_q.get_mut(entity).unwrap().current = Some(index);
+    }
+    fn set_level(In(v): In<usize>, mut commands: Commands) {
+        commands.insert_resource(LevelIndex(v));
+    }
+    let get_level = builder.commands().register_system(IntoSystem::into_system(get_level));
+    let set_level = builder.commands().register_system(IntoSystem::into_system(set_level));
+
+    let level_infos = level_list.0.clone();
+    let current_level = current_level.cloned();
+    let level_count = level_infos.len();
+    let level_names = level_infos.iter().map(|info| info.label.clone()).collect::<Vec<_>>();
+
+    builder
+        .add_item(
+            "Play",
+            MenuEnum::new(
+                get_level,
+                set_level,
+                move || level_count,
+                move |index| {
+                    if let Some(level) = &current_level && level.id == level_infos[index].id {
+                        format!("{} (reset)", level_names[index])
+                    } else {
+                        level_names[index].clone()
+                    }
+                }
+            ),
+            EnumMenuActions::SelectStartLevelEnum,
+        );
 }
 
 fn on_enter_game_menu(
@@ -166,6 +212,7 @@ fn on_enter_game_menu(
     mut commands: Commands,
     mut history: ResMut<MenuItemSelectionHistory>,
     level_list: Res<LevelList>,
+    current_level: Option<Res<CurrentLevel>>,
 ) {
     macro_rules! make_res_enum_getter_setter {
         ($getter:ident $setter:ident => $enum:ident $res:ident $field:tt) => {
@@ -189,39 +236,18 @@ fn on_enter_game_menu(
 
     make_res_enum_getter_setter!(get_difficulty set_difficulty => Difficulty LevelDifficulty 0);
 
-    fn get_level(In(entity): In<Entity>, mut enum_q: Query<&mut MenuEnum>, next_level_index: Option<Res<LevelIndex>>) {
-        let index = next_level_index.map_or(0, |nli| nli.0);
-        enum_q.get_mut(entity).unwrap().current = Some(index);
-    }
-    fn set_level(In(v): In<usize>, mut commands: Commands) {
-        commands.insert_resource(LevelIndex(v));
-    }
-    let get_level = commands.register_system(IntoSystem::into_system(get_level));
-    let set_level = commands.register_system(IntoSystem::into_system(set_level));
-
-    let level_infos = &level_list.0;
-    let level_count = level_infos.len();
-    let level_names = level_infos.iter().map(|info| info.label.clone()).collect::<Vec<_>>();
-
-    MenuItemBuilder::new(
+    let mut builder = MenuItemBuilder::new(
         commands,
         OverlayState::GameMenu,
         *program_state.get(),
         gui_assets.std_ui.clone(),
         1.0,
         &history,
-    )
-    .add_item(
-        "Level",
-        MenuEnum::new(
-            get_level,
-            set_level,
-            move || level_count,
-            move |index| level_names[index].clone(),
-        ),
-        EnumMenuActions::SelectStartLevelEnum,
-    )
-    .add_item(
+    );
+
+    add_level_selector(&mut builder, &level_list, current_level.as_deref());
+
+    builder.add_item(
         "Difficulty",
         MenuEnum::new(
             get_difficulty,
@@ -319,7 +345,7 @@ impl MenuItemHandler for EnumMenuActions {
         let mut queue = CommandQueue::default();
         let mut commands = Commands::new(&mut queue, world);
         if let MenuActionMessage::Activate(_) = event
-            && let EnumMenuActions::SelectStartLevelEnum = self
+        && let EnumMenuActions::SelectStartLevelEnum = self
         {
             start_game(commands.reborrow());
         }
