@@ -11,7 +11,7 @@ use avian3d::math::Vector;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
 use bevy::ecs::query::QueryData;
-use bevy::mesh::{VertexAttributeValues, triangle_normal};
+use bevy::mesh::VertexAttributeValues;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::{FedryScriptingPlugin, pause_scripting, unpause_scripting};
@@ -286,32 +286,32 @@ pub(crate) struct InHand;
 
 /////
 
-use csgrs::polygon::Polygon;
-use csgrs::vertex::Vertex;
-use csgrs::mesh::Mesh as CsgMesh;
+// use csgrs::polygon::Polygon;
+// use csgrs::vertex::Vertex;
+// use csgrs::mesh::Mesh as CsgMesh;
 
-#[allow(unused)]
-pub(crate) fn from_bevy_mesh(mesh: &Mesh) -> CsgMesh<()> {
-    use csgrs::float_types::parry3d::na::Point3;
-    use csgrs::float_types::parry3d::na::Vector3;
-    use csgrs::float_types::Real;
-    let mut polys = vec![];
-    let point_for = |v: Vec3| -> Point3<Real> {
-        Point3::new(v.x as _, v.y as _, v.z as _)
-    };
-    let vec_for = |v: Vec3| -> Vector3<Real> {
-        Vector3::new(v.x as _, v.y as _, v.z as _)
-    };
-    for tri in mesh.triangles().unwrap() {
-        let norm = triangle_normal(tri.vertices[0].into(), tri.vertices[1].into(), tri.vertices[2].into());
-        let normal = vec_for(norm.into());
-        let v0 = Vertex::new(point_for(tri.vertices[0]), normal);
-        let v1 = Vertex::new(point_for(tri.vertices[1]), normal);
-        let v2 = Vertex::new(point_for(tri.vertices[2]), normal);
-        polys.push(Polygon::new(vec![v0, v1, v2], None));
-    }
-    CsgMesh::from_polygons(&polys, None)
-}
+// #[allow(unused)]
+// pub(crate) fn from_bevy_mesh(mesh: &Mesh) -> CsgMesh<()> {
+//     use csgrs::float_types::parry3d::na::Point3;
+//     use csgrs::float_types::parry3d::na::Vector3;
+//     use csgrs::float_types::Real;
+//     let mut polys = vec![];
+//     let point_for = |v: Vec3| -> Point3<Real> {
+//         Point3::new(v.x as _, v.y as _, v.z as _)
+//     };
+//     let vec_for = |v: Vec3| -> Vector3<Real> {
+//         Vector3::new(v.x as _, v.y as _, v.z as _)
+//     };
+//     for tri in mesh.triangles().unwrap() {
+//         let norm = triangle_normal(tri.vertices[0].into(), tri.vertices[1].into(), tri.vertices[2].into());
+//         let normal = vec_for(norm.into());
+//         let v0 = Vertex::new(point_for(tri.vertices[0]), normal);
+//         let v1 = Vertex::new(point_for(tri.vertices[1]), normal);
+//         let v2 = Vertex::new(point_for(tri.vertices[2]), normal);
+//         polys.push(Polygon::new(vec![v0, v1, v2], None));
+//     }
+//     CsgMesh::from_polygons(&polys, None)
+// }
 
 fn on_scene_ready(
     ready: On<SceneInstanceReady>,

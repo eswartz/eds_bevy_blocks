@@ -121,7 +121,7 @@ bevy_tweening.workspace = true
 
 bevy_mod_outline.workspace = true
 
-csgrs.workspace = true
+# csgrs.workspace = true
 
 wasm_thread.workspace = true
 
