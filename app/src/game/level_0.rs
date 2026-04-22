@@ -45,16 +45,6 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn check_pause_request(
-    paused: ResMut<PauseState>,
-    mut control: ResMut<ScriptControl>,
-) {
-    if !paused.is_changed() {
-        return
-    }
-    control.set_paused(paused.is_paused());
-}
-
 fn on_level_loaded(
     mut commands: Commands,
     world: Res<WorldMarkerEntity>,

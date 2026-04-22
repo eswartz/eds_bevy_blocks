@@ -37,22 +37,8 @@ impl Plugin for LevelPlugin {
                     setup_skybox,
                 ).run_if(is_in_level(ID)),
             )
-            .add_systems(
-                Update,
-                    check_pause_request,
-            )
         ;
     }
-}
-
-fn check_pause_request(
-    paused: ResMut<PauseState>,
-    mut control: ResMut<ScriptControl>,
-) {
-    if !paused.is_changed() {
-        return
-    }
-    control.set_paused(paused.is_paused());
 }
 
 fn on_level_loaded(
