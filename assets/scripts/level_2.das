@@ -25,9 +25,9 @@
     %b = MOD %b, 5.0
 
     // Color::Srgba(Srgba(red, green, blue))
-    %srgba = NEW_STRUCT [red: %r, green: %g, blue: %b]
-    %color = NEW_SEQUENCE [%srgba]
-    %color_enum = NEW_SEQUENCE [`Srgba, %color]
+    //%srgba = NEW_STRUCT [red: %r, green: %g, blue: %b]
+    //%color = NEW_SEQUENCE [%srgba]
+    %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
 
     %struct = NEW_STRUCT [
         offset: %pos,
@@ -41,25 +41,23 @@
     //CALL_INTRINSIC `delay, [0.01]
     //CALL_INTRINSIC `print, [%new_ent, "\n"]
 
-    %chv2 = NEW_SEQUENCE [1]
-    %chv = NEW_SEQUENCE [`Voice, %chv2]
-    %ch = NEW_SEQUENCE [%chv]
+    //%chv2 = NEW_SEQUENCE [1]
+    %chv = NEW_SEQUENCE [`Voice, 1]
+    //%ch = NEW_SEQUENCE [%chv]
 
     %p = MOD %step, 125
-    %pgm_e = NEW_SEQUENCE [%chv, %p]
-    %seq = NEW_SEQUENCE [`ProgramChange, %pgm_e]
+    %v_e = NEW_SEQUENCE [`Voice, 1]
+    %seq = NEW_SEQUENCE [`ProgramChange, %v_e, %p]
     CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %ent, %seq]
 
     %n = MOD %step, 100
     %n: CntF = ADD %n, 10
-    %ns = NEW_SEQUENCE [%n]
-    %note = NEW_SEQUENCE [`Midi, %ns]
-    %noteon_e = NEW_SEQUENCE [%chv, %note, 1.0]
-    %seq = NEW_SEQUENCE [`NoteOn, %noteon_e]
+    %note = NEW_SEQUENCE [`Midi, %n]
+    %seq = NEW_SEQUENCE [`NoteOn, %v_e, %note, 1.0]
     CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %ent, %seq]
 
-    %noteoff_e = NEW_SEQUENCE [%chv, %note]
-    %seq = NEW_SEQUENCE [`NoteOff, %noteoff_e]
+    //%noteoff_e = NEW_SEQUENCE [%chv, %note]
+    %seq = NEW_SEQUENCE [`NoteOff, %v_e, %note]
     CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %ent, %seq, 1.5]
 
     CONSUME_FUEL 10
