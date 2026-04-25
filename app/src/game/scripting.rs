@@ -120,7 +120,7 @@ fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>
             CollisionMargin(0.0),
         ),
         CollisionLayers::new(
-            GameLayer::Projectiles,
+            GameLayer::World,
             [
                 GameLayer::Default,
                 GameLayer::World,

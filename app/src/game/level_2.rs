@@ -87,10 +87,10 @@ fn on_level_loaded(
         cube_size as Scalar,
     );
 
-    let half_size = if let Some(half_side_length) = scripting.get_struct_value(script.get_module(),
-    "half_side_length")
-    && let Some(half_side_length) = RtSInt::new(&half_side_length) {
-        *half_side_length as i32
+    let size = if let Some(side_length) = scripting.get_struct_value(script.get_module(),
+    "side_length")
+    && let Some(side_length) = RtSInt::new(&side_length) {
+        *side_length as i32
     } else {
         6
     };
@@ -110,10 +110,14 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
-    for x in -half_size..half_size {
-        for y in 0..half_size * 2 {
-            for z in -half_size..half_size {
+    let center = Vec3::new(2.0, axis_scale.y / 2.0, 2.0);
+    for x in 0..size
+    {
+        for y in 0..size {
+        // let y = 0;
+            // for z in 0..size
+            let z = 0;
+            {
                 let position = Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
                 commands.spawn((
                     (
