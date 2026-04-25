@@ -127,3 +127,6 @@ wasm_thread.workspace = true
 
 fedry_runtime.workspace = true
 fedry_bevy_plugin.workspace = true
+
+[dev-dependencies]
+test-log.workspace = true

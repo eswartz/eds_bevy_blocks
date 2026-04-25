@@ -514,6 +514,8 @@ dependencies = [
  "itertools 0.14.0",
  "obvhs",
  "parry3d",
+ "parry3d-f64",
+ "serde",
  "smallvec",
  "thiserror 2.0.18",
  "thread_local",
@@ -1253,6 +1255,7 @@ dependencies = [
  "bevy_math",
  "bevy_reflect",
  "glam_matrix_extras",
+ "serde",
 ]
 
 [[package]]
@@ -2010,6 +2013,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88545c8b0fa8f3502b9a439c71fa6b596ee9e808bfb16f27a51c8c6f7405a657"
 dependencies = [
  "bevy",
+ "serde",
 ]
 
 [[package]]
@@ -3206,6 +3210,7 @@ dependencies = [
  "serde",
  "strum",
  "strum_macros",
+ "test-log",
  "tracing",
  "wasm_thread",
  "wgpu",
@@ -3485,6 +3490,7 @@ dependencies = [
 name = "fedry_bevy_plugin"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "arraydeque",
  "bevy",
  "bevy-inspector-egui",
@@ -3492,6 +3498,8 @@ dependencies = [
  "eds_bevy_common",
  "egui",
  "fedry_runtime",
+ "function_name",
+ "gltf",
  "paste",
  "thiserror 2.0.18",
 ]
@@ -3508,6 +3516,7 @@ dependencies = [
  "ctor",
  "derive-debug",
  "env_logger",
+ "function_name",
  "gltf",
  "log",
  "object",
@@ -3839,6 +3848,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "function_name"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1ab577a896d09940b5fe12ec5ae71f9d8211fff62c919c03a3750a9901e98a7"
+dependencies = [
+ "function_name-proc-macro",
+]
+
+[[package]]
+name = "function_name-proc-macro"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673464e1e314dd67a0fd9544abc99e8eb28d0c7e3b69b033bcff9b2d00b87333"
+
+[[package]]
 name = "futures"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4085,6 +4109,7 @@ checksum = "c4664468a60479272b880a8bfc00ad2915229b93d2b2d585556fb33f9ba80e72"
 dependencies = [
  "bevy_reflect",
  "glam 0.30.10",
+ "serde",
 ]
 
 [[package]]
@@ -4096,6 +4121,7 @@ dependencies = [
  "approx",
  "glam 0.30.10",
  "num-traits",
+ "serde",
  "simba",
 ]
 
@@ -5916,11 +5942,42 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "rstar",
+ "serde",
+ "serde_arrays",
  "simba",
  "slab",
  "smallvec",
  "spade",
  "static_assertions",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "parry3d-f64"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38558e45fda09a243836f590b9890f7f21dd2078dd7aafc876a9e8998d378d42"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.11.0",
+ "downcast-rs 2.0.2",
+ "either",
+ "ena",
+ "foldhash 0.2.0",
+ "glamx",
+ "hashbrown 0.16.1",
+ "log",
+ "num-derive",
+ "num-traits",
+ "ordered-float",
+ "rstar",
+ "serde",
+ "serde_arrays",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
  "thiserror 2.0.18",
 ]
 
@@ -6786,6 +6843,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_arrays"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94a16b99c5ea4fe3daccd14853ad260ec00ea043b2708d1fd1da3106dcd8d9df"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_core"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6995,6 +7061,7 @@ dependencies = [
  "hashbrown 0.16.1",
  "num-traits",
  "robust",
+ "serde",
  "smallvec",
 ]
 
@@ -7352,6 +7419,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "test-log"
+version = "0.2.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f46bf474f0a4afebf92f076d54fd5e63423d9438b8c278a3d2ccb0f47f7cdb3"
+dependencies = [
+ "env_logger",
+ "test-log-macros",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "test-log-core"
+version = "0.2.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37d4d41320b48bc4a211a9021678fcc0c99569b594ea31c93735b8e517102b4c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "test-log-macros"
+version = "0.2.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9beb9249a81e430dffd42400a49019bcf548444f1968ff23080a625de0d4d320"
+dependencies = [
+ "syn 2.0.117",
+ "test-log-core",
 ]
 
 [[package]]

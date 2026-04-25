@@ -2,9 +2,10 @@
 mod logic;
 mod sound;
 mod script_debug;
+mod scripting;
 mod level_0;
 mod level_1;
-// mod level_2;
+mod level_2;
 // mod level_3;
 
 use avian3d::math::Vector;
@@ -22,6 +23,7 @@ use strum::{EnumIter, VariantArray};
 use std::time::Duration;
 
 use crate::game::script_debug::ScriptDebugPlugin;
+use crate::game::scripting::ScriptingPlugin;
 use crate::game::sound::SoundPlugin;
 use eds_bevy_common::*;
 // use crate::player_spawning::spawn_player;
@@ -52,11 +54,13 @@ impl Plugin for GamePlugin {
             .add_plugins(DetailNormalPlugin)
             .add_plugins(SplitIntoCubesPlugin)
 
+            .add_plugins(ScriptingPlugin)
+
             .init_resource::<LevelDifficulty>()
 
             .add_plugins(level_0::LevelPlugin)
             .add_plugins(level_1::LevelPlugin)
-            // .add_plugins(level_2::LevelPlugin)
+            .add_plugins(level_2::LevelPlugin)
             // .add_plugins(level_3::LevelPlugin)
 
             .insert_resource(BaseEntity(Entity::PLACEHOLDER, Transform::IDENTITY))
@@ -108,6 +112,7 @@ impl Plugin for GamePlugin {
                     |mut commands: Commands| {
                         commands.set_state(LevelState::Configuring);
                     },
+                    setup_skybox,
                     show_instructions,
                     unpause_scripting,
                 ).chain()
@@ -284,35 +289,6 @@ pub(crate) struct BaseEntity(pub Entity, pub Transform);
 #[allow(unused)]
 pub(crate) struct InHand;
 
-/////
-
-// use csgrs::polygon::Polygon;
-// use csgrs::vertex::Vertex;
-// use csgrs::mesh::Mesh as CsgMesh;
-
-// #[allow(unused)]
-// pub(crate) fn from_bevy_mesh(mesh: &Mesh) -> CsgMesh<()> {
-//     use csgrs::float_types::parry3d::na::Point3;
-//     use csgrs::float_types::parry3d::na::Vector3;
-//     use csgrs::float_types::Real;
-//     let mut polys = vec![];
-//     let point_for = |v: Vec3| -> Point3<Real> {
-//         Point3::new(v.x as _, v.y as _, v.z as _)
-//     };
-//     let vec_for = |v: Vec3| -> Vector3<Real> {
-//         Vector3::new(v.x as _, v.y as _, v.z as _)
-//     };
-//     for tri in mesh.triangles().unwrap() {
-//         let norm = triangle_normal(tri.vertices[0].into(), tri.vertices[1].into(), tri.vertices[2].into());
-//         let normal = vec_for(norm.into());
-//         let v0 = Vertex::new(point_for(tri.vertices[0]), normal);
-//         let v1 = Vertex::new(point_for(tri.vertices[1]), normal);
-//         let v2 = Vertex::new(point_for(tri.vertices[2]), normal);
-//         polys.push(Polygon::new(vec![v0, v1, v2], None));
-//     }
-//     CsgMesh::from_polygons(&polys, None)
-// }
-
 fn on_scene_ready(
     ready: On<SceneInstanceReady>,
     children_q: Query<&Children>,
@@ -347,11 +323,6 @@ fn extract_mesh_cube(mesh: &Mesh, center: Vec3, half_size: Vec3) -> Option<(Mesh
         _ => panic!(),
     };
 
-    let transform_pt = |ptarr: [f32; 3]| -> [f32; 3] {
-        // Vec3::from_array(ptarr)
-        ptarr
-    };
-
     let mut pos = vec![];
     let mut normals = vec![];
     let mut uvs = vec![];
@@ -366,9 +337,9 @@ fn extract_mesh_cube(mesh: &Mesh, center: Vec3, half_size: Vec3) -> Option<(Mesh
             let l = pos.len() as u32;
             indices.push([l, l + 1, l + 2]);
 
-            pos.push(transform_pt(pos0));
-            pos.push(transform_pt(pos1));
-            pos.push(transform_pt(pos2));
+            pos.push(pos0);
+            pos.push(pos1);
+            pos.push(pos2);
 
             normals.push(full_normals[ind0]);
             normals.push(full_normals[ind1]);
@@ -408,72 +379,6 @@ fn contains_pt(pt: &[f32; 3], center: Vec3, half_size: Vec3) -> bool {
     && pt[1] >= center.y - half_size.y && pt[1] <= center.y + half_size.y
     && pt[2] >= center.z - half_size.z && pt[2] <= center.z + half_size.z
 }
-
-// fn update_bone_colliders(
-//     // newly_sized_meshes: Query<(Entity, &Aabb, &GlobalTransform), (With<Mesh3d>, Added<Aabb>)>,
-//     bone_head_collider_q: Query<(Entity, &BoneCollider, &GlobalTransform)>,
-//     bone_tail_collider_q: Query<(Entity, &GlobalTransform), With<BoneColliderTail>>,
-//     children: Query<&Children>,
-//     parent_q: Query<&ChildOf>,
-//     bodies_q: Query<Entity, With<RigidBody>>,
-//     mut commands: Commands,
-// ) {
-//     // leg_r: BoneInfo / RigidBody
-//     // children:
-//     // -- leg head / BoneCollider
-//     // -- leg tail / BoneColliderTail
-
-//     for body_ent in bodies_q.iter() {
-//         let Ok(parent) = parent_q.get(body_ent) else { continue };
-//         let parent = parent.0;
-
-//         // Look for siblings.
-//         let Ok(kids) = children.get(parent) else { continue };
-
-//         let mut head_info = None;
-//         let mut tail_info = None;
-
-//         for kid in kids {
-//             if let Ok(bone) = bone_head_collider_q.get(*kid) {
-//                 head_info = Some(bone.clone());
-//             }
-//             if let Ok(bone) = bone_tail_collider_q.get(*kid) {
-//                 tail_info = Some(bone.clone());
-//             }
-//         }
-
-//         if let Some((head, head_bone, head_gxfrm)) = head_info
-//         && let Some((tail, tail_gxfrm)) = tail_info {
-//             // See which (if any) edited meshes matches this.
-//             if !newly_sized_meshes.contains(head) && !newly_sized_meshes.contains(tail) {
-//                 continue
-//             }
-//             dbg!(head, tail);
-
-//             // The bone colliders are children of bone meshes, and then of the colliders.
-
-//             if bone_head_collider_q.contains(parent) {
-//                 // Now look for grandparent with RigidBody.
-//                 let Ok(grandparent) = parent_q.get(parent) else { continue };
-//                 let grandparent = grandparent.0;
-//                 if bodies_q.contains(grandparent) {
-//                     // let rot = gxfrm.rotation().angle_between(Quat::from_axis_angle(Vec3::Y, 0.));
-//                     // dbg!(rot);
-//                     // let center = aabb.center.to_vec3();
-//                     // let ext = aabb.half_extents.to_vec3();
-//                     // let rot_inv = gxfrm.rotation().inverse();
-//                     // let head = center + rot_inv * Vec3::new(0., -ext.y * 2., 0.);
-//                     // let tail = center + rot_inv * Vec3::new(0., ext.y * 2., 0.);
-//                     let head = head_gxfrm.translation();
-//                     let tail = tail_gxfrm.translation();
-//                     commands.entity(grandparent).insert((
-//                         Collider::capsule_endpoints(0.01, head, tail),
-//                     ));
-//                 }
-//             }
-//         }
-//     }
-// }
 
 pub(crate) fn ensure_levels(mut level_list: ResMut<LevelList>) {
     level_list.0.sort_by(|a, b| a.id.cmp(&b.id));
@@ -616,7 +521,7 @@ pub(crate) fn despawn_level(
         commands.entity(ent).try_despawn();
     }
 }
-//
+
 fn init_player_settings(
     move_q: Query<&PlayerCameraMode, With<LevelRoot>>,
     mut commands: Commands,
@@ -632,45 +537,6 @@ fn init_player_settings(
         log::warn!("no PlayerCameraMode in LevelRoot");
     }
 }
-
-// fn start_skybox_setup(
-//     mut commands: Commands,
-//     // world_camera_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
-//     // skybox_q: Query<&SkyboxSelection, With<LevelRoot>>,
-//     // skyboxes: Res<SkyboxAssets>,
-// ) {
-//     // let cam = world_camera_q.single().unwrap();
-
-//     // let (brightness, skybox) = (light_consts::lux::CLEAR_SUNRISE, skyboxes.pure_sky.clone());
-//     // // match selection {
-//     // //     SkyboxSelection::Space => (100.0, skyboxes.star_map.clone()),
-//     // //     SkyboxSelection::Farm => (light_consts::lux::CLEAR_SUNRISE, skyboxes.pure_sky.clone()),
-//     // //     SkyboxSelection::Teeth => (light_consts::lux::LIVING_ROOM, skyboxes.mouth_sky.clone()),
-//     // //     SkyboxSelection::Station => (light_consts::lux::LIVING_ROOM, skyboxes.station_sky.clone()),
-//     // // };
-//     // let with_reflection_probe = Some((cam, 100.0));
-//     // // let with_reflection_probe = None;
-//     // commands.entity(cam).insert(SkyboxModel {
-//     //     skybox: Skybox {
-//     //         image: skybox,
-//     //         brightness,
-//     //         ..default()
-//     //     },
-//     //     xfrm: SkyboxTransform::From1_0_2f_3f_4_5,
-//     //     with_reflection_probe,
-//     //     enabled: true, //state.show_skybox,
-//     // });
-
-
-//     // commands.insert_resource(SkyboxSetup {
-//     //     waiting_skybox: true,
-//     //     waiting_reflections: false,
-//     // });
-//     // commands.set_state(LevelState::Configuring);
-//     // // } else {
-//     // // }
-//     commands.set_state(LevelState::Playing);
-// }
 
 fn show_instructions(
     mut commands: Commands,
@@ -742,11 +608,7 @@ fn show_instructions(
 
 pub(crate) fn advance_level(
     mut commands: Commands,
-    // spawned_q: Query<Entity, With<Spawned>>,
 ) {
-    // for ent in spawned_q.iter() {
-    //     commands.entity(ent).try_despawn();
-    // }
     commands.set_state(OverlayState::Loading);
     commands.set_state(GameplayState::Setup);
 }
@@ -756,16 +618,7 @@ fn update_current_score(
     level_state: Res<State<LevelState>>,
     score: Option<Res<CurrentScore>>,
     mut score_q: Single<(&mut Text, &mut TextColor), With<ScoreArea>>,
-    // goal_q: Query<&ScoreGoal, With<LevelRoot>>,
 ) {
-    // let Ok(goal) = goal_q.single() else {
-    //     if *level_state == LevelState::LoadingSkybox {
-    //         // This is allowable, but report once just in case.
-    //         log::warn!("missing or too many LevelRoot + ScoreGoal");
-    //     };
-    //     return;
-    // };
-
     let (ref mut text, ref mut color) = *score_q;
     // if let Some(score) = score {
     if score.is_some() {
@@ -932,6 +785,32 @@ fn update_power_bar(
     }
 }
 
+fn setup_skybox(
+    mut commands: Commands,
+    skybox_q: Query<Entity, (With<SkyboxModel>,)>,
+    cam_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
+    skyboxes: Res<CommonSkyboxAssets>,
+) {
+    let Ok(cam) = cam_q.single() else { return };
+
+    // If there isn't one in the level, add a default?
+    if skybox_q.is_empty() {
+        // let with_reflection_probe = Some((cam, 100.0));  // looks ... not so good when real lights are present
+        let with_reflection_probe = None;
+
+        commands.entity(cam).insert(SkyboxModel {
+            image: Some(skyboxes.dresden_station_night.clone()),
+            brightness: bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
+            mapping: CubemapMapping::From1_0_2f_3f_4_5,
+            with_reflection_probe,
+            .. default()
+        });
+    }
+    commands.insert_resource(SkyboxSetup::WaitingSkybox);
+}
+
+/// When placed on an entity, ensure a [MidiSynth] is wired up
+/// and can process events.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub(crate) struct OurMidiSynth;
@@ -963,9 +842,6 @@ pub(crate) fn spawn_midi_synths(
         synth_map.register_synth(ent);
 
         commands.write_message(SynthMessage::new(ent, SynthCommand::Reset));
-
-        // let volume_id = commands.spawn(VolumeNode::default()).id();
-        // commands.entity(ent).connect(volume_id);
     }
 
     Ok(())

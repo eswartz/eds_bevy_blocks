@@ -31,11 +31,7 @@ impl Plugin for LevelPlugin {
         app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                (
-                    on_level_loaded,
-                    setup_skybox,
-                )
-                    .run_if(is_in_level(ID)),
+                    on_level_loaded.run_if(is_in_level(ID)),
             )
             .add_systems(
                 Update,
@@ -73,7 +69,7 @@ fn on_level_loaded(
 
     let cube_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "block_mass")
     && let Some(mass) = RtNumber::new(&mass) {
-        mass.value_real() as f32
+        mass.as_real() as f32
     } else {
         10.0f32
     };
@@ -95,12 +91,6 @@ fn on_level_loaded(
         cube_size as Scalar,
         cube_size as Scalar,
     );
-    // let collider = Collider::round_cuboid(
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     0.05
-    // );
 
     let half_size = if let Some(half_side_length) = scripting.get_struct_value(script.get_module(),
     "half_side_length")
@@ -119,7 +109,7 @@ fn on_level_loaded(
 
     let boom_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
-        mass.value_real() as f32
+        mass.as_real() as f32
     } else {
         50.0f32
     };
@@ -140,16 +130,11 @@ fn on_level_loaded(
                         CrosshairTargetable,
                         Mesh3d(cube_mesh.clone()),
                         MeshMaterial3d(mat.clone()),
-                        // Transform::from_translation(position).with_scale(Vec3::splat(cube_size as f32)),
                         Transform::from_translation(position),
                     ),
                     (
-                        // CollisionEventsEnabled,
-                        // RigidBody::Dynamic,
                         rigid_body.clone(),
                         collider.clone(),
-                        // Collider::round_cuboid(cuboid_size, cuboid_size, cuboid_size, cuboid_round),
-                        // Restitution::new(0.0),
                         Restitution::new(0.0), //.with_combine_rule(CoefficientCombine::Min),
                         Friction::new(0.9),
                         SleepThreshold {
@@ -158,16 +143,9 @@ fn on_level_loaded(
                         },
                         LinearDamping(0.25),
                         AngularDamping(0.25),
-                        // CenterOfMass::new(0., -cube_size / 4.0, 0.0),
                         Mass(cube_mass),
                         CollisionMargin(0.0),
-                        // CollisionMargin(0.01),
                     ),
-                    // Dominance(-y as i8 - 1),
-                    // (
-                    //     // SweptCcd::default(),
-                    //     SweptCcd::LINEAR,
-                    // )
 
                     (script.clone(),),
                 ));
@@ -175,34 +153,5 @@ fn on_level_loaded(
         }
     }
 
-    // commands.insert_resource(Spawning(false));
-    // commands.insert_resource(SpawnDelay(Duration::from_secs(1)));
-    // commands.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)));
-    // commands.insert_resource(ShakeTime(Duration::ZERO));
     Ok(())
-}
-
-
-fn setup_skybox(
-    mut commands: Commands,
-    skybox_q: Query<Entity, (With<SkyboxModel>,)>,
-    cam_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
-    skyboxes: Res<CommonSkyboxAssets>,
-) {
-    let Ok(cam) = cam_q.single() else { return };
-
-    // If there isn't one in the level, add a default?
-    if skybox_q.is_empty() {
-        // let with_reflection_probe = Some((cam, 100.0));  // looks ... not so good when real lights are present
-        let with_reflection_probe = None;
-
-        commands.entity(cam).insert(SkyboxModel {
-            image: Some(skyboxes.dresden_station_night.clone()),
-            brightness: bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
-            mapping: CubemapMapping::From1_0_2f_3f_4_5,
-            with_reflection_probe,
-            .. default()
-        });
-    }
-    commands.insert_resource(SkyboxSetup::WaitingSkybox);
 }

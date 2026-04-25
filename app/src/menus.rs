@@ -283,12 +283,19 @@ fn on_enter_options_menu(
 }
 
 fn on_enter_escape_menu(
-    gui_assets: Res<CommonGuiAssets>,
+    gui_assets: Option<Res<CommonGuiAssets>>,
     commands: Commands,
     mut history: ResMut<MenuItemSelectionHistory>,
-    current_level: Res<CurrentLevel>,
+    current_level: Option<Res<CurrentLevel>>,
     mut paused: ResMut<PauseState>,
 ) {
+    let Some(gui_assets) = gui_assets else {
+        return
+    };
+    let Some(current_level) = current_level else {
+        return
+    };
+
     // The menu sets [paused()] to true on first entry
     // by setting one of the OR inputs to that method.
     paused.set_menu_paused(true);

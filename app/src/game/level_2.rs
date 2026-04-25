@@ -10,18 +10,16 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use fedry_bevy_plugin::prelude::*;
-use fedry_runtime::prelude::RtNumber;
-use fedry_runtime::prelude::RtReal;
-use fedry_runtime::prelude::RtSInt;
+use fedry_runtime::prelude::*;
 
-pub(crate) const ID: &str = "level1";
-pub(crate) const NAME: &str = "Level 1";
+pub(crate) const ID: &str = "level2";
+pub(crate) const NAME: &str = "Level 2";
 
 fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
     list.0.push(LevelInfo {
         id: ID.to_string(),
         label: NAME.to_string(),
-        scene: maps.level_1.clone(),
+        scene: maps.level_2.clone(),
     });
 }
 
@@ -32,7 +30,7 @@ impl Plugin for LevelPlugin {
         app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                    on_level_loaded.run_if(is_in_level(ID))
+                    on_level_loaded.run_if(is_in_level(ID)),
             )
         ;
     }
@@ -51,7 +49,7 @@ fn on_level_loaded(
 
     let script: Script<ScriptMain> = Script::new(
         &*modules,
-        script_assets.level_1.clone(),
+        script_assets.level_2.clone(),
         &scripting.rt,
         ExecutionMode::Async,
         // ExecutionMode::Sync,
@@ -88,12 +86,6 @@ fn on_level_loaded(
         cube_size as Scalar,
         cube_size as Scalar,
     );
-    // let collider = Collider::round_cuboid(
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     0.05
-    // );
 
     let half_size = if let Some(half_side_length) = scripting.get_struct_value(script.get_module(),
     "half_side_length")
@@ -122,8 +114,7 @@ fn on_level_loaded(
     for x in -half_size..half_size {
         for y in 0..half_size * 2 {
             for z in -half_size..half_size {
-                let position =
-                    Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
+                let position = Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
                 commands.spawn((
                     (
                         ChildOf(world.0),
@@ -151,10 +142,12 @@ fn on_level_loaded(
                     ),
 
                     (script.clone(),),
+
                     OurMidiSynth,
                 ));
             }
         }
     }
+
     Ok(())
 }

@@ -32,13 +32,8 @@ fn spawn_noise_on_collision(
     projectile_q: Query<&Projectile>,
     cube_q: Query<&Cube>,
     floor_q: Query<&Floor>,
-    // sfx_q: Query<&Sfx>,
     mut commands: Commands,
 ) {
-    // if sfx_q.count() >= 32 {
-    //     return
-    // }
-
     let mut rng = rand::rng();
     let mut added = 0;
 
@@ -51,12 +46,16 @@ fn spawn_noise_on_collision(
         }
         let cube_cube = cube_q.contains(event.collider1) && cube_q.contains(event.collider2);
         let floor = floor_q.contains(event.collider1) || floor_q.contains(event.collider2);
-        let target = if projectile_q.contains(event.collider1) {
-            event.collider1
-        } else if projectile_q.contains(event.collider2) {
+        let target = if cube_cube {
             event.collider2
         } else {
-            continue
+            if projectile_q.contains(event.collider1) {
+                event.collider1
+            } else if projectile_q.contains(event.collider2) {
+                event.collider2
+            } else {
+                continue
+            }
         };
         if let Ok((xfrm, vel)) = xfrm_vel_q.get(target) {
             let vel_length = vel.0.length();

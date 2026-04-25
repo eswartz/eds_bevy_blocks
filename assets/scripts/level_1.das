@@ -6,21 +6,28 @@
         %ent = GET_ARG 1, false, CntF
         %step: CntF = LOAD %ctx, `tick_count, true
 
+        %seq: Bool = LESS_UINT %step, 600
+        IF_TRUE %seq, sleep, skip
+sleep:
+        %d3: RealF = MOD %ent, 127
+        %d3: RealF = DIV %d3, 1.0
+        CALL_INTRINSIC `delay, [%d3]
+skip:
         %t = ADD %ent, %step
         %tn = MOD %t, 0xa00
         %tnc = ADD %tn, 0x1f200
 
         %channel: CntF = MOD %ent, 16
-        %program: CntF = MOD %t, 127
+        %program: CntF = MOD %ent, 127
         %teq: Bool = EQUAL_UINT %channel, 9
-        IF_TRUE %teq, fwd, next
+        IF_TRUE %teq, next, fwd
 next:
         %program: CntF = COPY 0
 
 fwd:
         %note = MOD %t, 0x6f
         %note = ADD %note, 0x10
-        %delayi = MOD %t, 0xff     // speed here
+        %delayi = MOD %t, 0x1f     // speed here
         %delay: RealF = DIV %delayi, 256.0
 
         %xmsg = NEW_STRUCT [
@@ -43,7 +50,7 @@ fwd:
             entity: %ent,
             channel: %channel,
             note: %note,
-            velocity: 1,
+            velocity: 0.75,
         ]
         CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %onmsg]
 
@@ -57,7 +64,7 @@ fwd:
         CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %offmsg]
 
         //CONSUME_FUEL 5
-        %delay2: RealF = MUL %delay, 2.5
+        %delay2: RealF = MUL %delay, 5.0
         CALL_INTRINSIC `delay, [%delay2]
 
         CONSUME_FUEL 5
