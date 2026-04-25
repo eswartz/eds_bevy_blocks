@@ -293,6 +293,7 @@ fn do_fire(
             MeshMaterial3d(mat.clone()),
             xfrm,
             // DespawnAfter(Duration::from_secs(120)),
+            ActiveCollisionHooks::MODIFY_CONTACTS,
         ), (
             Spawned,
             Projectile,
@@ -305,6 +306,7 @@ fn do_fire(
             SweptCcd::default(),
             RigidBody::Dynamic,
             Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar),
+
         )));
         any = true;
     }
