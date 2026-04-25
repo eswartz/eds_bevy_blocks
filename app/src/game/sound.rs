@@ -57,11 +57,16 @@ fn spawn_noise_on_collision(
                 continue
             }
         };
-        if let Ok((xfrm, vel)) = xfrm_vel_q.get(target) {
+
+        if let Ok((xfrm, vel)) = xfrm_vel_q.get(target)
+        {
             let vel_length = vel.0.length();
             if vel_length < 1.0 {
                 continue
             }
+
+            let mag = (event.total_normal_impulse_magnitude() + 0.01).log10();
+            let mag = (mag / 8.0).clamp(0.0, 1.0);
 
             let effect = if floor {
             (*[
@@ -104,7 +109,7 @@ fn spawn_noise_on_collision(
                     .choose(&mut rng)
                     .unwrap())
                     .clone()
-            } else if vel_length < 3.0 {
+            } else if vel_length < 5.0 {
                 (*[&fx.bump0a, &fx.bump0b, &fx.bump0c]
                     .choose(&mut rng)
                     .unwrap())
@@ -127,7 +132,7 @@ fn spawn_noise_on_collision(
                     speed: rng.random_range(0.9..1.1),
                     ..default()
                 },
-                VolumeNode::from_linear(rng.random_range(0.15..0.5)),
+                VolumeNode::from_linear(mag * rng.random_range(0.25..0.5)),
             ));
             // commands.spawn((
             //     UiSfx,

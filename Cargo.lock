@@ -9418,10 +9418,10 @@ name = "fedry"
 version = "0.1.0"
 
 [[patch.unused]]
+name = "fedry"
+version = "0.1.0"
+
+[[patch.unused]]
 name = "avian3d"
 version = "0.7.0-dev"
 source = "git+https://github.com/Jondolf/avian.git?branch=main#25db6df55aaa1fa460b005d3ee2f341cbf10b918"
-
-[[patch.unused]]
-name = "fedry"
-version = "0.1.0"

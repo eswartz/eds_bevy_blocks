@@ -99,6 +99,18 @@ impl Plugin for GamePlugin {
                 .run_if(added_player_start) // <<< only once per session, in practice
                 .run_if(in_state(GameplayState::Playing))
             )
+
+            .add_systems(
+                FixedUpdate,
+                (
+                    decay_forces, //.run_if(input_just_pressed(KeyCode::Backslash)),
+                )
+                .before(PhysicsSystems::Writeback)
+                .run_if(not(is_user_paused))
+                .run_if(in_state(LevelState::Playing))
+                .run_if(in_state(ProgramState::InGame)),
+            )
+
             .add_systems(
                 OnTransition{ exited: GameplayState::Playing, entered: GameplayState::Setup },
                 (
@@ -845,4 +857,20 @@ pub(crate) fn spawn_midi_synths(
     }
 
     Ok(())
+}
+
+fn decay_forces(
+    mut forces_q: Query<Forces, (With<Spawned>, With<Cube>, With<RigidBody>)>,
+) {
+    forces_q.par_iter_mut().for_each(|mut forces| {
+        let lsq = forces.linear_velocity().length_squared();
+        let asq = forces.angular_velocity().length_squared();
+        if (lsq > 0. && lsq < 0.01) || (asq > 0. && asq < 0.01) {
+            let mut nw = forces.non_waking();
+            *nw.linear_velocity_mut() = default();
+            *nw.angular_velocity_mut() = default();
+            // nw.reset_accumulated_linear_acceleration();
+            // nw.reset_accumulated_angular_acceleration();
+        }
+    });
 }

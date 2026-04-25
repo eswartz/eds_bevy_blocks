@@ -42,16 +42,6 @@ impl Plugin for LogicPlugin {
 
             // .add_systems(
             //     FixedUpdate,
-            //     (
-            //         decay_forces, //.run_if(input_just_pressed(KeyCode::Backslash)),
-            //     )
-            //     .before(PhysicsSystems::Writeback)
-            //     .run_if(not(is_user_paused))
-            //     .run_if(in_state(LevelState::Playing))
-            //     .run_if(in_state(ProgramState::InGame)),
-            // )
-            // .add_systems(
-            //     FixedUpdate,
             //     decay_physics
             //         .before(PhysicsSystems::StepSimulation)
             //         .run_if(not(is_paused))

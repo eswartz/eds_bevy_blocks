@@ -130,6 +130,7 @@ avian3d = { version = "0.6.0", default-features = false, features = [
     "bevy_scene",
     "bevy_picking",
     "serialize",
+    # "enhanced-determinism",
 ] }
 
 bevy_egui = { version = "0.39", features = ["render", "serde"] }

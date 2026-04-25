@@ -115,7 +115,7 @@ fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>
                 angular: 0.125,
             },
             LinearDamping(0.25),
-            AngularDamping(0.25),
+            AngularDamping(0.75),
             Mass(if info.mass <= 0.0 { 1.0 } else { info.mass }),
             CollisionMargin(0.0),
         ),
@@ -152,11 +152,15 @@ fn send_midi_message(In((_entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<Obje
             RtDisplay::new(&rt, &args[0]))));
     };
     let delay = {
-        if args.len() >= 2 {
+        if args.len() >= 3 {
             let Some(delay) = RtReal::new(&args[2]) else {
                 return Err(RuntimeError::LiteralError(format!("expected a number for the delay argument, got {}",
                     RtDisplay::new(&rt, &args[2]))));
             };
+            if *delay < 0.0 {
+                return Err(RuntimeError::LiteralError(format!("delay cannot be negative, got {}",
+                    RtDisplay::new(&rt, &args[2]))));
+            }
             *delay as f32
         } else {
             0.0f32
