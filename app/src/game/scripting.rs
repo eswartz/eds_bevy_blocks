@@ -153,15 +153,15 @@ fn send_midi_message(In((_entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<Obje
     };
     let delay = {
         if args.len() >= 3 {
-            let Some(delay) = RtReal::new(&args[2]) else {
+            let Some(delay) = RtNumber::new(&args[2]) else {
                 return Err(RuntimeError::LiteralError(format!("expected a number for the delay argument, got {}",
                     RtDisplay::new(&rt, &args[2]))));
             };
-            if *delay < 0.0 {
+            if delay.as_real() < 0.0 {
                 return Err(RuntimeError::LiteralError(format!("delay cannot be negative, got {}",
                     RtDisplay::new(&rt, &args[2]))));
             }
-            *delay as f32
+            delay.as_real() as f32
         } else {
             0.0f32
         }
