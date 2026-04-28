@@ -1,5 +1,3 @@
-
-
 use eds_bevy_common::*;
 use bevy::prelude::*;
 #[cfg(feature = "input_lim")]
@@ -45,15 +43,6 @@ pub fn assign_extra_actions(
     mut commands: Commands,
     include: impl Bundle + Clone,
 ) {
-    // commands.spawn((
-    //     include.clone(),
-    //     Action::<actions::ToggleSelect>::new(),
-    //     bindings![
-    //         KeyCode::AltLeft,
-    //         KeyCode::AltRight,
-    //         GamepadButton::LeftThumb,
-    //     ],
-    // ));
     commands.spawn((
         include.clone(),
         Action::<actions::ChangeCamera>::new(),

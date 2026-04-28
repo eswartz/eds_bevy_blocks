@@ -1,24 +1,24 @@
 [build]
 rustflags = ["-Z", "threads=4",
  # (Nightly) Make the current crate share its generic instantiations
-  #"-Zshare-generics=y",
+  "-Zshare-generics=y",
 ]
 
 [package.metadata.bevy_cli.unstable]
-web-multi-threading = true
+#web-multi-threading = true
 
 [target.wasm32-unknown-unknown]
 rustflags = [
-    "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
-    "-C", "link-arg=--shared-memory",
-    "-C", "link-arg=--max-memory=1073741824",
-    "-C", "link-arg=--import-memory",
-    "-C", "link-arg=--export=__wasm_init_tls",
-    "-C", "link-arg=--export=__tls_size",
-    "-C", "link-arg=--export=__tls_align",
-    "-C", "link-arg=--export=__tls_base",
+    # "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+    # "-C", "link-arg=--shared-memory",
+    # "-C", "link-arg=--max-memory=1073741824",
+    # "-C", "link-arg=--import-memory",
+    # "-C", "link-arg=--export=__wasm_init_tls",
+    # "-C", "link-arg=--export=__tls_size",
+    # "-C", "link-arg=--export=__tls_align",
+    # "-C", "link-arg=--export=__tls_base",
     # Improve performance
-    "--cfg", "web_sys_unstable_apis",
+    # "--cfg", "web_sys_unstable_apis",
     "-Ctarget-feature=+sign-ext,+nontrapping-fptoint",
     # Compile faster
     "-Zshare-generics=y",
@@ -32,7 +32,7 @@ rustdocflags = [
 [unstable]
 codegen-backend = true
 
-[profile.'not(cfg(target_os = "macos"))'.dev]
+[profile.'not(any(cfg(target_os = "macos"), cfg(target_arch = "wasm32")))'.dev]
 codegen-backend = "cranelift"
 
 [profile.dev.package."*"]

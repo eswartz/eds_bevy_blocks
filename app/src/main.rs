@@ -20,7 +20,7 @@ use std::time::Duration;
 
 use avian3d::prelude::*;
 use bevy::camera::visibility::RenderLayers;
-use bevy::color::palettes::tailwind;
+use bevy::color::palettes::tailwind::{self, RED_500};
 use bevy::prelude::*;
 use bevy::{
     asset::AssetMetaCheck,
@@ -77,8 +77,8 @@ fn main() -> AppExit {
                     // Wasm builds will check for meta files (that don't exist) if this isn't set.
                     // This causes errors and even panics in web builds on itch.
                     // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
-                    meta_check: AssetMetaCheck::Never,
-                    watch_for_changes_override: Some(true),
+                    meta_check: if cfg!(target_arch = "wasm32") { AssetMetaCheck::Never } else { AssetMetaCheck::Always },
+                    // watch_for_changes_override: if cfg!(target_arch = "wasm32") { Some(true) } else { None },
                     file_path: dbg!(base_dir.join("assets").display().to_string()),
                     ..default()
                 })
@@ -136,9 +136,13 @@ fn main() -> AppExit {
         })
         .add_plugins(avian3d::debug_render::PhysicsDebugPlugin::default())
 
+        .insert_resource(TimeToSleep(0.5))
+
         .insert_gizmo_config(
              PhysicsGizmos {
                  aabb_color: Some(Color::WHITE),
+                 island_color: Some(RED_500.into()),
+                 sleeping_color_multiplier: Some([0.1, 0.1, 0.1, 1.0]),
                  ..default()
              },
             GizmoConfig {
@@ -148,8 +152,6 @@ fn main() -> AppExit {
                 ..default()
             },
         )
-
-        .insert_resource(TimeToSleep(0.05))
 
         .add_plugins(AppPlugin)
 
@@ -161,6 +163,8 @@ fn main() -> AppExit {
         .add_plugins(WorldUiPlugin)
         .add_plugins(WorldStatePlugin)
         .add_plugins(CrosshairPlugin)
+        .insert_resource(CrosshairMode::AimFromCenter)
+
         .add_plugins(EffectsPlugin)
         .add_plugins(SkyboxPlugin)
         .add_plugins(LevelsPlugin)

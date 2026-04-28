@@ -1,5 +1,5 @@
 
-mod logic;
+mod action_handlers;
 mod sound;
 mod script_debug;
 mod scripting;
@@ -16,8 +16,8 @@ use bevy::mesh::VertexAttributeValues;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::{FedryScriptingPlugin, pause_scripting, unpause_scripting};
-use fedry_bevy_plugin::prelude::register_script_key;
-pub use logic::*;
+use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key};
+pub use action_handlers::*;
 use strum::{EnumIter, VariantArray};
 
 use std::time::Duration;
@@ -46,7 +46,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
 
         app
-            .add_plugins(LogicPlugin)
+            .add_plugins(ActionHandlersPlugin)
             .add_plugins(SoundPlugin)
             .add_plugins(FedryScriptingPlugin)
             .add_plugins(ScriptDebugPlugin)
@@ -89,6 +89,12 @@ impl Plugin for GamePlugin {
                     level_spawn_finished,
                 ).chain()
             )
+
+            .add_systems(
+                PreUpdate,
+                handle_pending_scripts::<UserScript>,
+            )
+
             .add_systems(
                 Update,
                 (
@@ -98,17 +104,6 @@ impl Plugin for GamePlugin {
                 .chain()
                 .run_if(added_player_start) // <<< only once per session, in practice
                 .run_if(in_state(GameplayState::Playing))
-            )
-
-            .add_systems(
-                FixedUpdate,
-                (
-                    decay_forces, //.run_if(input_just_pressed(KeyCode::Backslash)),
-                )
-                .before(PhysicsSystems::Writeback)
-                .run_if(not(is_user_paused))
-                .run_if(in_state(LevelState::Playing))
-                .run_if(in_state(ProgramState::InGame)),
             )
 
             .add_systems(
@@ -129,12 +124,34 @@ impl Plugin for GamePlugin {
                     unpause_scripting,
                 ).chain()
             )
-
             .add_systems(OnExit(LevelState::Playing),
                 (
                     hide_instructions,
                     pause_scripting,
                 )
+            )
+            .add_systems(
+                FixedUpdate,
+                (
+                    report_raycast,
+                )
+                .run_if(not(is_paused))
+                .run_if(not(is_in_menu))
+                .run_if(is_level_active)
+                .run_if(not(debug_gui_wants_direct_input))
+                .run_if(in_state(LevelState::Playing))
+                .run_if(in_state(ProgramState::InGame))
+            )
+
+            .add_systems(
+                FixedUpdate,
+                (
+                    decay_forces,
+                )
+                .before(PhysicsSystems::Writeback)
+                .run_if(not(is_user_paused))
+                .run_if(in_state(LevelState::Playing))
+                .run_if(in_state(ProgramState::InGame)),
             )
 
             .add_systems(OnEnter(LevelState::Playing),
@@ -202,7 +219,8 @@ impl Plugin for GamePlugin {
             )
 
         ;
-        register_script_key::<ScriptMain>(app);
+        register_script_key::<GameScript>(app);
+        register_script_key::<UserScript>(app);
     }
 }
 
@@ -225,8 +243,13 @@ impl std::ops::Deref for BoomMass {
     }
 }
 
+/// Marker for scripts driven by the game itself.
 #[derive(Debug, Clone, PartialEq, Hash, Reflect, QueryData)]
-pub(crate) struct ScriptMain;
+pub(crate) struct GameScript;
+
+/// Marker for scripts driven by scripts themselves.
+#[derive(Debug, Clone, PartialEq, Hash, Reflect, QueryData)]
+pub(crate) struct UserScript;
 
 /// Difficulty rating.
 #[derive(
@@ -860,7 +883,7 @@ pub(crate) fn spawn_midi_synths(
 }
 
 fn decay_forces(
-    mut forces_q: Query<Forces, (With<Spawned>, With<Cube>, With<RigidBody>)>,
+    mut forces_q: Query<Forces, (With<Spawned>, With<Cube>, With<RigidBody>, Without<Grabbed>)>,
 ) {
     forces_q.par_iter_mut().for_each(|mut forces| {
         let lsq = forces.linear_velocity().length_squared();
@@ -873,4 +896,26 @@ fn decay_forces(
             // nw.reset_accumulated_angular_acceleration();
         }
     });
+}
+
+
+fn report_raycast(
+    mut info_q: Single<(&mut Text, &mut TextColor, &mut Visibility), With<InfoArea>>,
+    highlighting_mode: Res<HighlightingMode>,
+    crosshair_target: Res<CrosshairTargets>,
+    names_q: Query<Option<&Name>>,
+) {
+    if !dev_tools_enabled() {
+        return
+    }
+
+    let (ref mut text, ref mut color, ref mut visibility) = *info_q;
+    if highlighting_mode.is_enabled()
+    && let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
+        visibility.set_if_neq(Visibility::Inherited);
+        text.0 = message;
+        color.0 = Color::Srgba(tailwind::GRAY_100);
+    } else {
+        visibility.set_if_neq(Visibility::Hidden);
+    }
 }

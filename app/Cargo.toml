@@ -74,7 +74,7 @@ features = ["dev"]
 features = ["release"]
 
 [package.metadata.bevy_cli.unstable]
-web-multi-threading = true
+#web-multi-threading = true
 
 
 [dependencies]
@@ -123,7 +123,7 @@ bevy_mod_outline.workspace = true
 
 # csgrs.workspace = true
 
-wasm_thread.workspace = true
+# wasm_thread.workspace = true
 
 fedry_runtime.workspace = true
 fedry_bevy_plugin.workspace = true

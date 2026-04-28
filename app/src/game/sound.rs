@@ -32,6 +32,7 @@ fn spawn_noise_on_collision(
     projectile_q: Query<&Projectile>,
     cube_q: Query<&Cube>,
     floor_q: Query<&Floor>,
+    player_q: Query<&Player>,
     mut commands: Commands,
 ) {
     let mut rng = rand::rng();
@@ -46,13 +47,17 @@ fn spawn_noise_on_collision(
         }
         let cube_cube = cube_q.contains(event.collider1) && cube_q.contains(event.collider2);
         let floor = floor_q.contains(event.collider1) || floor_q.contains(event.collider2);
-        let target = if cube_cube {
-            event.collider2
+        if floor && (player_q.contains(event.collider1) || player_q.contains(event.collider2)) {
+            continue
+        }
+
+        let (src, target) = if cube_cube {
+            (event.collider1, event.collider2)
         } else {
-            if projectile_q.contains(event.collider1) {
-                event.collider1
-            } else if projectile_q.contains(event.collider2) {
-                event.collider2
+            if projectile_q.contains(event.collider2) {
+                (event.collider1, event.collider2)
+            } else if projectile_q.contains(event.collider1) || floor {
+                (event.collider2, event.collider1)
             } else {
                 continue
             }
@@ -60,12 +65,23 @@ fn spawn_noise_on_collision(
 
         if let Ok((xfrm, vel)) = xfrm_vel_q.get(target)
         {
-            let vel_length = vel.0.length();
+            let src_vel = xfrm_vel_q.get(src).map_or_else(|_| &Vec3::ZERO, |(_, src_vel)| src_vel);
+
+            let vel_length = vel.0.distance(*src_vel);
             if vel_length < 1.0 {
+                // They're moving slowly relative to each other,
+                // filter out
                 continue
             }
 
+            // Distinguish between "small" impulses and "large" impulses
+            // using the log scale.
             let mag = (event.total_normal_impulse_magnitude() + 0.01).log10();
+            let silent = mag < 0.1;
+            if silent {
+                // Too weak to make a noise.
+                continue
+            }
             let mag = (mag / 8.0).clamp(0.0, 1.0);
 
             let effect = if floor {

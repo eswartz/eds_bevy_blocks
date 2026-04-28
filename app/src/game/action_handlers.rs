@@ -17,9 +17,9 @@ use leafwing_input_manager::prelude::*;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
 
-pub struct LogicPlugin;
+pub struct ActionHandlersPlugin;
 
-impl Plugin for LogicPlugin {
+impl Plugin for ActionHandlersPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_plugins(HighlightingPlugin)
@@ -35,7 +35,7 @@ impl Plugin for LogicPlugin {
             .add_systems(
                 FixedUpdate,
                 play_player_out_of_bounds
-                .run_if(not(is_user_paused))
+                .run_if(not(is_paused))
                 .run_if(in_state(LevelState::Playing))
                 .run_if(in_state(ProgramState::InGame)),
             )
@@ -54,7 +54,6 @@ impl Plugin for LogicPlugin {
                 FixedUpdate,
                 (
                     check_actions,
-                    report_raycast,
                     // handle_fire,
                 )
                     .run_if(not(is_paused))
@@ -321,25 +320,4 @@ fn do_fire(
     }
 
     any
-}
-
-fn report_raycast(
-    mut info_q: Single<(&mut Text, &mut TextColor, &mut Visibility), With<InfoArea>>,
-    highlighting_mode: Res<HighlightingMode>,
-    crosshair_target: Res<CrosshairTargets>,
-    names_q: Query<Option<&Name>>,
-) {
-    if !dev_tools_enabled() {
-        return
-    }
-
-    let (ref mut text, ref mut color, ref mut visibility) = *info_q;
-    if highlighting_mode.is_enabled()
-    && let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
-        visibility.set_if_neq(Visibility::Inherited);
-        text.0 = message;
-        color.0 = Color::Srgba(tailwind::GRAY_100);
-    } else {
-        visibility.set_if_neq(Visibility::Hidden);
-    }
 }

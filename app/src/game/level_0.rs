@@ -1,7 +1,7 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::Cube;
-use crate::game::ScriptMain;
+use crate::game::GameScript;
 use avian3d::math::Scalar;
 use eds_bevy_common::*;
 
@@ -51,10 +51,9 @@ fn on_level_loaded(
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
-
-    let script: Script<ScriptMain> = Script::new(
-        &*modules,
-        script_assets.level_0.clone(),
+    let script: Script<GameScript> = Script::new(
+        &modules,
+        &script_assets.level_0,
         &scripting.rt,
         ExecutionMode::Async,
         // ExecutionMode::Sync,

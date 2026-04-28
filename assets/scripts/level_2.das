@@ -4,14 +4,17 @@
     %step: CntF = LOAD %ctx, `tick_count, true
 
     %x = MOD %ent, 11
+    %x = SUB %x, 5.0
+
     %z = MOD %ent, 13
+    %z = SUB %z, 5.0
 
     %y = MOD %ent, 3
-    %y = ADD %y, 5.0
 
     %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
     %size = NEW_STRUCT [x: 1, y: 0.025, z: 1]
 
+    // Make a color.
     %rr = ADD %x, %step
     %r = DIV %rr, 11.0
     %r = MOD %r, 5.0
@@ -29,34 +32,28 @@
     //%color = NEW_SEQUENCE [%srgba]
     %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
 
+    %rot_x = MOD %step, 45
+
+    %angle = NEW_STRUCT [x:0, y: %rot_x, z: 0]
+
+    // Make a cuboid.
     %struct = NEW_STRUCT [
         offset: %pos,
         size: %size,
         color: %color_enum,
         mass: 5.0,
+        angle: %angle,
         //is_static: true,
         has_synth: true,
     ]
     %ent = CALL_INTRINSIC `bevy_call_func, [`spawn_cube, %struct]
 
-    %chv = NEW_SEQUENCE [`Voice, 1]
+    %struct = NEW_STRUCT [
+        path: `scripts/cube_handler.das,
+        mode: `Async,
+    ]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
 
-    %p = MOD %step, 125
-    %v_e = NEW_SEQUENCE [`Voice, 1]
-    //%seq = NEW_SEQUENCE [`ProgramChange, %v_e, %p]
-    %seq = NEW_SEQUENCE [`ProgramChange, %v_e, 56]
-    CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %ent, %seq, 0.25]
-
-    %n = MOD %step, 100
-    %n: CntF = ADD %n, 10
-    %note = NEW_SEQUENCE [`Midi, %n]
-    %seq = NEW_SEQUENCE [`NoteOn, %v_e, %note, 1.0]
-    CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %ent, %seq]
-
-    %seq = NEW_SEQUENCE [`NoteOff, %v_e, %note]
-    CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %ent, %seq, 0.5]
-
-    CONSUME_FUEL 10
     CALL_INTRINSIC `delay, [1]
 
     RETURN nil
@@ -66,7 +63,7 @@
 
     %module = NEW_STRUCT [
         `block_size: 0.375,
-        `side_length: 2,
+        `side_length: 4,
         `on_update: %on_update,
         `boom_mass: 50000.0,
         `block_mass: 500.0,

@@ -11,7 +11,7 @@ edition = "2024"
 authors = ["Ed Swartz (github.com/eswartz)"]
 # license = "MIT OR Apache 2"
 categories = ["game"]
-rust-version = "1.95"
+# rust-version = "1.95"
 
 [workspace.lints.rust]
 # internal_features = "allow"
@@ -69,7 +69,7 @@ debug-assertions = false
 [workspace.dependencies]
 eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", features = ["firewheel", "bevy_skein", "highlighting", "grabbing", "input_bei", "midi_synth"] }
 fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git" }
-fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git", features = ["egui", "ebc", "midi_synth"] }
+fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git", features = ["egui", "ebc", "midi_synth", "input_bei"] }
 
 game = { path = "game" }
 
@@ -87,7 +87,6 @@ bevy = { version = "0.18.0", default-features = false, features = [
 
     # "dev",
     "bevy_dev_tools",
-    "file_watcher",   # crashes in glTF
     # "async-io",
     "jpeg",
     "webp",
@@ -95,6 +94,7 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "mp3",
 
     "track_location",
+    "file_watcher",
     "asset_processor",
     "experimental_pbr_pcss",
 
@@ -137,9 +137,10 @@ bevy_egui = { version = "0.39", features = ["render", "serde"] }
 bevy-inspector-egui = { version = "0.36" }
 egui = { version = "0.33", features = ["bytemuck"] }
 
-firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "fff0eb1" }
+#firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "fff0eb1" }
+firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "f1e8219" }
 
-bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", rev = "b610bb1a9c40370eacc7a9e49239ce74addb826a", default-features = false, features = [
+bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", rev = "a47482ef69d8d4c7d85cba0e003ea36030af627f", default-features = false, features = [
     "wav", "ogg", "rand", "loudness", "reflect",
 
     "dev",
@@ -150,9 +151,9 @@ bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", re
 ] }
 
 # Latest version that works with bevy_seedling
-wasm-bindgen = { version = "=0.2.108" }
-web-thread = { version = "0.2" }
-wasm_thread = { version = "0.3" }
+#wasm-bindgen = { version = "*" }
+# web-thread = { version = "0.2" }
+# wasm_thread = { version = "0.3" }
 
 rustc-hash = "2.1.1"
 strum = { version = "0.27.2", features = ["derive", "strum_macros"] }
@@ -196,4 +197,4 @@ test-log = "0.2.18"
 
 [patch.crates-io]
 # bevy = { path = "../bevy-fork" }
-avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main" }
+# avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main" }
