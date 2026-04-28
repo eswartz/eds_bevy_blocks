@@ -114,10 +114,11 @@ fn on_level_loaded(
     let center = Vec3::new(2.0, axis_scale.y / 2.0, 2.0);
     for x in 0..size
     {
-        for y in 0..size {
-        // let y = 0;
-            // for z in 0..size
-            let z = 0;
+        //for y in 0..size
+        let y = 0;
+        {
+            for z in 0..size
+            //let z = 0;
             {
                 let position = Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
                 commands.spawn((

@@ -129,14 +129,15 @@ fn main() -> AppExit {
 
         .insert_resource(SolverConfig {
             contact_damping_ratio: 10.0,
-            contact_frequency_factor: 3.0,
-            max_overlap_solve_speed: 10.0,
+            contact_frequency_factor: 1.5,
+            max_overlap_solve_speed: 1.0,
             restitution_threshold: 1.0,
+            restitution_iterations: 1,
             ..default()
         })
         .add_plugins(avian3d::debug_render::PhysicsDebugPlugin::default())
 
-        .insert_resource(TimeToSleep(0.5))
+        .insert_resource(TimeToSleep(0.1))
 
         .insert_gizmo_config(
              PhysicsGizmos {

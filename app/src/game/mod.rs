@@ -882,18 +882,24 @@ pub(crate) fn spawn_midi_synths(
     Ok(())
 }
 
+/// Try to combat physics fussiness by forcibly slowing down
+/// barely-moving objects.
 fn decay_forces(
-    mut forces_q: Query<Forces, (With<Spawned>, With<Cube>, With<RigidBody>, Without<Grabbed>)>,
+    // mut commands: Commands,
+    collisions: Collisions,
+    mut forces_q: Query<(Entity, Forces), (With<Spawned>, With<Cube>, With<RigidBody>, Without<Grabbed>)>,
 ) {
-    forces_q.par_iter_mut().for_each(|mut forces| {
+    forces_q.iter_mut().for_each(|(ent, mut forces)| {
+        if collisions.entities_colliding_with(ent).count() < 3 {
+            // Don't let stuff float in the air.
+            return
+        }
         let lsq = forces.linear_velocity().length_squared();
         let asq = forces.angular_velocity().length_squared();
-        if (lsq > 0. && lsq < 0.01) || (asq > 0. && asq < 0.01) {
+        if (lsq > 0. && lsq < 0.001) || (asq > 0. && asq < 0.001) {
             let mut nw = forces.non_waking();
             *nw.linear_velocity_mut() = default();
             *nw.angular_velocity_mut() = default();
-            // nw.reset_accumulated_linear_acceleration();
-            // nw.reset_accumulated_angular_acceleration();
         }
     });
 }

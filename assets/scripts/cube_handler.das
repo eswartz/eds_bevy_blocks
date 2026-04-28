@@ -13,13 +13,13 @@
     %note = NEW_SEQUENCE [`Midi, %n]
 
     %msg = NEW_SEQUENCE [`ProgramChange, %voice, %p]
-    CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg]
+    //CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg]
 
     %msg = NEW_SEQUENCE [`NoteOn, %voice, %note, 0.125]
-    CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg]
+    //CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg]
 
     %msg = NEW_SEQUENCE [`NoteOff, %voice, %note]
-    CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg, 0.25]
+    //CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg, 0.25]
 
     CALL_INTRINSIC `delay, [0.5]
 

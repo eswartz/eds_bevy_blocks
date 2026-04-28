@@ -10,6 +10,7 @@
     %z = SUB %z, 5.0
 
     %y = MOD %ent, 3
+    %y = ADD %y, 2
 
     %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
     %size = NEW_STRUCT [x: 1, y: 0.025, z: 1]
@@ -41,20 +42,21 @@
         offset: %pos,
         size: %size,
         color: %color_enum,
-        mass: 5.0,
+        mass: 10.0,
         angle: %angle,
         //is_static: true,
         has_synth: true,
     ]
     %ent = CALL_INTRINSIC `bevy_call_func, [`spawn_cube, %struct]
 
+    %async = NEW_SEQUENCE [`Async]
     %struct = NEW_STRUCT [
         path: `scripts/cube_handler.das,
-        mode: `Async,
+        mode: %async,
     ]
     //CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
 
-    CALL_INTRINSIC `delay, [1]
+    CALL_INTRINSIC `delay, [0.5]
 
     RETURN nil
 }
@@ -63,7 +65,7 @@
 
     %module = NEW_STRUCT [
         `block_size: 0.375,
-        `side_length: 4,
+        `side_length: 3,
         `on_update: %on_update,
         `boom_mass: 50000.0,
         `block_mass: 500.0,

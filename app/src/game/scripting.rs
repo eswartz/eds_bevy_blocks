@@ -156,7 +156,7 @@ fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>
             if info.is_static { RigidBody::Static } else { RigidBody::Dynamic },
             collider,
             Restitution::new(0.0),
-            Friction::new(0.9),
+            Friction::new(1.0),
             SleepThreshold {
                 linear: 0.125,
                 angular: 0.125,
