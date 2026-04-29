@@ -10,6 +10,7 @@ mod game;
 #[cfg(target_arch = "wasm32")]
 use console_log;
 
+use crate::actions::GameActionsPlugin;
 use crate::assets::*;
 use crate::audio::AudioPlugin;
 use crate::camera::ensure_3d_camera;
@@ -154,18 +155,20 @@ fn main() -> AppExit {
             },
         )
 
+        // Our game
         .add_plugins(AppPlugin)
-
-        .add_plugins(ActionPlugin)
 
         .add_plugins(MenuPlugin)
         .add_plugins(LifecyclePlugin)
         .add_plugins(GuiPlugin)
         .add_plugins(WorldUiPlugin)
         .add_plugins(WorldStatePlugin)
+        .add_plugins(GameActionsPlugin)
         .add_plugins(CrosshairPlugin)
         .insert_resource(CrosshairMode::AimFromCenter)
 
+        // More common
+        .add_plugins(ActionPlugin)
         .add_plugins(EffectsPlugin)
         .add_plugins(SkyboxPlugin)
         .add_plugins(LevelsPlugin)
@@ -251,6 +254,18 @@ fn main() -> AppExit {
     }
 
     app.run()
+}
+
+pub fn wake_up_spawned(
+    mut commands: Commands,
+    collisions: Res<ContactGraph>,
+    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>)>
+) {
+    for ent in sleep_q.iter() {
+        if collisions.entities_colliding_with(ent).next().is_some() {
+            commands.entity(ent).remove::<Sleeping>();
+        }
+    }
 }
 
 #[cfg(feature = "input_lim")]
