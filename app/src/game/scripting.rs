@@ -125,7 +125,12 @@ fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>
 
     let mat = {
         let mut materials = world.get_resource_mut::<Assets<StandardMaterial>>().ok_or(RuntimeError::LiteralError(format!("no Assets<StandardMaterial>")))?;
-        materials.add(info.color)
+        materials.add(StandardMaterial {
+            base_color: info.color,
+            perceptual_roughness: 0.75,
+            ..default()
+        })
+
     };
 
     let new_xfrm = Transform::from_translation(info.offset + xfrm.translation)
@@ -161,10 +166,10 @@ fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>
                 linear: 0.125,
                 angular: 0.125,
             },
-            LinearDamping(0.25),
-            AngularDamping(0.75),
+            LinearDamping(0.125),
+            AngularDamping(0.125),
             Mass(if info.mass <= 0.0 { 1.0 } else { info.mass }),
-            CollisionMargin(0.0),
+            CollisionMargin(0.001),
         ),
         CollisionLayers::new(
             GameLayer::Projectiles,
