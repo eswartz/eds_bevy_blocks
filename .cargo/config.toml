@@ -5,11 +5,11 @@ rustflags = ["-Z", "threads=4",
 ]
 
 [package.metadata.bevy_cli.unstable]
-#web-multi-threading = true
+web-multi-threading = true
 
 [target.wasm32-unknown-unknown]
 rustflags = [
-    # "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+    "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
     # "-C", "link-arg=--shared-memory",
     # "-C", "link-arg=--max-memory=1073741824",
     # "-C", "link-arg=--import-memory",
@@ -18,7 +18,7 @@ rustflags = [
     # "-C", "link-arg=--export=__tls_align",
     # "-C", "link-arg=--export=__tls_base",
     # Improve performance
-    # "--cfg", "web_sys_unstable_apis",
+    "--cfg", "web_sys_unstable_apis",
     "-Ctarget-feature=+sign-ext,+nontrapping-fptoint",
     # Compile faster
     "-Zshare-generics=y",
