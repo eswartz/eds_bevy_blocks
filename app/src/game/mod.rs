@@ -25,6 +25,7 @@ use std::time::Duration;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::scripting::ScriptingPlugin;
 use crate::game::sound::SoundPlugin;
+use crate::wake_up_spawned;
 use eds_bevy_common::*;
 // use crate::player_spawning::spawn_player;
 
@@ -54,6 +55,20 @@ impl Plugin for GamePlugin {
             .add_plugins(DetailNormalPlugin)
             .add_plugins(SplitIntoCubesPlugin)
 
+            .insert_resource(Gravity((9.8 * Vec3::NEG_Y).into()))
+
+            .add_systems(
+                PreUpdate,
+                    wake_up_spawned.run_if(resource_changed::<Gravity>)
+                    .run_if(not(is_in_menu))
+                    .run_if(in_state(ProgramState::InGame))
+                ,
+            )
+
+            .insert_resource(GrabbingBehavior {
+                ignore_mass: true,
+                .. default()
+            })
             .add_plugins(ScriptingPlugin)
 
             .init_resource::<LevelDifficulty>()
@@ -828,14 +843,14 @@ fn setup_skybox(
 ) {
     let Ok(cam) = cam_q.single() else { return };
 
-    // If there isn't one in the level, add a default?
+    // If there isn't one in the level, add a default.
     if skybox_q.is_empty() {
-        // let with_reflection_probe = Some((cam, 100.0));  // looks ... not so good when real lights are present
+        //let with_reflection_probe = Some(SkyboxReflectionProbeModel::default());  // looks ... not so good when real lights are present
         let with_reflection_probe = None;
 
         commands.entity(cam).insert(SkyboxModel {
             image: Some(skyboxes.dresden_station_night.clone()),
-            brightness: bevy::prelude::light_consts::lux::CIVIL_TWILIGHT,
+            brightness: bevy::prelude::light_consts::lux::HALLWAY,
             mapping: CubemapMapping::From1_0_2f_3f_4_5,
             with_reflection_probe,
             .. default()
@@ -910,6 +925,7 @@ fn report_raycast(
     highlighting_mode: Res<HighlightingMode>,
     crosshair_target: Res<CrosshairTargets>,
     names_q: Query<Option<&Name>>,
+    gui_state: Res<GuiState>,
 ) {
     if !dev_tools_enabled() {
         return
@@ -917,6 +933,7 @@ fn report_raycast(
 
     let (ref mut text, ref mut color, ref mut visibility) = *info_q;
     if highlighting_mode.is_enabled()
+    && gui_state.enabled
     && let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
         visibility.set_if_neq(Visibility::Inherited);
         text.0 = message;
