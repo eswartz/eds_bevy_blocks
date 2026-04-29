@@ -85,16 +85,13 @@ bevy = { version = "0.18.0", default-features = false, features = [
 
     "ui",
 
-    # "dev",
     "bevy_dev_tools",
-    # "async-io",
     "jpeg",
     "webp",
     "exr",
     "mp3",
 
     "track_location",
-    "file_watcher",
     "asset_processor",
     "experimental_pbr_pcss",
 
