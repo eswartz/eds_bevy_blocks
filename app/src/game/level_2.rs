@@ -45,6 +45,7 @@ fn on_level_loaded(
     scripting: Res<ScriptRuntime>,
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
+    player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
     // Get configuration data for the initial arrangement.
     // Later, we attach this to each Cube as well.
@@ -111,7 +112,10 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let center = Vec3::new(2.0, axis_scale.y / 2.0, 2.0);
+    let center = player_xfrm_q.iter().next()
+        .map_or_else(|| Vec3::new(12.0, axis_scale.y / 2.0, -15.0),
+        |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0);
+
     for x in 0..size
     {
         //for y in 0..size
