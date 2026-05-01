@@ -31,7 +31,6 @@ use eds_bevy_common::*;
 
 use bevy::asset::uuid::Uuid;
 use bevy::ecs::world::CommandQueue;
-use bevy_seedling::prelude::*;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
@@ -93,11 +92,6 @@ impl Plugin for GamePlugin {
                     spawn_level,
                 ).chain()
             )
-            // .add_systems(
-            //     Update,
-            //     update_bone_aabb_added
-            //     // .run_if(in_state(GameplayState::Setup))
-            // )
             .add_systems(
                 OnExit(GameplayState::Setup),
                 (
@@ -125,7 +119,6 @@ impl Plugin for GamePlugin {
                 OnTransition{ exited: GameplayState::Playing, entered: GameplayState::Setup },
                 (
                     hide_instructions,
-                    despawn_level,
                 )
             )
 
@@ -197,14 +190,6 @@ impl Plugin for GamePlugin {
                 advance_level
             )
 
-            // .add_observer(
-            //     handle_grab_actions
-            //         .run_if(not(is_paused))
-            //         .run_if(not(is_in_menu))
-            //         .run_if(in_state(LevelState::Playing))
-            //         .run_if(in_state(ProgramState::InGame))
-            //     ,
-            // )
             .add_systems(
                 Update,
                 (
@@ -219,6 +204,7 @@ impl Plugin for GamePlugin {
             .add_systems(
                 Update,
                 (
+                    check_next_level,
                     check_won_level.run_if(in_state(LevelState::Won)),
                     check_lost_level.run_if(in_state(LevelState::Lost)),
                 )
@@ -302,7 +288,17 @@ const END_LEVEL_DELAY_SECS: u64 = 3;
 #[derive(Resource, Reflect, Default)]
 #[reflect(Resource, Default)]
 #[type_path = "game"]
-pub struct AutoEndLevelTimer(pub(crate) Timer);
+pub struct AutoEndLevelTimer {
+    pub(crate) timer: Timer,
+}
+
+impl AutoEndLevelTimer {
+    pub fn new(delay: Duration) -> Self {
+        Self {
+            timer: Timer::new(delay, TimerMode::Once),
+        }
+    }
+}
 
 /// A cube.
 #[derive(Component, Reflect, Default, Clone)]
@@ -449,9 +445,7 @@ pub(crate) fn level_spawn_finished(
     )>>,
     // coll_floor_q: Query<Entity, (With<Mesh3d>, With<Floor>),
     // floor_q: Query<Entity, (With<Floor>, With<RigidBody>),
-    floor_q: Query<Entity, With<Floor>,
-        // Without<ColliderConstructor>
-    >,
+    floor_q: Query<Entity, (With<Floor>, Without<ColliderConstructor>)>,
 ) {
     for ent in sensable_q.iter() {
         commands.entity(ent).insert((
@@ -509,17 +503,17 @@ pub(crate) fn spawn_player_on_start(world: &mut World) {
     ));
 
     // // Silliness
-    // commands.spawn((
-    //     ChildOf(player_ent),
-    //     Transform::from_translation(Vec3::new(0., 10.0, 0.0)),
-    //     PointLight {
-    //         color: bevy::prelude::Color::Srgba(tailwind::AMBER_50 * 5.0f32),
-    //         range: 15.0,
-    //         intensity: 1.0e5,
-    //         .. default()
-    //     },
-    //     Visibility::Visible,
-    // ));
+    commands.spawn((
+        ChildOf(player_ent),
+        Transform::from_translation(Vec3::new(0., 10.0, 0.0)),
+        PointLight {
+            color: bevy::prelude::Color::Srgba(tailwind::AMBER_50 * 5.0f32),
+            range: 15.0,
+            intensity: 1.0e5,
+            .. default()
+        },
+        Visibility::Visible,
+    ));
 
     queue.apply(world);
 }
@@ -546,8 +540,6 @@ pub(crate) fn spawn_level(
     level_list: Res<LevelList>,
     level_index: Res<LevelIndex>,
     world: Res<WorldMarkerEntity>,
-    mut score_q: Query<&mut Text, (With<ScoreArea>, Without<GameStatusArea>)>,
-    mut status_q: Query<&mut Text, (With<GameStatusArea>, Without<ScoreArea>)>,
 ) {
     setup_level(commands.reborrow(), &level_list, &level_index);
 
@@ -569,26 +561,6 @@ pub(crate) fn spawn_level(
         })
     ;
     commands.insert_resource(CurrentScore::default());
-
-    score_q.single_mut().unwrap().clear();
-    status_q.single_mut().unwrap().clear();
-}
-
-pub(crate) fn despawn_level(
-    mut commands: Commands,
-    sounds_q: Query<Entity, With<SamplePlayer>>,
-    spawned_q: Query<Entity, With<Spawned>>,
-    player_q: Query<Entity, With<Player>>,
-) {
-    for ent in sounds_q.iter() {
-        commands.entity(ent).try_despawn();
-    }
-    for ent in spawned_q.iter() {
-        commands.entity(ent).try_despawn();
-    }
-    for ent in player_q.iter() {
-        commands.entity(ent).try_despawn();
-    }
 }
 
 fn init_player_settings(
@@ -677,7 +649,12 @@ fn show_instructions(
 
 pub(crate) fn advance_level(
     mut commands: Commands,
+    // mut score_q: Query<&mut Text, (With<ScoreArea>, Without<GameStatusArea>)>,
+    // mut status_q: Query<&mut Text, (With<GameStatusArea>, Without<ScoreArea>)>,
 ) {
+    // score_q.single_mut().unwrap().clear();
+    // status_q.single_mut().unwrap().clear();
+
     commands.set_state(OverlayState::Loading);
     commands.set_state(GameplayState::Setup);
 }
@@ -717,6 +694,21 @@ fn update_current_score(
     }
 }
 
+/// Apply the [NextLevelIndex] value, if set.
+fn check_next_level(
+    mut level_index: ResMut<LevelIndex>,
+    next_level_index_opt: Option<ResMut<NextLevelIndex>>,
+    mut commands: Commands,
+) {
+    next_level_index_opt.map(|next_level| {
+        commands.remove_resource::<NextLevelIndex>();
+        *level_index = LevelIndex(next_level.0);
+        // commands.set_state(GameplayState::Setup);
+        commands.set_state(ProgramState::InGame);
+
+    });
+}
+
 fn won_level(
     mut commands: Commands,
     mut score_q: Single<(&mut Text, &mut TextColor), With<GameStatusArea>>,
@@ -725,7 +717,7 @@ fn won_level(
     text.0 = "Passed!".to_string();
     color.0 = Color::Srgba(tailwind::LIME_300);
 
-    commands.insert_resource(AutoEndLevelTimer(Timer::new(Duration::from_secs(END_LEVEL_DELAY_SECS), TimerMode::Once)));
+    commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(END_LEVEL_DELAY_SECS)));
 }
 
 fn lost_level(
@@ -736,7 +728,7 @@ fn lost_level(
     text.0 = "Failed...\nTry again!".to_string();
     color.0 = Color::Srgba(tailwind::RED_700);
 
-    commands.insert_resource(AutoEndLevelTimer(Timer::new(Duration::from_secs(END_LEVEL_DELAY_SECS), TimerMode::Once)));
+    commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(END_LEVEL_DELAY_SECS)));
 }
 
 fn check_won_level(
@@ -746,7 +738,7 @@ fn check_won_level(
     level_index: ResMut<LevelIndex>,
     level_list: Res<LevelList>,
 ) {
-    if !end_timer.0.tick(time.delta()).is_finished() {
+    if !end_timer.timer.tick(time.delta()).is_finished() {
         return;
     }
 
@@ -756,11 +748,10 @@ fn check_won_level(
         commands.set_state(LevelState::Initializing);
         commands.set_state(GameplayState::Done);
         commands.set_state(OverlayState::GameOverScreen);
-
-        // Restart next time.
+        // Next time we restart, be at level 0.
         commands.insert_resource(LevelIndex(0));
     } else {
-        commands.insert_resource(LevelIndex(next_index));
+        commands.insert_resource(NextLevelIndex(next_index));
         commands.set_state(LevelState::Advance);
     }
 }
@@ -770,7 +761,7 @@ fn check_lost_level(
     mut end_timer: ResMut<AutoEndLevelTimer>,
     time: Res<Time<Physics>>,
 ) {
-    if !end_timer.0.tick(time.delta()).is_finished() {
+    if !end_timer.timer.tick(time.delta()).is_finished() {
         return;
     }
 
