@@ -240,7 +240,8 @@ fn check_actions(
             let power = **fire_power;
 
             do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
-                fx, materials, mesh_params.p0().0, world, &boom_mass, highlighting_mode);
+                fx, materials, mesh_params.p0().0, world, &boom_mass,
+            );
 
             **fire_power = 0.;
         }
@@ -263,7 +264,6 @@ fn do_fire(
     world: Res<WorldMarkerEntity>,
 
     boom_mass: &BoomMass,
-    mut highlighting_mode: ResMut<HighlightingMode>,
 ) -> bool {
     let vel = xfrm.rotation * Vec3::NEG_Z * power;
     let mut any = false;
@@ -311,8 +311,6 @@ fn do_fire(
     }
 
     if any {
-        *highlighting_mode = HighlightingMode::Enabled;
-
         commands.spawn((
             UiSfx,
             SamplePlayer::new(fx.swoosh.clone()),
