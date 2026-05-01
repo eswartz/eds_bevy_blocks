@@ -200,10 +200,8 @@ fn main() -> AppExit {
         //     ..PlayerInputSettings::for_space()
         // })
 
-        .add_loading_state(
-            LoadingState::new(ProgramState::Initializing)
-                .continue_to_state(ProgramState::New)
-                .on_failure_continue_to_state(ProgramState::Error)
+        .configure_loading_state(
+            LoadingStateConfig::new(ProgramState::Initializing)
                 .load_collection::<GuiAssets>()
                 .load_collection::<MapAssets>()
                 .load_collection::<ModelAssets>()
