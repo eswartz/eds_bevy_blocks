@@ -114,7 +114,8 @@ tracing = { version = "0.1", features = [
 ] }
 console_log = "1.0.0"
 
-avian3d = { version = "0.6.0", default-features = false, features = [
+# avian3d = { version = "0.6.0", default-features = false, features = [
+avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = [
 	"3d",
     "default-collider",
 	"collider-from-mesh",
@@ -134,21 +135,26 @@ bevy_egui = { version = "0.39", features = ["render", "serde"] }
 bevy-inspector-egui = { version = "0.36" }
 egui = { version = "0.33", features = ["bytemuck"] }
 
-#firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "fff0eb1" }
 firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "f1e8219" }
 
-bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", rev = "a47482ef69d8d4c7d85cba0e003ea36030af627f", default-features = false, features = [
-    "wav", "ogg", "rand", "loudness", "reflect",
-
-    "dev",
-    # "stream",
-    "effects",
+bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", rev = "bfd2f33ddd81be928a796febf4ffff599999495a", optional = false, default-features = false, features = [
+    "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
+    "cpal",
     "web_audio",
+
+    "loudness",
+    # "dev",
+    # 0.10
+    # "stream",
+    # "scheduled_events",
+
+    # 0.11
+    "effects",
 ] }
 
 # Latest version that works with bevy_seedling
-#wasm-bindgen = { version = "*" }
+#wasm-bindgen = { version = "0.2.120" }
 # web-thread = { version = "0.2" }
 # wasm_thread = { version = "0.3" }
 
@@ -195,3 +201,4 @@ test-log = "0.2.18"
 [patch.crates-io]
 # bevy = { path = "../bevy-fork" }
 # avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main" }
+# bevy_skein = { path = "../skein" }

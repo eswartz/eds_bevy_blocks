@@ -16,10 +16,15 @@ ebc = ["fedry_bevy_plugin/ebc"]
 
 # bevy_cli required features
 release = [
-    "reqs",
+    "reqs", "ebc",
 ]
 
-native = []
+native = ["reqs", "ebc",]
+web = [
+    "reqs", "ebc",
+    "bevy/webgpu",
+    "bevy_seedling/web_audio",
+]
 
 dev = [
     # Improve compile times for dev builds by linking Bevy as a dynamic library.
@@ -36,6 +41,7 @@ dev = [
 dev_native = [
     "dev",
     "native",
+
     "bevy/bevy_remote",
     "bevy/basis-universal",
 
@@ -46,10 +52,6 @@ dev_native = [
     # "bevy_rerecast/editor_integration",
 
     "bevy/webgpu",
-]
-web = [
-    # "bevy/webgpu",
-    "bevy_seedling/web_audio",
 ]
 
 [package.metadata.bevy_cli]

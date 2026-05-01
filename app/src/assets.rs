@@ -1,3 +1,5 @@
+use bevy::gltf::GltfMesh;
+use bevy::gltf::GltfPrimitive;
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
 use fedry_bevy_plugin::asset::ScriptModule;
@@ -32,6 +34,8 @@ pub struct MapAssets {
 
 #[derive(Resource, AssetCollection)]
 pub struct ModelAssets {
+    #[asset(path = "models/tile.glb#Mesh0")]
+    pub tile: Handle<GltfMesh>,
 }
 
 #[derive(Resource, AssetCollection)]

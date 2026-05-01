@@ -9,17 +9,17 @@
 
     %n = MUL %step, 17
     %n = MOD %n, 75
-    %n: CntF = ADD %n, 30
+    %n: CntF = ADD %n, 20
     %note = NEW_SEQUENCE [`Midi, %n]
 
     %msg = NEW_SEQUENCE [`ProgramChange, %voice, %p]
-    //CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `send_midi_message, %msg]
 
-    %msg = NEW_SEQUENCE [`NoteOn, %voice, %note, 0.125]
-    //CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg]
+    %msg = NEW_SEQUENCE [`NoteOn, %voice, %note, 0.25]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `send_midi_message, %msg]
 
     %msg = NEW_SEQUENCE [`NoteOff, %voice, %note]
-    //CALL_INTRINSIC `bevy_call_func, [`send_midi_message, %msg, 0.25]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `send_midi_message, %msg, 0.25]
 
     CALL_INTRINSIC `delay, [0.5]
 
@@ -27,8 +27,8 @@
     %y = DIV %y, 2.0
     %vec = NEW_STRUCT [x: 0.0, y: %y, z: 0.0]
 
-    //%pos = CALL_INTRINSIC `bevy_call_func, [`translate, %vec]
-    //CALL_INTRINSIC `bevy_call_func, [`add_velocity, %vec]
+    //%pos = CALL_INTRINSIC `bevy_call_func, [%ent, `translate, %vec]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
 
     RETURN nil
 }

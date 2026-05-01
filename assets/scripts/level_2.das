@@ -13,7 +13,7 @@
     %y = ADD %y, 2
 
     %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
-    %size = NEW_STRUCT [x: 1, y: 0.025, z: 1]
+    %size = NEW_STRUCT [x: 1, y: 0.05, z: 1]
 
     // Make a color.
     %rr = ADD %x, %step
@@ -37,7 +37,11 @@
 
     %angle = NEW_STRUCT [x:0, y: %rot_x, z: 0]
 
+    //%life = NEW_SEQUENCE [`Temporary, `secs, 240.0]
+    %life = NEW_SEQUENCE [`Keep]
+
     // Make a cuboid.
+
     %struct = NEW_STRUCT [
         offset: %pos,
         size: %size,
@@ -45,23 +49,39 @@
         mass: 10.0,
         angle: %angle,
         //is_static: true,
+        life_policy: %life,
+
         has_synth: true,
     ]
     %ent = CALL_INTRINSIC `bevy_call_func, [`spawn_cube, %struct]
+
+    %struct = NEW_STRUCT [
+        y: 10.0,
+    ]
+    //%ent = CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %struct]
 
     %async = NEW_SEQUENCE [`Async]
     %struct = NEW_STRUCT [
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
 
     CALL_INTRINSIC `delay, [0.5]
+
+    //CALL_INTRINSIC `bevy_call_func, [`set_gravity, 0]
+
+    //CALL_INTRINSIC `delay, [2.5]
+
+    //CALL_INTRINSIC `bevy_call_func, [`set_gravity, -9.8]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `set_gravity, 100.0]
 
     RETURN nil
 }
 
 ///////
+
+    //CALL_INTRINSIC `bevy_call_func, [`set_gravity, -9.8]
 
     %module = NEW_STRUCT [
         `block_size: 0.375,

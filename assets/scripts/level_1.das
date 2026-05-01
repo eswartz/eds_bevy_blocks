@@ -50,7 +50,7 @@ fwd:
             entity: %ent,
             channel: %channel,
             note: %note,
-            velocity: 0.75,
+            velocity: 0.25,
         ]
         CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %onmsg]
 

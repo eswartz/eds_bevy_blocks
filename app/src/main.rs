@@ -54,8 +54,8 @@ fn main() -> AppExit {
         Ok(base_dir) => base_dir,
     };
 
-    #[cfg(target_arch = "wasm32")]
-    let _ = console_log::init_with_level(log::Level::Info);
+    // #[cfg(target_arch = "wasm32")]
+    // let _ = console_log::init_with_level(log::Level::Info);
 
     let mut app = App::new();
     app
@@ -179,6 +179,7 @@ fn main() -> AppExit {
         .add_plugins(MidiSynthPlugin)
         .add_plugins(SynthPlugin)
         .add_plugins(ClientSynthPlugin)
+        .add_plugins(MenuAudioPlugin)
 
         .add_plugins(PlayerCameraPlugin)
         .add_plugins(PlayerInputPlugin)
@@ -254,18 +255,6 @@ fn main() -> AppExit {
     }
 
     app.run()
-}
-
-pub fn wake_up_spawned(
-    mut commands: Commands,
-    collisions: Res<ContactGraph>,
-    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>)>
-) {
-    for ent in sleep_q.iter() {
-        if collisions.entities_colliding_with(ent).next().is_some() {
-            commands.entity(ent).remove::<Sleeping>();
-        }
-    }
 }
 
 #[cfg(feature = "input_lim")]

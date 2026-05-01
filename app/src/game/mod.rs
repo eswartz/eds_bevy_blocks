@@ -3,6 +3,7 @@ mod action_handlers;
 mod sound;
 mod script_debug;
 mod scripting;
+mod bevy_funcs;
 mod level_0;
 mod level_1;
 mod level_2;
@@ -25,7 +26,6 @@ use std::time::Duration;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::scripting::ScriptingPlugin;
 use crate::game::sound::SoundPlugin;
-use crate::wake_up_spawned;
 use eds_bevy_common::*;
 // use crate::player_spawning::spawn_player;
 
@@ -59,7 +59,7 @@ impl Plugin for GamePlugin {
 
             .add_systems(
                 PreUpdate,
-                    wake_up_spawned.run_if(resource_changed::<Gravity>)
+                    wake_up_spawned_if_floating.run_if(resource_changed::<Gravity>)
                     .run_if(not(is_in_menu))
                     .run_if(in_state(ProgramState::InGame))
                 ,
@@ -311,11 +311,10 @@ pub struct AutoEndLevelTimer(pub(crate) Timer);
 pub(crate) struct Cube;
 
 /// A floor.
-#[derive(Component, Reflect, Default, Clone)]
+#[derive(Component, Debug, Reflect, Default, Clone)]
 #[reflect(Component, Clone, Default)]
 #[type_path = "game"]
 pub(crate) struct Floor;
-
 
 // World state
 
@@ -448,12 +447,28 @@ pub(crate) fn level_spawn_finished(
     sensable_q: Query<Entity, Or<(
         With<DeathboxCollider>,
     )>>,
+    // coll_floor_q: Query<Entity, (With<Mesh3d>, With<Floor>),
+    // floor_q: Query<Entity, (With<Floor>, With<RigidBody>),
+    floor_q: Query<Entity, With<Floor>,
+        // Without<ColliderConstructor>
+    >,
 ) {
     for ent in sensable_q.iter() {
         commands.entity(ent).insert((
             Sensor,
             CollisionEventsEnabled,
             CollidingEntities::default(),
+        ));
+    }
+    for ent in floor_q.iter() {
+        commands.entity(ent).insert(ColliderConstructor::ConvexDecompositionFromMeshWithConfig(
+            VhacdParameters{
+                fill_mode: FillMode::SurfaceOnly,
+                resolution: 256,
+                max_convex_hulls: 32,
+                concavity: 0.125 / 2.0,
+                ..VhacdParameters::default()
+            }
         ));
     }
 
@@ -535,6 +550,10 @@ pub(crate) fn spawn_level(
     mut status_q: Query<&mut Text, (With<GameStatusArea>, Without<ScoreArea>)>,
 ) {
     setup_level(commands.reborrow(), &level_list, &level_index);
+
+    if level_index.0 >= level_list.0.len() {
+        return;
+    }
 
     let level = &level_list.0[level_index.0];
     log::info!("Entering level {}", level.label);
@@ -940,5 +959,19 @@ fn report_raycast(
         color.0 = Color::Srgba(tailwind::GRAY_100);
     } else {
         visibility.set_if_neq(Visibility::Hidden);
+    }
+}
+
+/// Avian doesn't reliably wake up (or cause [RigidBody]s to move)
+/// when changing Gravity. Maybe that's intentional, maybe a bug?
+fn wake_up_spawned_if_floating(
+    mut commands: Commands,
+    collisions: Res<ContactGraph>,
+    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>)>
+) {
+    for ent in sleep_q.iter() {
+        if collisions.entities_colliding_with(ent).next().is_some() {
+            commands.entity(ent).remove::<Sleeping>();
+        }
     }
 }

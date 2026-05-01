@@ -39,6 +39,7 @@ pub(crate) enum SimpleMenuActions {
     Quit,
     Back,
     ResumeGame,
+    RestartGame,
     StopGame,
 }
 
@@ -92,6 +93,14 @@ impl MenuItemHandler for SimpleMenuActions {
                     commands.insert_resource(paused_copy);
 
                     commands.set_state(ProgramState::LaunchMenu);
+                    commands.set_state(GameplayState::New);
+                }
+                SimpleMenuActions::RestartGame => {
+                    paused_copy.set_menu_paused(false);
+                    // keep user_paused
+                    commands.insert_resource(paused_copy);
+
+                    commands.set_state(ProgramState::InGame);
                     commands.set_state(GameplayState::New);
                 }
             },
@@ -197,8 +206,10 @@ fn add_level_selector(
                 move |index| {
                     if let Some(level) = &current_level && level.id == level_infos[index].id {
                         format!("{} (reset)", level_names[index])
-                    } else {
+                    } else if !level_names.is_empty() {
                         level_names[index].clone()
+                    } else {
+                        "???".to_string()
                     }
                 }
             ),
@@ -312,7 +323,8 @@ fn on_enter_escape_menu(
     .add_item("Video", (), SimpleMenuActions::VideoMenu)
     .add_item("Controls", (), SimpleMenuActions::ControlsMenu)
     .add_item("Stop", (), SimpleMenuActions::StopGame)
-    .add_item(format!("Resume ({})", current_level.label), (), SimpleMenuActions::ResumeGame)
+    .add_item(format!("Restart ({})", current_level.label), (), SimpleMenuActions::RestartGame)
+    .add_item("Resume", (), SimpleMenuActions::ResumeGame)
     .finish(&mut history);
 }
 

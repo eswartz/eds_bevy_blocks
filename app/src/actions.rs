@@ -29,6 +29,8 @@ impl Plugin for GameActionsPlugin {
 }
 
 fn check_actions(
+    mut commands: Commands,
+
     mut gravity_opt: Option<ResMut<avian3d::prelude::Gravity>>,
     #[cfg(feature = "input_bei")]
     grav_off: Query<&ActionEvents, (With<Action<game_actions::SetGravityOff>>, With<PlayerAction>)>,
@@ -44,7 +46,7 @@ fn check_actions(
 
     mut player_mode: ResMut<PlayerMode>,
 
-    mut camera_q: Single<&mut PlayerCamera, (With<WorldCamera>, With<OurCamera>)>,
+    // mut camera_q: Single<&mut PlayerCamera, (With<WorldCamera>, With<OurCamera>)>,
 ) {
     #[cfg(feature = "input_lim")]
     {
