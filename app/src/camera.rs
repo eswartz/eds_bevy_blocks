@@ -1,4 +1,6 @@
 
+#[cfg(feature = "solari")]
+use bevy::camera::CameraMainTextureUsages;
 use bevy::render::experimental::occlusion_culling::OcclusionCulling;
 use bevy_seedling::prelude::*;
 
@@ -12,6 +14,19 @@ use bevy::render::renderer::RenderDevice;
 use bevy::render::view::Hdr;
 
 use eds_bevy_common::*;
+
+#[cfg(feature = "solari")]
+use bevy::anti_alias::dlss::{
+    Dlss, DlssProjectId, DlssRayReconstructionFeature, DlssRayReconstructionSupported,
+};
+#[cfg(feature = "solari")]
+use bevy::solari::{
+    // pathtracer::{Pathtracer, PathtracingPlugin},
+    prelude::{RaytracingMesh3d, SolariLighting, SolariPlugins},
+};
+
+#[cfg(feature = "solari")]
+use wgpu::TextureUsages;
 
 /// Make sure Entities with Camera3d + WorldCamera and ViewCamera exist,
 /// reusing but reconfiguring any existing entities.
@@ -111,6 +126,15 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
         ),
     ));
 
+     #[cfg(feature = "solari")]
+    ent_commands.insert((
+        // Msaa::Off and CameraMainTextureUsages with STORAGE_BINDING are required for Solari
+        CameraMainTextureUsages::default().with(TextureUsages::STORAGE_BINDING),
+        Msaa::Off,
+
+        SolariLighting::default(),
+    ));
+
     if !use_clustered {
         ent_commands.insert(DepthPrepass);
     }
@@ -143,8 +167,17 @@ fn configure_viewer_camera(mut ent_commands: EntityCommands, use_clustered: bool
         ),
     ));
 
+     #[cfg(feature = "solari")]
+    ent_commands.insert((
+        // Msaa::Off and CameraMainTextureUsages with STORAGE_BINDING are required for Solari
+        CameraMainTextureUsages::default().with(TextureUsages::STORAGE_BINDING),
+        Msaa::Off,
+
+        SolariLighting::default(),
+    ));
+
     if !use_clustered {
-        ent_commands.insert(DepthPrepass);
+        // ent_commands.insert(DepthPrepass);
     }
 }
 

@@ -40,10 +40,25 @@ use bevy::{
 
 use eds_bevy_common::midi_synth::prelude::*;
 
+// #[cfg(all(feature = "solari", feature = "bevy/dlss"))]
+// use bevy::anti_alias::dlss::{
+//     Dlss, DlssProjectId, DlssRayReconstructionFeature, DlssRayReconstructionSupported,
+// };
+#[cfg(feature = "solari")]
+use bevy::solari::{
+    // pathtracer::{Pathtracer, PathtracingPlugin},
+    prelude::{RaytracingMesh3d, SolariLighting, SolariPlugins},
+};
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
+
+        #[cfg(feature = "solari")]
+        {
+            app.add_plugins(SolariPlugins);
+        }
 
         app
             .add_plugins(ActionHandlersPlugin)
@@ -96,6 +111,7 @@ impl Plugin for GamePlugin {
                 OnExit(GameplayState::Setup),
                 (
                     level_spawn_finished,
+                    add_raytracing_meshes_on_scene_load,
                 ).chain()
             )
 
@@ -472,6 +488,83 @@ pub(crate) fn level_spawn_finished(
     // Go for it, user (unless they did set_user_paused)
     pause.set_menu_paused(false);
 }
+
+#[cfg(not(feature = "solari"))]
+fn add_raytracing_meshes_on_scene_load() {}
+
+#[cfg(feature = "solari")]
+fn add_raytracing_meshes_on_scene_load(
+    world: Res<WorldMarkerEntity>,
+    children: Query<&Children>,
+    mesh_query: Query<(
+        &Mesh3d,
+        &MeshMaterial3d<StandardMaterial>,
+        Option<&GltfMaterialName>,
+    )>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut commands: Commands,
+) {
+    for descendant in children.iter_descendants(world.0) {
+        if let Ok((Mesh3d(mesh_handle), MeshMaterial3d(material_handle), material_name)) =
+            mesh_query.get(descendant)
+        {
+            // Add raytracing mesh component
+            dbg!(descendant);
+            commands
+                .entity(descendant)
+                .insert(RaytracingMesh3d(mesh_handle.clone()));
+
+            // Ensure meshes are Solari compatible
+            let mut mesh = meshes.get_mut(mesh_handle).unwrap();
+            if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
+                let vertex_count = mesh.count_vertices();
+                mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
+                mesh.insert_attribute(
+                    Mesh::ATTRIBUTE_TANGENT,
+                    vec![[0.0, 0.0, 0.0, 0.0]; vertex_count],
+                );
+            }
+            if !mesh.contains_attribute(Mesh::ATTRIBUTE_TANGENT) {
+                mesh.generate_tangents().unwrap();
+            }
+            if mesh.contains_attribute(Mesh::ATTRIBUTE_UV_1) {
+                mesh.remove_attribute(Mesh::ATTRIBUTE_UV_1);
+            }
+            if let Some(indices) = mesh.indices_mut()
+                && let Indices::U16(_) = indices
+            {
+                *indices = Indices::U32(indices.iter().map(|i| i as u32).collect());
+            }
+
+            // // Prevent rasterization if using pathtracer
+            // if args.pathtracer == Some(true) {
+            //     commands.entity(descendant).remove::<Mesh3d>();
+            // }
+
+            // Adjust scene materials to better demo Solari features
+            // if material_name.map(|s| s.0.as_str()) == Some("material") {
+            //     let mut material = materials.get_mut(material_handle).unwrap();
+            //     material.emissive = LinearRgba::BLACK;
+            // }
+            // if material_name.map(|s| s.0.as_str()) == Some("Lights") {
+            //     let mut material = materials.get_mut(material_handle).unwrap();
+            //     material.emissive =
+            //         LinearRgba::from(Color::srgb(0.941, 0.714, 0.043)) * 1_000_000.0;
+            //     material.alpha_mode = AlphaMode::Opaque;
+            //     material.specular_transmission = 0.0;
+
+            //     // commands.insert_resource(RobotLightMaterial(material_handle.clone()));
+            // }
+            // if material_name.map(|s| s.0.as_str()) == Some("Glass_Dark_01") {
+            //     let mut material = materials.get_mut(material_handle).unwrap();
+            //     material.alpha_mode = AlphaMode::Opaque;
+            //     material.specular_transmission = 0.0;
+            // }
+        }
+    }
+}
+
 
 fn added_player_start(q: Query<&Transform, Added<PlayerStart>>) -> bool {
     let flag = q.iter().next().is_some();
