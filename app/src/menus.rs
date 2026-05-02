@@ -38,8 +38,8 @@ pub(crate) enum SimpleMenuActions {
     ControlsMenu,
     Quit,
     Back,
-    ResumeGame,
-    RestartGame,
+    // ResumeGame,
+    // RestartGame,
     StopGame,
 }
 
@@ -81,12 +81,12 @@ impl MenuItemHandler for SimpleMenuActions {
                 SimpleMenuActions::Quit => {
                     commands.insert_resource(ExitRequest);
                 }
-                SimpleMenuActions::ResumeGame => {
-                    paused_copy.set_menu_paused(false);
-                    commands.insert_resource(paused_copy);
+                // SimpleMenuActions::ResumeGame => {
+                //     paused_copy.set_menu_paused(false);
+                //     commands.insert_resource(paused_copy);
 
-                    commands.set_state(OverlayState::Hidden);
-                }
+                //     commands.set_state(OverlayState::Hidden);
+                // }
                 SimpleMenuActions::StopGame => {
                     paused_copy.set_menu_paused(false);
                     paused_copy.set_user_paused(false);
@@ -95,14 +95,18 @@ impl MenuItemHandler for SimpleMenuActions {
                     commands.set_state(ProgramState::LaunchMenu);
                     commands.set_state(GameplayState::New);
                 }
-                SimpleMenuActions::RestartGame => {
-                    paused_copy.set_menu_paused(false);
-                    // keep user_paused
-                    commands.insert_resource(paused_copy);
+                // SimpleMenuActions::RestartGame => {
+                //     paused_copy.set_menu_paused(false);
 
-                    commands.set_state(ProgramState::InGame);
-                    commands.set_state(GameplayState::New);
-                }
+                //     next_level_index.set(Some(level_index));
+
+                //     // keep user_paused
+                //     commands.insert_resource(paused_copy);
+
+                //     // DOESN'T WORK
+                //     commands.set_state(ProgramState::InGame);
+                //     commands.set_state(GameplayState::New);
+                // }
             },
             MenuActionMessage::Reset(_) => (),
             MenuActionMessage::Previous(_) => (),
@@ -159,6 +163,7 @@ fn on_enter_main_menu(
     );
 
     add_level_selector(&mut builder,
+        "Play",
         &level_list,
         current_level.as_deref());
 
@@ -178,15 +183,19 @@ fn on_enter_main_menu(
 
 fn add_level_selector(
     builder: &mut MenuItemBuilder,
+    label: &str,
     level_list: &LevelList,
     current_level: Option<&CurrentLevel>,
 ) {
-    fn get_level(In(entity): In<Entity>, mut enum_q: Query<&mut MenuEnum>, next_level_index: Option<Res<LevelIndex>>) {
-        let index = next_level_index.map_or(0, |nli| nli.0);
+    fn get_level(In(entity): In<Entity>, mut enum_q: Query<&mut MenuEnum>,
+        level_index: Res<LevelIndex>,
+        next_level_index: Option<Res<NextLevelIndex>>,
+    ) {
+        let index = next_level_index.map_or(level_index.0, |nli| nli.0);
         enum_q.get_mut(entity).unwrap().current = Some(index);
     }
     fn set_level(In(v): In<usize>, mut commands: Commands) {
-        commands.insert_resource(LevelIndex(v));
+        commands.insert_resource(NextLevelIndex(v));
     }
     let get_level = builder.commands().register_system(IntoSystem::into_system(get_level));
     let set_level = builder.commands().register_system(IntoSystem::into_system(set_level));
@@ -198,7 +207,7 @@ fn add_level_selector(
 
     builder
         .add_item(
-            "Play",
+            label,
             MenuEnum::new(
                 get_level,
                 set_level,
@@ -256,7 +265,10 @@ fn on_enter_game_menu(
         &history,
     );
 
-    add_level_selector(&mut builder, &level_list, current_level.as_deref());
+    add_level_selector(
+        &mut builder,
+        "Start",
+        &level_list, current_level.as_deref());
 
     builder.add_item(
         "Difficulty",
@@ -297,6 +309,7 @@ fn on_enter_escape_menu(
     gui_assets: Option<Res<CommonGuiAssets>>,
     commands: Commands,
     mut history: ResMut<MenuItemSelectionHistory>,
+    level_list: Res<LevelList>,
     current_level: Option<Res<CurrentLevel>>,
     mut paused: ResMut<PauseState>,
 ) {
@@ -310,21 +323,29 @@ fn on_enter_escape_menu(
     // The menu sets [paused()] to true on first entry
     // by setting one of the OR inputs to that method.
     paused.set_menu_paused(true);
-    MenuItemBuilder::new(
+    let mut builder = MenuItemBuilder::new(
         commands,
         OverlayState::EscapeMenu,
         ProgramState::InGame,
         gui_assets.std_ui.clone(),
         1.0,
         &history,
-    )
+    );
+    builder
     // (), SimpleMenuActions::ResumeGame)
     .add_item("Audio", (), SimpleMenuActions::AudioMenu)
     .add_item("Video", (), SimpleMenuActions::VideoMenu)
     .add_item("Controls", (), SimpleMenuActions::ControlsMenu)
-    .add_item("Stop", (), SimpleMenuActions::StopGame)
-    .add_item(format!("Restart ({})", current_level.label), (), SimpleMenuActions::RestartGame)
-    .add_item("Resume", (), SimpleMenuActions::ResumeGame)
+    // .add_item(format!("Restart ({})", current_level.label), (), SimpleMenuActions::RestartGame)
+    // .add_item("Resume", (), SimpleMenuActions::ResumeGame)
+    ;
+
+    add_level_selector(
+        &mut builder,
+        "Go To",
+        &level_list, Some(&current_level));
+
+    builder.add_item("Stop", (), SimpleMenuActions::StopGame)
     .finish(&mut history);
 }
 
@@ -361,14 +382,17 @@ pub(crate) enum EnumMenuActions {
 
 impl MenuItemHandler for EnumMenuActions {
     fn handle(&mut self, world: &mut World, event: &MenuActionMessage) {
-        let mut queue = CommandQueue::default();
-        let mut commands = Commands::new(&mut queue, world);
         if let MenuActionMessage::Activate(_) = event
         && let EnumMenuActions::SelectStartLevelEnum = self
         {
+            let mut queue = CommandQueue::default();
+            let mut commands = Commands::new(&mut queue, world);
+
+            commands.set_state_if_neq(LevelState::Advance);
             start_game(commands.reborrow());
+
+            queue.apply(world);
         }
-        queue.apply(world);
     }
 }
 

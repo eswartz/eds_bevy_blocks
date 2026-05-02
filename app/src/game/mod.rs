@@ -597,7 +597,10 @@ fn show_instructions(
     .with_children(|builder| {
         text_ent = builder.spawn((
             DespawnOnExit(GameplayState::Playing),
-            Text::new("",
+            Text::new(
+                r#"Left Click: Fire heavy bar (hold for strength)
+                Right Click: Grab and move
+                "#
             ),
             TextLayout::new(Justify::Center, LineBreak::WordBoundary),
             TextFont {
