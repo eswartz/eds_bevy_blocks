@@ -13,7 +13,7 @@
     %y = ADD %y, 2
 
     %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
-    %size = NEW_STRUCT [x: 1, y: 0.05, z: 1]
+    %size = NEW_STRUCT [x: 1, y: 0.25, z: 1]
 
     // Make a color.
     %rr = ADD %x, %step
@@ -37,8 +37,8 @@
 
     %angle = NEW_STRUCT [x:0, y: %rot_x, z: 0]
 
-    //%life = NEW_SEQUENCE [`Temporary, `secs, 240.0]
-    %life = NEW_SEQUENCE [`Keep]
+    %life = NEW_SEQUENCE [`Temporary, `secs, 360.0]
+    //%life = NEW_SEQUENCE [`Keep]
 
     // Make a cuboid.
 
@@ -48,7 +48,7 @@
         color: %color_enum,
         mass: 10.0,
         angle: %angle,
-        //is_static: true,
+        is_static: false,
         life_policy: %life,
 
         has_synth: true,
@@ -67,7 +67,7 @@
     ]
     CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
 
-    CALL_INTRINSIC `delay, [0.5]
+    CALL_INTRINSIC `delay, [2.0]
 
     //CALL_INTRINSIC `bevy_call_func, [`set_gravity, 0]
 
@@ -85,7 +85,7 @@
 
     %module = NEW_STRUCT [
         `block_size: 0.375,
-        `side_length: 3,
+        `side_length: 4,
         `on_update: %on_update,
         `boom_mass: 50000.0,
         `block_mass: 500.0,

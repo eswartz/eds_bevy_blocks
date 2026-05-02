@@ -138,7 +138,7 @@ fn main() -> AppExit {
         })
         .add_plugins(avian3d::debug_render::PhysicsDebugPlugin::default())
 
-        .insert_resource(TimeToSleep(0.1))
+        .insert_resource(TimeToSleep(0.0625))
 
         .insert_gizmo_config(
              PhysicsGizmos {

@@ -102,8 +102,9 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
             match mat.as_ref() {
                 Some(mat) => {
                     let mut std_mat = materials.get(mat).unwrap().clone();
-                    // std_mat.base_color = info.color;
-                    std_mat.specular_tint = info.color.mix(&Color::WHITE, 0.5).with_alpha(0.5);
+                    std_mat.base_color = info.color.mix(&Color::WHITE, 0.75);
+                    // std_mat.specular_tint = info.color.mix(&Color::WHITE, 0.25).with_alpha(0.5);
+                    // std_mat.specular_tint = info.color.mix(&Color::WHITE, 0.25); //.with_alpha(0.5);
                     materials.add(std_mat)
                 },
                 None => {
@@ -155,13 +156,13 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
             Restitution::new(0.0),
             Friction::new(1.0),
             SleepThreshold {
-                linear: 0.125,
-                angular: 0.125,
+                linear: 1.0 / 16.0,
+                angular: 1.0 / 16.0,
             },
-            LinearDamping(0.125),
-            AngularDamping(0.125),
+            LinearDamping(1.0 / 16.0),
+            AngularDamping(1.0 / 16.0),
             Mass(if info.mass <= 0.0 { 1.0 } else { info.mass }),
-            CollisionMargin(0.001),
+            CollisionMargin(0.0025),
         ),
         CollisionLayers::new(
             GameLayer::Projectiles,
