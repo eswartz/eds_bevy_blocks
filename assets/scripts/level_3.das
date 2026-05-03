@@ -50,6 +50,10 @@
     %b = MOD %b, 5.0
 
     %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
+    %r = MUL %r, 5.0
+    %g = MUL %g, 5.0
+    %b = MUL %b, 5.0
+    %emissive = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
 
     %shape = NEW_SEQUENCE [`Cube, x, 0.5, y, 0.125, z, 0.25]
     %collider_shape = NEW_SEQUENCE [`Sphere, 1.0]
@@ -73,6 +77,11 @@
         `rotation, %rot,
 
         `color, %color_enum,
+        `normal_map, `textures/detail_normal.webp,
+        `emissive, %emissive,
+        //`emissive, 4.0,
+        `metallic, 1.0,
+        `roughness, 0.0,
 
         `rigid_body, %rigid,
 
@@ -94,7 +103,7 @@
     %module = NEW_STRUCT [
         `on_update: %on_update,
         `boom_mass: 50000.0,
-        `count: 3,
+        `count: 1,
     ]
     CONSUME_FUEL 3
     RETURN %module

@@ -13,7 +13,8 @@ reqs = ["input_bei", "gltf/EXT_texture_webp", "eds_bevy_common/highlighting", "e
 input_lim = ["dep:leafwing-input-manager", "eds_bevy_common/input_lim"]
 input_bei = ["dep:bevy_enhanced_input", "eds_bevy_common/input_bei"]
 ebc = ["fedry_bevy_plugin/ebc"]
-solari = ["bevy/bevy_solari"] #, "bevy/dlss"]
+solari = ["bevy/bevy_solari", "eds_bevy_common/solari"]
+dlss = ["bevy/dlss"]
 
 # bevy_cli required features
 release = [

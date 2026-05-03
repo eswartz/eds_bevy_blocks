@@ -15,14 +15,14 @@ use bevy::render::view::Hdr;
 
 use eds_bevy_common::*;
 
-#[cfg(feature = "solari")]
+#[cfg(feature = "dlss")]
 use bevy::anti_alias::dlss::{
     Dlss, DlssProjectId, DlssRayReconstructionFeature, DlssRayReconstructionSupported,
 };
 #[cfg(feature = "solari")]
 use bevy::solari::{
     // pathtracer::{Pathtracer, PathtracingPlugin},
-    prelude::{RaytracingMesh3d, SolariLighting, SolariPlugins},
+    prelude::SolariLighting,
 };
 
 #[cfg(feature = "solari")]

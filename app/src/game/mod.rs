@@ -13,6 +13,8 @@ use avian3d::math::Vector;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
 use bevy::ecs::query::QueryData;
+#[cfg(feature = "solari")]
+use bevy::mesh::Indices;
 use bevy::mesh::VertexAttributeValues;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
@@ -39,14 +41,13 @@ use bevy::{
 
 use eds_bevy_common::midi_synth::prelude::*;
 
-// #[cfg(all(feature = "solari", feature = "bevy/dlss"))]
+// #[cfg(all(feature = "solari", feature = "dlss"))]
 // use bevy::anti_alias::dlss::{
 //     Dlss, DlssProjectId, DlssRayReconstructionFeature, DlssRayReconstructionSupported,
 // };
 #[cfg(feature = "solari")]
 use bevy::solari::{
-    // pathtracer::{Pathtracer, PathtracingPlugin},
-    prelude::{RaytracingMesh3d, SolariLighting, SolariPlugins},
+    prelude::{RaytracingMesh3d, SolariPlugins},
 };
 
 pub struct GamePlugin;
@@ -110,10 +111,13 @@ impl Plugin for GamePlugin {
                 OnExit(GameplayState::Setup),
                 (
                     level_spawn_finished,
-                    add_raytracing_meshes_on_scene_load,
                 ).chain()
             )
 
+            .add_systems(
+                PreUpdate,
+                add_raytracing_to_meshes,
+            )
             .add_systems(
                 PreUpdate,
                 handle_pending_scripts::<UserScript>,
@@ -489,33 +493,33 @@ pub(crate) fn level_spawn_finished(
 }
 
 #[cfg(not(feature = "solari"))]
-fn add_raytracing_meshes_on_scene_load() {}
+fn add_raytracing_to_meshes() {}
 
 #[cfg(feature = "solari")]
-fn add_raytracing_meshes_on_scene_load(
-    world: Res<WorldMarkerEntity>,
+fn add_raytracing_to_meshes(
+    world: If<Res<WorldMarkerEntity>>,
     children: Query<&Children>,
     mesh_query: Query<(
         &Mesh3d,
-        &MeshMaterial3d<StandardMaterial>,
-        Option<&GltfMaterialName>,
-    )>,
+    ), Changed<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
-    for descendant in children.iter_descendants(world.0) {
-        if let Ok((Mesh3d(mesh_handle), MeshMaterial3d(material_handle), material_name)) =
+    if mesh_query.is_empty() {
+        return
+    }
+
+    for descendant in children.iter_descendants(world.0.0) {
+        if let Ok((Mesh3d(mesh_handle),)) =
             mesh_query.get(descendant)
         {
             // Add raytracing mesh component
-            dbg!(descendant);
             commands
                 .entity(descendant)
                 .insert(RaytracingMesh3d(mesh_handle.clone()));
 
             // Ensure meshes are Solari compatible
-            let mut mesh = meshes.get_mut(mesh_handle).unwrap();
+            let mesh = meshes.get_mut(mesh_handle).unwrap();
             if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
                 let vertex_count = mesh.count_vertices();
                 mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
@@ -535,31 +539,6 @@ fn add_raytracing_meshes_on_scene_load(
             {
                 *indices = Indices::U32(indices.iter().map(|i| i as u32).collect());
             }
-
-            // // Prevent rasterization if using pathtracer
-            // if args.pathtracer == Some(true) {
-            //     commands.entity(descendant).remove::<Mesh3d>();
-            // }
-
-            // Adjust scene materials to better demo Solari features
-            // if material_name.map(|s| s.0.as_str()) == Some("material") {
-            //     let mut material = materials.get_mut(material_handle).unwrap();
-            //     material.emissive = LinearRgba::BLACK;
-            // }
-            // if material_name.map(|s| s.0.as_str()) == Some("Lights") {
-            //     let mut material = materials.get_mut(material_handle).unwrap();
-            //     material.emissive =
-            //         LinearRgba::from(Color::srgb(0.941, 0.714, 0.043)) * 1_000_000.0;
-            //     material.alpha_mode = AlphaMode::Opaque;
-            //     material.specular_transmission = 0.0;
-
-            //     // commands.insert_resource(RobotLightMaterial(material_handle.clone()));
-            // }
-            // if material_name.map(|s| s.0.as_str()) == Some("Glass_Dark_01") {
-            //     let mut material = materials.get_mut(material_handle).unwrap();
-            //     material.alpha_mode = AlphaMode::Opaque;
-            //     material.specular_transmission = 0.0;
-            // }
         }
     }
 }
