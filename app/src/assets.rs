@@ -1,5 +1,4 @@
 use bevy::gltf::GltfMesh;
-use bevy::gltf::GltfPrimitive;
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
 use fedry_bevy_plugin::asset::ScriptModule;
@@ -30,6 +29,8 @@ pub struct MapAssets {
     pub level_1: Handle<Scene>,
     #[asset(path = "maps/level_2.glb#Scene0")]
     pub level_2: Handle<Scene>,
+    #[asset(path = "maps/level_3.glb#Scene0")]
+    pub level_3: Handle<Scene>,
 }
 
 #[derive(Resource, AssetCollection)]
@@ -46,4 +47,6 @@ pub struct ScriptAssets {
     pub level_1: Handle<ScriptModule>,
     #[asset(path = "scripts/level_2.das")]
     pub level_2: Handle<ScriptModule>,
+    #[asset(path = "scripts/level_3.das")]
+    pub level_3: Handle<ScriptModule>,
 }

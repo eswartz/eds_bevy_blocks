@@ -7,7 +7,7 @@ mod bevy_funcs;
 mod level_0;
 mod level_1;
 mod level_2;
-// mod level_3;
+mod level_3;
 
 use avian3d::math::Vector;
 use bevy::asset::RenderAssetUsages;
@@ -16,8 +16,7 @@ use bevy::ecs::query::QueryData;
 use bevy::mesh::VertexAttributeValues;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
-use fedry_bevy_plugin::{FedryScriptingPlugin, pause_scripting, unpause_scripting};
-use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key};
+use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
 pub use action_handlers::*;
 use strum::{EnumIter, VariantArray};
 
@@ -90,7 +89,7 @@ impl Plugin for GamePlugin {
             .add_plugins(level_0::LevelPlugin)
             .add_plugins(level_1::LevelPlugin)
             .add_plugins(level_2::LevelPlugin)
-            // .add_plugins(level_3::LevelPlugin)
+            .add_plugins(level_3::LevelPlugin)
 
             .insert_resource(BaseEntity(Entity::PLACEHOLDER, Transform::IDENTITY))
 
@@ -1008,7 +1007,7 @@ pub(crate) fn spawn_midi_synths(
 fn decay_forces(
     // mut commands: Commands,
     collisions: Collisions,
-    mut forces_q: Query<(Entity, Forces), (With<Spawned>, With<Cube>, With<RigidBody>, Without<Grabbed>)>,
+    mut forces_q: Query<(Entity, Forces), (With<Spawned>, With<RigidBody>, Without<Grabbed>)>,
 ) {
     forces_q.iter_mut().for_each(|(ent, mut forces)| {
         if collisions.entities_colliding_with(ent).count() < 3 {

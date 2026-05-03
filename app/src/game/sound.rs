@@ -16,25 +16,30 @@ impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Update,
-                spawn_noise_on_collision
-                .run_if(not(is_paused))
-                .run_if(in_state(LevelState::Playing))
-                .run_if(in_state(GameplayState::Playing))
+                (
+                    spawn_noise_on_collision::<Cube>,
+                    // spawn_noise_on_collision::<Spawned>,
+                )
+                    .run_if(not(is_paused))
+                    .run_if(in_state(LevelState::Playing))
+                    .run_if(in_state(GameplayState::Playing))
             )
         ;
     }
 }
 
-fn spawn_noise_on_collision(
+fn spawn_noise_on_collision<T>(
+    thing_q: Query<&T>,
+
     collisions: Collisions,
     fx: Res<CommonFxAssets>,
     xfrm_vel_q: Query<(&GlobalTransform, &LinearVelocity)>,
     projectile_q: Query<&Projectile>,
-    cube_q: Query<&Cube>,
     floor_q: Query<&Floor>,
     player_q: Query<&Player>,
+
     mut commands: Commands,
-) {
+) where T: Component {
     let mut rng = rand::rng();
     let mut added = 0;
 
@@ -45,18 +50,19 @@ fn spawn_noise_on_collision(
         if !event.is_touching() {
             continue
         }
-        let cube_cube = cube_q.contains(event.collider1) && cube_q.contains(event.collider2);
-        let floor = floor_q.contains(event.collider1) || floor_q.contains(event.collider2);
-        if floor && (player_q.contains(event.collider1) || player_q.contains(event.collider2)) {
+        let thing_thing = thing_q.contains(event.collider1) && thing_q.contains(event.collider2);
+        let one_is_floor = floor_q.contains(event.collider1) || floor_q.contains(event.collider2);
+        let one_is_player = player_q.contains(event.collider1) || player_q.contains(event.collider2);
+        if one_is_floor && one_is_player {
             continue
         }
 
-        let (src, target) = if cube_cube {
+        let (src, target) = if thing_thing {
             (event.collider1, event.collider2)
         } else {
             if projectile_q.contains(event.collider2) {
                 (event.collider1, event.collider2)
-            } else if projectile_q.contains(event.collider1) || floor {
+            } else if projectile_q.contains(event.collider1) && (one_is_player || one_is_floor) {
                 (event.collider2, event.collider1)
             } else {
                 continue
@@ -84,7 +90,7 @@ fn spawn_noise_on_collision(
             }
             let mag = (mag / 8.0).clamp(0.0, 1.0);
 
-            let effect = if floor {
+            let effect = if one_is_floor {
             (*[
                 &fx.brush1a,
                 &fx.brush1b,
@@ -96,7 +102,7 @@ fn spawn_noise_on_collision(
                 .choose(&mut rng)
                 .unwrap())
                 .clone()
-            } else if cube_cube {
+            } else if thing_thing {
                 (*[
                     &fx.wood1a,
                     &fx.wood1b,

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::loading_state::LoadingStateAppExt as _;
 use bevy_asset_loader::loading_state::config::ConfigureLoadingState as _;
 use bevy_asset_loader::loading_state::config::LoadingStateConfig;
-use bevy_seedling::prelude::*;
+// use bevy_seedling::prelude::*;
 
 use crate::assets::FxAssets;
 use crate::assets::MusicAssets;
