@@ -38,7 +38,7 @@
 
     // Make a color.
     %rr = ADD %x, %step
-    %r = DIV %rr, 11.0
+    %r = DIV %rr, 7.0
     %r = MOD %r, 5.0
 
     %gg = ADD %z, %step
@@ -49,25 +49,27 @@
     %b = DIV %z, 13.0
     %b = MOD %b, 5.0
 
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
-    %r = MUL %r, 5.0
-    %g = MUL %g, 5.0
-    %b = MUL %b, 5.0
-    %emissive = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
+    %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b, `alpha, 0.25]
+    %r = MUL %r, 3.0
+    %g = MUL %g, 3.0
+    %b = MUL %b, 2.0
+    %emissive = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b, `alpha, 0.5]
 
-    %shape = NEW_SEQUENCE [`Cube, x, 0.5, y, 0.125, z, 0.25]
+    //%shape = NEW_SEQUENCE [`Cube, x, 0.25, y, 0.50, z, 0.75]
     %collider_shape = NEW_SEQUENCE [`Sphere, 1.0]
+    %shape = NEW_SEQUENCE [`Sphere, 0.5]
     //%shape = NEW_SEQUENCE [`Sphere, 0.5]
-    //%shape = NEW_SEQUENCE [`Sphere, 0.5]
-    %rigid = NEW_SEQUENCE [`Dynamic]
 
-    %mass = COPY 0.001
+    %mass = COPY 0.0001
     %friction = COPY 0.0
 
     //%collider_scale = DIV %r, 2.0
     %collider_scale = COPY %r
     %collider_scale = ADD %collider_scale, 1.0
+    //%collider_scale = COPY 0.5
 
+    %light = NEW_STRUCT [
+    ]
     CALL_INTRINSIC `bevy_spawn, [
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
         `offset, %pos,
@@ -78,12 +80,15 @@
 
         `color, %color_enum,
         `normal_map, `textures/detail_normal.webp,
-        `emissive, %emissive,
+        //`emissive, %emissive,
         //`emissive, 4.0,
         `metallic, 1.0,
-        `roughness, 0.0,
+        `roughness, 0.25,
 
-        `rigid_body, %rigid,
+        `alpha_mode, `Blend,
+        `clearcoat, 0.5,
+
+        `rigid_body, `Dynamic,
 
         `shape, %shape,
         `collider_shape, %collider_shape,
@@ -91,9 +96,11 @@
 
         `mass, %mass,
         `friction, %friction,
+
+        //'bevy_light::spot_light::SpotLight', %light,
     ]
     //CALL_INTRINSIC `delay, [0.125]
-    CALL_INTRINSIC `delay, [0.05]
+    CALL_INTRINSIC `delay, [0.001]
 
     RETURN nil
 }
