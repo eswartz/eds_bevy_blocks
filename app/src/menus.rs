@@ -374,7 +374,7 @@ pub(crate) enum EnumMenuActions {
     DifficultyEnum,
     SelectStartLevelEnum,
     AntialiasingEnum,
-    // MeshQualityEnum,
+    MeshQualityEnum,
     ShadowQualityEnum,
     TextureQualityEnum,
     // GlassQualityEnum,
@@ -730,7 +730,7 @@ fn on_enter_video_menu(
     make_res_enum_getter_setter!(get_shadow set_shadow => ShadowQuality VideoSettings shadow_quality);
     // make_res_enum_getter_setter!(get_glass set_glass => GlassQuality VideoSettings glass_quality);
     make_res_enum_getter_setter!(get_anti set_anti => Antialiasing VideoSettings antialiasing);
-    // make_res_enum_getter_setter!(get_mesh_qual set_mesh_qual => MeshQuality VideoSettings mesh_quality);
+    make_res_enum_getter_setter!(get_mesh_qual set_mesh_qual => MeshQuality VideoSettings mesh_quality);
     make_res_enum_getter_setter!(get_tex_qual set_tex_qual => TextureQuality VideoSettings texture_quality);
 
     MenuItemBuilder::new(
@@ -774,16 +774,16 @@ fn on_enter_video_menu(
         ),
         EnumMenuActions::AntialiasingEnum,
     )
-    // .add_item(
-    //     "Mesh Quality",
-    //     MenuEnum::new(
-    //         get_mesh_qual,
-    //         set_mesh_qual,
-    //         || MeshQuality::VARIANTS.len(),
-    //         |index| MeshQuality::VARIANTS[index].to_string(),
-    //     ),
-    //     EnumMenuActions::MeshQualityEnum,
-    // )
+    .add_item(
+        "Mesh Quality",
+        MenuEnum::new(
+            get_mesh_qual,
+            set_mesh_qual,
+            || MeshQuality::VARIANTS.len(),
+            |index| MeshQuality::VARIANTS[index].to_string(),
+        ),
+        EnumMenuActions::MeshQualityEnum,
+    )
     .add_item(
         "Texture Quality",
         MenuEnum::new(
