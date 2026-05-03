@@ -291,8 +291,10 @@ fn do_fire(
             Mesh3d(mesh.clone()),
             MeshMaterial3d(mat.clone()),
             xfrm,
+
             // DespawnAfter(Duration::from_secs(120)),
             ActiveCollisionHooks::MODIFY_CONTACTS,
+            Dominance(16),
         ), (
             Spawned,
             Projectile,
