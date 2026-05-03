@@ -710,9 +710,11 @@ fn show_instructions(
 
     // Fade in and out.
 
+    const TIME_SECS: f32 = 2.0;
+
     let color_tween = Tween::new(
         EaseMethod::EaseFunction(EaseFunction::CubicOut),
-        Duration::from_secs_f32(3.0),
+        Duration::from_secs_f32(TIME_SECS),
         TextColorLens {
             start: Color::WHITE.with_alpha(0.0),
             end: Color::WHITE.with_alpha(1.0),
@@ -722,7 +724,7 @@ fn show_instructions(
 
     let shadow_tween = Tween::new(
         EaseMethod::EaseFunction(EaseFunction::CubicOut),
-        Duration::from_secs_f32(3.0),
+        Duration::from_secs_f32(TIME_SECS),
         TextShadowColorLens {
             start: Color::linear_rgba(0., 0., 0., 0.0),
             end: Color::linear_rgba(0., 0., 0., 1.0),
