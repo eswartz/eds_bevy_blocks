@@ -5,6 +5,7 @@ use bevy::sprite::Text2dShadow;
 use bevy_seedling::pool::SamplerPool;
 use bevy_seedling::prelude::MainBus;
 use bevy_seedling::prelude::Volume;
+use fedry_bevy_plugin::prelude::ScriptControl;
 use strum::VariantArray;
 
 use crate::ExitRequest;
@@ -45,9 +46,13 @@ pub(crate) enum SimpleMenuActions {
 
 impl MenuItemHandler for SimpleMenuActions {
     fn handle(&mut self, world: &mut World, message: &MenuActionMessage) {
-        // Fetch the paused resource into a local copy to avoid double mutable borrows.
-        let mut paused_copy = world
+        // Fetch these resources into local copies to avoid double mutable borrows.
+        let mut pause_state = world
             .get_resource::<PauseState>()
+            .cloned()
+            .unwrap_or_default();
+        let mut script_control = world
+            .get_resource::<ScriptControl>()
             .cloned()
             .unwrap_or_default();
         let mut queue = CommandQueue::default();
@@ -81,32 +86,18 @@ impl MenuItemHandler for SimpleMenuActions {
                 SimpleMenuActions::Quit => {
                     commands.insert_resource(ExitRequest);
                 }
-                // SimpleMenuActions::ResumeGame => {
-                //     paused_copy.set_menu_paused(false);
-                //     commands.insert_resource(paused_copy);
-
-                //     commands.set_state(OverlayState::Hidden);
-                // }
                 SimpleMenuActions::StopGame => {
-                    paused_copy.set_menu_paused(false);
-                    paused_copy.set_user_paused(false);
-                    commands.insert_resource(paused_copy);
+                    pause_state.set_menu_paused(false);
+                    pause_state.set_user_paused(false);
+                    commands.insert_resource(pause_state);
+
+                    script_control.set_user_paused(false);
+                    script_control.set_game_paused(false);
+                    commands.insert_resource(script_control);
 
                     commands.set_state(ProgramState::LaunchMenu);
                     commands.set_state(GameplayState::New);
                 }
-                // SimpleMenuActions::RestartGame => {
-                //     paused_copy.set_menu_paused(false);
-
-                //     next_level_index.set(Some(level_index));
-
-                //     // keep user_paused
-                //     commands.insert_resource(paused_copy);
-
-                //     // DOESN'T WORK
-                //     commands.set_state(ProgramState::InGame);
-                //     commands.set_state(GameplayState::New);
-                // }
             },
             MenuActionMessage::Reset(_) => (),
             MenuActionMessage::Previous(_) => (),

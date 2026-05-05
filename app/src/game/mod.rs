@@ -574,17 +574,17 @@ pub(crate) fn spawn_player_on_start(world: &mut World) {
     ));
 
     // // Silliness
-    commands.spawn((
-        ChildOf(player_ent),
-        Transform::from_translation(Vec3::new(0., 10.0, 0.0)),
-        PointLight {
-            color: bevy::prelude::Color::Srgba(tailwind::AMBER_50 * 5.0f32),
-            range: 15.0,
-            intensity: 1.0e5,
-            .. default()
-        },
-        Visibility::Visible,
-    ));
+    // commands.spawn((
+    //     ChildOf(player_ent),
+    //     Transform::from_translation(Vec3::new(0., 10.0, 0.0)),
+    //     PointLight {
+    //         color: bevy::prelude::Color::Srgba(tailwind::AMBER_50 * 5.0f32),
+    //         range: 15.0,
+    //         intensity: 1.0e5,
+    //         .. default()
+    //     },
+    //     Visibility::Visible,
+    // ));
 
     queue.apply(world);
 }
@@ -1018,7 +1018,7 @@ fn report_raycast(
     }
 
     let (ref mut text, ref mut color, ref mut visibility) = *info_q;
-    if highlighting_mode.is_enabled()
+    if !highlighting_mode.is_disabled()
     && gui_state.enabled
     && let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
         visibility.set_if_neq(Visibility::Inherited);
@@ -1034,7 +1034,7 @@ fn report_raycast(
 fn wake_up_spawned_if_floating(
     mut commands: Commands,
     collisions: Res<ContactGraph>,
-    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>)>
+    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>, Without<Player>)>
 ) {
     for ent in sleep_q.iter() {
         if collisions.entities_colliding_with(ent).next().is_some() {

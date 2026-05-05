@@ -80,7 +80,9 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
     };
     let info = {
         let type_regy = world.get_resource::<AppTypeRegistry>().ok_or(RuntimeError::LiteralError(format!("no AppTypeRegistry")))?;
-        convert_obj_to_value::<SpawnInfo>(&rt, &type_regy, &args[0])
+        let assets = world.get_resource::<AssetServer>().ok_or(RuntimeError::LiteralError(format!("no AssetServer")))?;
+        let ctx: ConvertContext = ConvertContext::new(&rt, &type_regy, &assets);
+        convert_obj_to_value::<SpawnInfo>(&ctx, &args[0])
             .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?
     };
 
@@ -189,7 +191,7 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
 
 pub(crate) fn send_midi_message(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     mut commands: Commands,
-    type_regy: Res<AppTypeRegistry>,
+    ctx: ConvertContextParam,
 ) -> ExecResult {
     if args.len() < 1 {
         return Err(RuntimeError::MissingArgument(0));
@@ -211,8 +213,9 @@ pub(crate) fn send_midi_message(In((entity, rt, args)): In<(Entity, Arc<Runtime>
         }
     };
 
+
     let command = convert_obj_to_value::<SynthCommand>(
-        &rt, &type_regy, &args[0])
+        &ctx.into(), &args[0])
     .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
 
     let message = SynthMessage::new(entity, command).after_secs(delay);
@@ -222,18 +225,19 @@ pub(crate) fn send_midi_message(In((entity, rt, args)): In<(Entity, Arc<Runtime>
 }
 
 pub(crate) fn add_script(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
-    type_regy: Res<AppTypeRegistry>,
-    assets: Res<AssetServer>,
+    ctx_p: ConvertContextParam,
     mut pending: ResMut<PendingScripts>,
 ) -> ExecResult {
     if args.len() < 1 {
         return Err(RuntimeError::MissingArgument(0));
     }
 
-    let script_info = convert_obj_to_value::<ScriptCreationInfo>(&rt, &type_regy, &args[0])
+    let ctx: ConvertContext = ctx_p.into();
+    let script_info = convert_obj_to_value::<ScriptCreationInfo>(
+        &ctx, &args[0])
         .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
 
-    let handle = assets.load(&script_info.path);
+    let handle = ctx.assets.load(&script_info.path);
 
     pending.insert(PendingScript {
         target: entity,
@@ -259,14 +263,14 @@ pub(crate) fn remove_script(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, V
 }
 
 pub(crate) fn translate(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
-    type_regy: Res<AppTypeRegistry>,
+    ctx: ConvertContextParam,
     mut xfrm_q: Query<&mut Transform>,
 ) -> ExecResult {
     if args.len() < 1 {
         return Err(RuntimeError::MissingArgument(0));
     }
 
-    let offset = convert_obj_to_value::<Vec3>(&rt, &type_regy, &args[0])
+    let offset = convert_obj_to_value::<Vec3>(&ctx.into(), &args[0])
         .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
 
     let mut xfrm = xfrm_q.get_mut(entity)
@@ -279,14 +283,14 @@ pub(crate) fn translate(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<Ob
 
 pub(crate) fn add_velocity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     mut commands: Commands,
-    type_regy: Res<AppTypeRegistry>,
+    ctx: ConvertContextParam,
     mut vel_q: Query<&mut LinearVelocity>,
 ) -> ExecResult {
     if args.len() < 1 {
         return Err(RuntimeError::MissingArgument(0));
     }
 
-    let new_vel = convert_obj_to_value::<Vec3>(&rt, &type_regy, &args[0])
+    let new_vel = convert_obj_to_value::<Vec3>(&ctx.into(), &args[0])
         .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
 
     let mut vel = vel_q.get_mut(entity)
@@ -300,7 +304,7 @@ pub(crate) fn add_velocity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec
 
 pub(crate) fn set_gravity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     mut commands: Commands,
-    type_regy: Res<AppTypeRegistry>,
+    ctx: ConvertContextParam,
     mut gravity: ResMut<Gravity>,
     gravity_q: Query<&GravityScale>,
 ) -> ExecResult {
@@ -308,12 +312,13 @@ pub(crate) fn set_gravity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<
         return Err(RuntimeError::MissingArgument(0));
     }
 
+    let ctx: ConvertContext = ctx.into();
     let old_vel = if entity == Entity::PLACEHOLDER {
         log::info!("global gravity");
         let old_vel = gravity.0;
-        if let Ok(new_vel) = convert_obj_to_value::<Vector>(&rt, &type_regy, &args[0]) {
+        if let Ok(new_vel) = convert_obj_to_value::<Vector>(&ctx, &args[0]) {
             gravity.0 = new_vel;
-        } else if let Ok(new_vec) = convert_obj_to_value::<Scalar>(&rt, &type_regy, &args[0]) {
+        } else if let Ok(new_vec) = convert_obj_to_value::<Scalar>(&ctx, &args[0]) {
             gravity.0 = Vector::new(0., new_vec, 0.);
         } else {
             return Err(RuntimeError::LiteralError(format!("expected Vec3 or Real, got {}", RtDisplay::new(&rt, &args[0]))))?;
@@ -323,10 +328,10 @@ pub(crate) fn set_gravity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<
         log::info!("entity gravity {entity}");
 
         let old_vel = gravity_q.get(entity).map_or(gravity.0, |g| Vector::new(0.0, g.0, 0.0));
-        if let Ok(new_vel) = convert_obj_to_value::<Vector>(&rt, &type_regy, &args[0]) {
+        if let Ok(new_vel) = convert_obj_to_value::<Vector>(&ctx, &args[0]) {
             commands.entity(entity).insert(GravityScale(new_vel.y / -9.81));
             gravity.0 = new_vel;
-        } else if let Ok(new_vec) = convert_obj_to_value::<Scalar>(&rt, &type_regy, &args[0]) {
+        } else if let Ok(new_vec) = convert_obj_to_value::<Scalar>(&ctx, &args[0]) {
             commands.entity(entity).insert(GravityScale(new_vec / -9.81));
             gravity.0 = Vector::new(0., new_vec, 0.);
         } else {

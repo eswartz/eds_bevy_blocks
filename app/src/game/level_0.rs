@@ -33,10 +33,6 @@ impl Plugin for LevelPlugin {
                 OnEnter(LevelState::LevelLoaded),
                     on_level_loaded.run_if(is_in_level(ID)),
             )
-            .add_systems(
-                Update,
-                    check_pause_request,
-            )
         ;
     }
 }
