@@ -30,7 +30,6 @@ use bevy::{
 };
 
 use avian3d::dynamics::solver::SolverConfig;
-use bevy::light::NotShadowCaster;
 use bevy_asset_loader::prelude::*;
 use bevy_skein::SkeinPlugin;
 
@@ -158,16 +157,16 @@ fn main() -> AppExit {
         // Our game
         .add_plugins(AppPlugin)
 
-        .add_plugins(MenuPlugin)
         .add_plugins(LifecyclePlugin)
+        .add_plugins(MenuPlugin)
         .add_plugins(GuiPlugin)
         .add_plugins(WorldUiPlugin)
         .add_plugins(WorldStatePlugin)
+        .add_plugins(LightsPlugin)
         .add_plugins(GameActionsPlugin)
         .add_plugins(CrosshairPlugin)
         .insert_resource(CrosshairMode::AimFromCenter)
 
-        // More common
         .add_plugins(ActionPlugin)
         .add_plugins(EffectsPlugin)
         .add_plugins(SkyboxPlugin)
@@ -211,7 +210,6 @@ fn main() -> AppExit {
             OnEnter(GameplayState::Playing),
             (
                 ensure_3d_camera,
-                fixup_light_shadows,
             )
         )
 
@@ -374,24 +372,4 @@ pub(crate) fn setup_game_over_screen(
         ));
     })
     .id()
-}
-
-
-/// Make sure lights cast shadows.
-pub(crate) fn fixup_light_shadows(
-    mut light_q: ParamSet<(
-        Query<&mut PointLight, Without<NotShadowCaster>>,
-        Query<&mut SpotLight, Without<NotShadowCaster>>,
-        Query<&mut DirectionalLight, Without<NotShadowCaster>>,
-    )>,
-) {
-    for mut light in light_q.p0().iter_mut() {
-        light.shadows_enabled = true;
-    }
-    for mut light in light_q.p1().iter_mut() {
-        light.shadows_enabled = true;
-    }
-    for mut light in light_q.p2().iter_mut() {
-        light.shadows_enabled = true;
-    }
 }
