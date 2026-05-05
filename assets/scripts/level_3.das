@@ -67,7 +67,7 @@
     %collider_scale = ADD %collider_scale, 2.0
     //%collider_scale = COPY 0.5
 
-    %intense = MUL 100000.0, %g
+    %intense = MUL 1000000.0, %g
     %spot_light = NEW_STRUCT [
         intensity: %intense,
         range: 10.0,
@@ -75,6 +75,10 @@
         //outer_angle: 1.0,
         //inner_angle: 0.25,
         shadows_enabled: false,
+    ]
+    %spot_light_tex = NEW_STRUCT [
+        image: "textures/mask_1.webp",
+        //cubemap_layout: `SequenceVertical,
     ]
 
     %intense = MUL 500000.0, %b
@@ -95,15 +99,11 @@
         tiled: true,
     ]
     %pt_light_tex = NEW_STRUCT [
-        image: "textures/mask_2.webp",
+        image: "textures/mask_1.webp",
         cubemap_layout: `SequenceVertical,
     ]
-    %spot_light_tex = NEW_STRUCT [
-        image: "textures/mask_2.webp",
-        //cubemap_layout: `SequenceVertical,
-    ]
 
-
+    %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
     CALL_INTRINSIC `bevy_spawn, [
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
         `offset, %pos,
@@ -133,11 +133,13 @@
 
         // Why not!
         'bevy_light::spot_light::SpotLight', %spot_light,
-        //'SpotLightTexture', %spot_light_tex,
+        'SpotLightTexture', %spot_light_tex,
         //'bevy_light::point_light::PointLight', %point_light,
         //'DirectionalLight', %dir_light,
-        'PointLight', %point_light,
-        'PointLightTexture', %pt_light_tex,
+        //'PointLight', %point_light,
+        //'PointLightTexture', %pt_light_tex,
+
+        `Restitution, %rest,
     ]
     //CALL_INTRINSIC `delay, [0.125]
     CALL_INTRINSIC `delay, [0.001]
