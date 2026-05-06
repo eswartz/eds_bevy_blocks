@@ -5,11 +5,6 @@
 
     %tmp = COPY %step
 
-    %y: RealF = MOD %tmp, 15
-    %tmp = DIV %tmp, 15
-
-    %y = DIV %y, 4
-
     %x: RealF = MOD %tmp, 15
     %tmp = DIV %tmp, 15
 
@@ -21,6 +16,11 @@
     %tmp = DIV %tmp, 15
     //%z = SUB 0, %z
     %z = ADD %z, 8
+
+    %y: RealF = MOD %tmp, 15
+    %tmp = DIV %tmp, 15
+
+    %y = DIV %y, 4
 
     %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
 
@@ -41,7 +41,7 @@
     %r = DIV %rr, 7.0
     %r = MOD %r, 5.0
 
-    %gg = ADD %z, %step
+    %gg = ADD %z, %rr
     %g = DIV %gg, 11.0
     %g = MOD %g, 5.0
 
@@ -59,13 +59,22 @@
     %shape = NEW_SEQUENCE [`Sphere, 0.5]
 
     %mass = COPY 0.0001
-    %friction = COPY 0.0
+    %friction = COPY 0.25
 
     %collider_shape = NEW_SEQUENCE [`Sphere, 1.0]
     //%collider_scale = DIV %r, 2.0
     %collider_scale = COPY %r
     %collider_scale = ADD %collider_scale, 2.0
     //%collider_scale = COPY 0.5
+
+    %light_img = AND %step, 1
+    IF_ZERO %step, x0f, x1f
+x0f:
+    %light_img = COPY "textures/mask_1.webp"
+    JUMP x2f
+x1f:
+    %light_img = COPY "textures/mask_2.webp"
+x2f:
 
     %intense = MUL 1000000.0, %g
     %spot_light = NEW_STRUCT [
@@ -77,7 +86,7 @@
         shadows_enabled: false,
     ]
     %spot_light_tex = NEW_STRUCT [
-        image: "textures/mask_1.webp",
+        image: %light_img,
         //cubemap_layout: `SequenceVertical,
     ]
 
@@ -88,23 +97,24 @@
         radius: 100.0,
         shadows_enabled: false,
     ]
+    %pt_light_tex = NEW_STRUCT [
+        image: %light_img,
+        cubemap_layout: `SequenceVertical,
+    ]
 
-    %intense = MUL 500.0, %b
+    %intense = MUL 1000.0, %b
+    %intense = ADD %intense, 100
     %dir_light = NEW_STRUCT [
         illuminance: %intense,
         shadows_enabled: false,
     ]
     %dir_light_tex = NEW_STRUCT [
-        image: "textures/mask_1.webp",
-        tiled: true,
-    ]
-    %pt_light_tex = NEW_STRUCT [
-        image: "textures/mask_1.webp",
-        cubemap_layout: `SequenceVertical,
+        image: "textures/spiral_1.webp",
+        tiled: false,
     ]
 
     %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
-    CALL_INTRINSIC `bevy_spawn, [
+    %ent = CALL_INTRINSIC `bevy_spawn, [
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
         `offset, %pos,
         // Scale is mapped to bevy_transform::components::transform::Transform.scale
@@ -123,6 +133,7 @@
         `clearcoat, 0.5,
 
         `rigid_body, `Dynamic,
+        //`rigid_body, `Kinematic,
 
         `shape, %shape,
         `collider_shape, %collider_shape,
@@ -131,19 +142,30 @@
         `mass, %mass,
         `friction, %friction,
 
+        //`CrosshairTargetable, nil,
+
         // Why not!
-        'bevy_light::spot_light::SpotLight', %spot_light,
-        'SpotLightTexture', %spot_light_tex,
+        //'bevy_light::spot_light::SpotLight', %spot_light,
+        //'SpotLightTexture', %spot_light_tex,
         //'bevy_light::point_light::PointLight', %point_light,
         //'DirectionalLight', %dir_light,
+        //'DirectionalLightTexture', %dir_light_tex,
         //'PointLight', %point_light,
         //'PointLightTexture', %pt_light_tex,
+
+        // needed to avoid losing lights at camera edges
+        //`NoFrustumCulling, nil,
 
         `Restitution, %rest,
     ]
     //CALL_INTRINSIC `delay, [0.125]
-    CALL_INTRINSIC `delay, [0.001]
+    //CALL_INTRINSIC `delay, [0.5]
 
+    CALL_INTRINSIC `delay, [0.001]
+    %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
+
+    CALL_INTRINSIC `delay, [0.01]
     RETURN nil
 }
 
