@@ -281,10 +281,14 @@ fn do_fire(
         }
     } else {
         // Fire a new item.
-        let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
+        // let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
+        let mat = materials.add(Color::lch(1.2, 0.4, 1.1));
         let size = Vec3::new(2.0, 0.5, 0.5);
+        // let size = Vec3::new(0.5, 2.0, 0.5);
+        // let size = Vec3::new(2.0, 1.0, 0.25);
         let mesh = meshes.add(Cuboid::from_size(size));
-
+        let collider = Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar);
+        // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
         commands.spawn(((
             ChildOf(world.0),
             Name::new("BOOM"),
@@ -303,10 +307,10 @@ fn do_fire(
             LinearVelocity(vel.adjust_precision()),
             Mass(boom_mass.0),
             Friction::new(0.25),
-            Restitution::new(0.5),
-            SweptCcd::default(),
+            Restitution::new(0.25),
+            SweptCcd::LINEAR,
             RigidBody::Dynamic,
-            Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar),
+            collider,
 
         )));
         any = true;

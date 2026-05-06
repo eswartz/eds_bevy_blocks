@@ -224,7 +224,7 @@ pub(crate) fn send_midi_message(In((entity, rt, args)): In<(Entity, Arc<Runtime>
     Ok(ExecState::Result(ObjectPtr::for_nil()))
 }
 
-pub(crate) fn add_script(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
+pub(crate) fn add_script(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     ctx_p: ConvertContextParam,
     mut pending: ResMut<PendingScripts>,
 ) -> ExecResult {
@@ -262,7 +262,7 @@ pub(crate) fn remove_script(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, V
     Ok(ExecState::Result(ObjectPtr::for_nil()))
 }
 
-pub(crate) fn translate(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
+pub(crate) fn translate(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     ctx: ConvertContextParam,
     mut xfrm_q: Query<&mut Transform>,
 ) -> ExecResult {
@@ -281,7 +281,7 @@ pub(crate) fn translate(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<Ob
     Ok(ExecState::Result(ObjectPtr::for_nil()))
 }
 
-pub(crate) fn add_velocity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
+pub(crate) fn add_velocity(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     mut commands: Commands,
     ctx: ConvertContextParam,
     mut vel_q: Query<&mut LinearVelocity>,

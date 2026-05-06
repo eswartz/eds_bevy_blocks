@@ -478,7 +478,7 @@ pub(crate) fn level_spawn_finished(
             VhacdParameters{
                 fill_mode: FillMode::SurfaceOnly,
                 resolution: 256,
-                max_convex_hulls: 32,
+                max_convex_hulls: 256,
                 concavity: 0.125 / 2.0,
                 ..VhacdParameters::default()
             }

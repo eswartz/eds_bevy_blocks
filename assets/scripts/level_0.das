@@ -6,7 +6,7 @@
         %ent = GET_ARG 1, false, Cnt64
         %step: CntF = LOAD %ctx, `tick_count, true
 
-        CALL_INTRINSIC `print, ["<", %step]
+//        CALL_INTRINSIC `print, ["<", %step]
 
         %t = COPY %ent
         //%tns = LSHR %t, 32
@@ -30,7 +30,7 @@
         CALL_INTRINSIC spin, [50]
         CONSUME_FUEL 50
         CONSUME_FUEL 10
-        CALL_INTRINSIC print, [%ts]
+//        CALL_INTRINSIC print, [%ts]
         CONSUME_FUEL 10
         //CALL_INTRINSIC print, [%ts]
         //CONSUME_FUEL 10
@@ -39,10 +39,10 @@
         CALL_INTRINSIC spin, [10]
         CONSUME_FUEL 10
 
-        CALL_INTRINSIC print, [%ts]
+//        CALL_INTRINSIC print, [%ts]
         CONSUME_FUEL 10
 
-        CALL_INTRINSIC `print, [">"]
+//        CALL_INTRINSIC `print, [">"]
         RETURN nil
     }
 

@@ -150,13 +150,15 @@ x2f:
         //'bevy_light::point_light::PointLight', %point_light,
         //'DirectionalLight', %dir_light,
         //'DirectionalLightTexture', %dir_light_tex,
-        //'PointLight', %point_light,
-        //'PointLightTexture', %pt_light_tex,
+        'PointLight', %point_light,
+        'PointLightTexture', %pt_light_tex,
 
         // needed to avoid losing lights at camera edges
         //`NoFrustumCulling, nil,
 
         `Restitution, %rest,
+
+        `Name, "bUTTs!",
     ]
     //CALL_INTRINSIC `delay, [0.125]
     //CALL_INTRINSIC `delay, [0.5]
@@ -164,6 +166,13 @@ x2f:
     CALL_INTRINSIC `delay, [0.001]
     %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
     CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
+
+    //%cof = NEW_SEQUENCE [%ent]
+    //%name = NEW_SEQUENCE ["BUTTS!"]
+    //%new_ent = CALL_INTRINSIC `bevy_spawn, [
+    //    `ChildOf, %cof,
+    //    `Name, %name,
+    //]
 
     CALL_INTRINSIC `delay, [0.01]
     RETURN nil
