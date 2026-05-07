@@ -30,38 +30,37 @@ fwd:
         %delayi = MOD %t, 0x1f     // speed here
         %delay: RealF = DIV %delayi, 256.0
 
-        %xmsg = NEW_STRUCT [
+        %msg = NEW_STRUCT [
             command: `channel_volume,
             entity: %ent,
-            channel: %channel,
-            velocity: 0.75,
+            velocity: 0.75
         ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %xmsg]
-        %chgmsg = NEW_STRUCT [
+        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+        %msg = NEW_STRUCT [
             command: `program_change,
             entity: %ent,
             channel: %channel,
             program: %program,
         ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %chgmsg]
+        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-        %onmsg = NEW_STRUCT [
+        %msg = NEW_STRUCT [
             command: `note_on,
             entity: %ent,
             channel: %channel,
-            note: %note,
+            midi: %note,
             velocity: 0.25,
         ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %onmsg]
+        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-        %offmsg = NEW_STRUCT [
+        %msg = NEW_STRUCT [
             command: `note_off,
             entity: %ent,
             channel: %channel,
-            note: %note,
+            midi: %note,
             delay: %delay,
         ]
-        CALL_INTRINSIC `bevy_write_message, [`SynthMessage, %offmsg]
+        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
         //CONSUME_FUEL 5
         %delay2: RealF = MUL %delay, 5.0
