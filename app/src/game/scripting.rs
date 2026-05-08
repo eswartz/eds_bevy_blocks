@@ -25,9 +25,6 @@ fn register_funcs(mut commands: Commands, runtime: Res<ScriptRuntime>) {
     bevy_system_service.add_runtime_system(
         rt.pool.for_str("spawn_cube"),
         commands.register_system(spawn_cube));
-    bevy_system_service.add_runtime_system(
-        rt.pool.for_str("send_midi_message"),
-        commands.register_system(send_midi_message));
 
     bevy_system_service.add_runtime_system(
         rt.pool.for_str("translate"),

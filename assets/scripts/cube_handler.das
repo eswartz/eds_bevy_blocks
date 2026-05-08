@@ -3,23 +3,41 @@
     %ent = GET_ARG 1, false, Cnt64
     %step: CntF = LOAD %ctx, `tick_count, true
 
-    %voice = NEW_SEQUENCE [`Voice, 1]
+    %voice = COPY 1
 
     %p = MOD %ent, 127
 
     %n = MUL %step, 17
     %n = MOD %n, 75
     %n: CntF = ADD %n, 20
-    %note = NEW_SEQUENCE [`Midi, %n]
 
-    %msg = NEW_SEQUENCE [`ProgramChange, %voice, %p]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `send_midi_message, %msg]
+    %msg = NEW_STRUCT [
+        command: `program_change,
+        entity: %ent,
+        channel: %voice,
+        program: %p,
+    ]
+    CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-    %msg = NEW_SEQUENCE [`NoteOn, %voice, %note, 0.125]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `send_midi_message, %msg]
+    %msg = NEW_STRUCT [
+        command: `note_on,
+        entity: %ent,
+        channel: %voice,
+        midi: %n,
+        drums: true,
+        velocity: 0.125,
+    ]
+    CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-    %msg = NEW_SEQUENCE [`NoteOff, %voice, %note]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `send_midi_message, %msg, 0.25]
+    %msg = NEW_STRUCT [
+        command: `note_off,
+        entity: %ent,
+        channel: %voice,
+        midi: %n,
+        drums: true,
+        delay: 0.25,
+    ]
+    CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
     CALL_INTRINSIC `delay, [0.125]
 

@@ -189,41 +189,6 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
     Ok(ExecState::Result(rt.for_typed_uint(&rt.types.u64_type, id.to_bits() as usize)?))
 }
 
-pub(crate) fn send_midi_message(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
-    mut commands: Commands,
-    ctx: ConvertContextParam,
-) -> ExecResult {
-    if args.len() < 1 {
-        return Err(RuntimeError::MissingArgument(0));
-    }
-
-    let delay = {
-        if args.len() >= 2 {
-            let Some(delay) = RtNumber::new(&args[1]) else {
-                return Err(RuntimeError::LiteralError(format!("expected a number for the delay argument, got {}",
-                    RtDisplay::new(&rt, &args[1]))));
-            };
-            if delay.as_real() < 0.0 {
-                return Err(RuntimeError::LiteralError(format!("delay cannot be negative, got {}",
-                    RtDisplay::new(&rt, &args[1]))));
-            }
-            delay.as_real() as f32
-        } else {
-            0.0f32
-        }
-    };
-
-
-    let command = convert_obj_to_value::<SynthCommand>(
-        &ctx.as_ctx(), &args[0])
-    .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
-
-    let message = SynthMessage::new(entity, command).after_secs(delay);
-    commands.write_message(message);
-
-    Ok(ExecState::Result(ObjectPtr::for_nil()))
-}
-
 pub(crate) fn add_script(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     ctx_p: ConvertContextParam,
     mut pending: ResMut<PendingScripts>,
