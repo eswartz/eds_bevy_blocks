@@ -3,7 +3,8 @@ use crate::game::BoomMass;
 use crate::game::Cube;
 use crate::game::OurMidiSynth;
 use crate::game::GameScript;
-use avian3d::math::Scalar;
+use bevy::gltf::GltfMesh;
+use bevy::math::Affine2;
 use eds_bevy_common::*;
 
 use avian3d::prelude::*;
@@ -13,6 +14,8 @@ use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtNumber;
 use fedry_runtime::prelude::RtReal;
 use fedry_runtime::prelude::RtSInt;
+use rand::RngExt;
+use rand::prelude::IndexedRandom;
 
 pub(crate) const ID: &str = "level1";
 pub(crate) const NAME: &str = "Level 1";
@@ -42,9 +45,10 @@ fn on_level_loaded(
     mut commands: Commands,
     world: Res<WorldMarkerEntity>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
+    gltf_meshes: Res<Assets<GltfMesh>>,
 
     scripting: Res<ScriptRuntime>,
+    model_assets: Res<ModelAssets>,
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
 ) -> Result {
@@ -71,46 +75,40 @@ fn on_level_loaded(
     };
 
     // Spawn cube stacks
-    let mat = materials.add(Color::srgb(0.2, 0.7, 0.9));
-    let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
+    let gmesh = gltf_meshes.get(&model_assets.cube).ok_or(format!("could not load cube"))?;
 
-    #[allow(unused)]
-    let cuboid_size = cube_size * 0.95;
-    #[allow(unused)]
-    let cuboid_round = (cube_size - cuboid_size) / 2.0;
+    let prim = &gmesh.primitives[0];
+    let cube_mesh = prim.mesh.clone();
+    let std_mat = if let Some(mat) = &prim.material {
+        materials.get(mat).ok_or(format!("could not load cube material"))?.clone()
+    } else {
+        Into::<StandardMaterial>::into(Color::WHITE)
+    };
 
     const CUBE_GAP: f32 = 0.05;
     let axis_scale = Vec3::splat(cube_size + CUBE_GAP);
 
-    let collider = Collider::cuboid(
-        cube_size as Scalar,
-        cube_size as Scalar,
-        cube_size as Scalar,
-    );
-    // let collider = Collider::round_cuboid(
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     (cube_size - 0.05 * 2.0) as Scalar,
-    //     0.05
-    // );
+    let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
-    let half_size = if let Some(half_side_length) = scripting.get_struct_value(script.get_module(),
-    "half_side_length")
+    let half_size = if let Some(half_side_length) = scripting.get_struct_value(
+        script.get_module(), "half_side_length")
     && let Some(half_side_length) = RtSInt::new(&half_side_length) {
         *half_side_length as i32
     } else {
         6
     };
 
-    let rigid_body = if let Some(is_static) = scripting.get_struct_value(script.get_module(), "static")
+    let rigid_body = if let Some(is_static) = scripting.get_struct_value(
+        script.get_module(), "static")
     && is_static.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
     };
 
-    let boom_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "boom_mass")
-        && let Some(mass) = RtNumber::new(&mass) {
+    let boom_mass = if let Some(mass) = scripting.get_struct_value(
+        script.get_module(), "boom_mass")
+    && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
         50.0f32
@@ -118,11 +116,22 @@ fn on_level_loaded(
     commands.insert_resource(BoomMass(boom_mass));
 
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
+
+    let mut rng = rand::rng();
     for x in -half_size..half_size {
         for y in 0..half_size * 2 {
             for z in -half_size..half_size {
                 let position =
                     Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
+                let scale = Vec2::splat(rng.random_range(0.25 .. 1.5));
+                let ang = rng.random_range(-0.1 .. 0.1) +
+                        *[0.0, std::f32::consts::FRAC_PI_2, std::f32::consts::PI, std::f32::consts::FRAC_PI_2 * 3.0]
+                            .choose(&mut rng).unwrap();
+                let offs = Vec2::new(rng.random_range(0.0 .. 1.0), rng.random_range(0.0 .. 1.0));
+                let mat = materials.add(StandardMaterial {
+                    uv_transform: Affine2::from_scale_angle_translation(scale, ang, offs),
+                    ..std_mat.clone()
+                });
                 commands.spawn((
                     (
                         ChildOf(world.0),
@@ -132,7 +141,7 @@ fn on_level_loaded(
                         CrosshairTargetable,
                         Mesh3d(cube_mesh.clone()),
                         MeshMaterial3d(mat.clone()),
-                        Transform::from_translation(position),
+                        Transform::from_translation(position).with_scale(Vec3::splat(cube_size)),
                     ),
                     (
                         rigid_body.clone(),
