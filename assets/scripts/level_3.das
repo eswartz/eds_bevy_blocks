@@ -148,17 +148,17 @@ x2f:
         //'bevy_light::spot_light::SpotLight', %spot_light,
         //'SpotLightTexture', %spot_light_tex,
         //'bevy_light::point_light::PointLight', %point_light,
-        //'DirectionalLight', %dir_light,
+        'DirectionalLight', %dir_light,
         //'DirectionalLightTexture', %dir_light_tex,
-        'PointLight', %point_light,
-        'PointLightTexture', %pt_light_tex,
+        //'PointLight', %point_light,
+        //'PointLightTexture', %pt_light_tex,
 
         // needed to avoid losing lights at camera edges
-        //`NoFrustumCulling, nil,
+        `NoFrustumCulling, nil,
 
         `Restitution, %rest,
 
-        `Name, "bUTTs!",
+        //`Name, "bUTTs!",
     ]
     //CALL_INTRINSIC `delay, [0.125]
     //CALL_INTRINSIC `delay, [0.5]
