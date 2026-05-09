@@ -117,7 +117,7 @@ pub(crate) fn play_player_out_of_bounds(
                     speed: rng.random_range(0.9..1.1),
                     ..default()
                 },
-                VolumeNode::from_linear(rng.random_range(0.85..1.0)),
+                VolumeNode::from_linear(rng.random_range(0.25..0.5)),
             ));
         }
     }
@@ -320,6 +320,7 @@ fn do_fire(
         commands.spawn((
             UiSfx,
             SamplePlayer::new(fx.swoosh.clone()),
+            VolumeNode::from_linear(0.5),
         ));
     }
 

@@ -13,9 +13,7 @@ use avian3d::math::Vector;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
 use bevy::ecs::query::QueryData;
-#[cfg(feature = "solari")]
-use bevy::mesh::Indices;
-use bevy::mesh::VertexAttributeValues;
+use bevy::mesh::*;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
@@ -356,7 +354,7 @@ pub(crate) struct InHand;
 fn on_scene_ready(
     ready: On<SceneInstanceReady>,
     children_q: Query<&Children>,
-    meshes_q: Query<&Mesh3d>,
+    meshes_q: Query<&Mesh3d, Without<CollisionLayers>>,
     mut commands: Commands,
 ) {
     for entity in children_q.iter_descendants(ready.entity) {

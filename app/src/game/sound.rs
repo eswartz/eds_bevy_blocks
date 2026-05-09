@@ -1,14 +1,11 @@
 use crate::game::{Cube, Floor};
 
 use avian3d::prelude::{Collisions, LinearVelocity};
-use bevy_seedling::prelude::{SpatialBasicNode, VolumeNode};
-use bevy_seedling::sample::SamplePlayer;
-use bevy_seedling::sample_effects;
+use bevy_seedling::{prelude::VolumeNode, sample::SamplePlayer};
 use eds_bevy_common::*;
 use bevy::prelude::*;
 
-use rand::RngExt as _;
-use rand::seq::IndexedRandom as _;
+use rand::{RngExt as _, seq::IndexedRandom as _};
 
 pub(crate) struct SoundPlugin;
 
@@ -149,11 +146,8 @@ fn spawn_noise_on_collision<T>(
                     effect,
                 ),
                 xfrm.clone(),
-                sample_effects![SpatialBasicNode::default()],
-                PlaybackSettings {
-                    speed: rng.random_range(0.9..1.1),
-                    ..default()
-                },
+                //sample_effects![SpatialBasicNode::default()],
+                // SpatialBasicNode::default(),
                 VolumeNode::from_linear(mag * rng.random_range(0.25..0.5)),
             ));
             // commands.spawn((

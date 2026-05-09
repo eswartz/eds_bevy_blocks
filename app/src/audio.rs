@@ -75,7 +75,6 @@ impl Plugin for AudioPlugin {
 //                 panning_threshold: 0.9,
 //                 ..default()
 //             },
-//             SpatialScale(Vec3::splat(10.0))
 //         )],
 //         UserVolume {
 //             volume: DEFAULT_POOL_VOLUME,
