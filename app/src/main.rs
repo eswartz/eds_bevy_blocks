@@ -164,8 +164,12 @@ fn main() -> AppExit {
         .add_plugins(WorldStatePlugin)
         .add_plugins(LightsPlugin)
         .add_plugins(GameActionsPlugin)
+
         .add_plugins(CrosshairPlugin)
         .insert_resource(CrosshairMode::AimFromCenter)
+        .add_plugins(HighlightingPlugin)
+        .add_plugins(GrabbingPlugin)
+        .insert_resource(HighlightingMode::Disabled)
 
         .add_plugins(ActionPlugin)
         .add_plugins(EffectsPlugin)

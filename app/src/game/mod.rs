@@ -15,8 +15,6 @@ use bevy::color::palettes::tailwind;
 use bevy::ecs::query::QueryData;
 use bevy::gltf::GltfMesh;
 use bevy::mesh::*;
-use bevy_tweening::lens::TextColorLens;
-use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
 use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
 pub use action_handlers::*;
 use strum::{EnumIter, VariantArray};
@@ -134,26 +132,17 @@ impl Plugin for GamePlugin {
                 .run_if(in_state(GameplayState::Playing))
             )
 
-            .add_systems(
-                OnTransition{ exited: GameplayState::Playing, entered: GameplayState::Setup },
-                (
-                    hide_instructions,
-                )
-            )
-
             .add_systems(OnEnter(LevelState::LevelLoaded),
                 (
                     |mut commands: Commands| {
                         commands.set_state(LevelState::Configuring);
                     },
                     setup_skybox,
-                    show_instructions,
                     unpause_scripting,
                 ).chain()
             )
             .add_systems(OnExit(LevelState::Playing),
                 (
-                    hide_instructions,
                     pause_scripting,
                 )
             )
@@ -332,12 +321,6 @@ pub(crate) struct Cube;
 pub(crate) struct Floor;
 
 // World state
-
-/// Set when we showed the text.
-#[derive(Resource, Reflect)]
-#[reflect(Resource)]
-#[type_path = "game"]
-pub(crate) struct ShowedTutorial;
 
 /// Our "base" object and its initial transform.
 #[derive(Resource, Reflect)]
@@ -632,6 +615,13 @@ pub(crate) fn spawn_level(
         })
     ;
     commands.insert_resource(CurrentScore::default());
+
+    commands.insert_resource(InstructionText(
+        r#"
+        Left Click: Fire heavy bar (hold for strength)
+        Right Click: Grab and move
+        "#.to_string()
+    ));
 }
 
 fn init_player_settings(
@@ -650,87 +640,9 @@ fn init_player_settings(
     }
 }
 
-fn show_instructions(
-    mut commands: Commands,
-    showed: Option<Res<ShowedTutorial>>,
-    fonts: Res<CommonGuiAssets>,
-    instructions_q: Single<Entity, With<InstructionsArea>>,
-) {
-    if showed.is_some() {
-        return;
-    }
-
-    commands.insert_resource(ShowedTutorial);
-
-    let mut text_ent = Entity::PLACEHOLDER;
-
-    commands.entity(*instructions_q).insert(Visibility::Inherited)  // show
-    .with_children(|builder| {
-        text_ent = builder.spawn((
-            DespawnOnExit(GameplayState::Playing),
-            Text::new(
-                r#"Left Click: Fire heavy bar (hold for strength)
-                Right Click: Grab and move
-                "#
-            ),
-            TextLayout::new(Justify::Center, LineBreak::WordBoundary),
-            TextFont {
-                font: fonts.std_ui.clone(),
-                font_size: 32.0,
-                .. default()
-            },
-            TextColor(Color::WHITE.with_alpha(0.5)),
-            TextShadow {
-                offset: Vec2::splat(2.),
-                color: Color::linear_rgba(0., 0., 0., 0.0),
-            },
-        )).id();
-    });
-
-    // Fade in and out.
-
-    const TIME_SECS: f32 = 2.0;
-
-    let color_tween = Tween::new(
-        EaseMethod::EaseFunction(EaseFunction::CubicOut),
-        Duration::from_secs_f32(TIME_SECS),
-        TextColorLens {
-            start: Color::WHITE.with_alpha(0.0),
-            end: Color::WHITE.with_alpha(1.0),
-        }
-    )
-    .with_repeat(2, bevy_tweening::RepeatStrategy::MirroredRepeat);
-
-    let shadow_tween = Tween::new(
-        EaseMethod::EaseFunction(EaseFunction::CubicOut),
-        Duration::from_secs_f32(TIME_SECS),
-        TextShadowColorLens {
-            start: Color::linear_rgba(0., 0., 0., 0.0),
-            end: Color::linear_rgba(0., 0., 0., 1.0),
-        }
-    )
-    .with_repeat(2, bevy_tweening::RepeatStrategy::MirroredRepeat);
-
-    commands.entity(text_ent).try_insert((
-        DespawnOnExit(GameplayState::Playing),
-        TweenAnim::new(color_tween).with_destroy_on_completed(true),
-
-        // Add another TweenAnim.
-        children![(
-            TweenAnim::new(shadow_tween).with_destroy_on_completed(true),
-            AnimTarget::component::<TextShadow>(text_ent),
-        )]
-    ));
-}
-
 pub(crate) fn advance_level(
     mut commands: Commands,
-    // mut score_q: Query<&mut Text, (With<ScoreArea>, Without<GameStatusArea>)>,
-    // mut status_q: Query<&mut Text, (With<GameStatusArea>, Without<ScoreArea>)>,
 ) {
-    // score_q.single_mut().unwrap().clear();
-    // status_q.single_mut().unwrap().clear();
-
     commands.set_state(OverlayState::Loading);
     commands.set_state(GameplayState::Setup);
 }

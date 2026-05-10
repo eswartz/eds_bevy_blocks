@@ -22,9 +22,6 @@ pub struct ActionHandlersPlugin;
 impl Plugin for ActionHandlersPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(HighlightingPlugin)
-            .add_plugins(GrabbingPlugin)
-            .insert_resource(HighlightingMode::Disabled)
             .init_resource::<FirePower>()
             .insert_resource(FirePowerWindup {
                 accel: 1.1,
