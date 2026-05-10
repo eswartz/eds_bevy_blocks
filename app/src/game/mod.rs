@@ -13,6 +13,7 @@ use avian3d::math::Vector;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
 use bevy::ecs::query::QueryData;
+use bevy::gltf::GltfMesh;
 use bevy::mesh::*;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{AnimTarget, EaseMethod, Tween, TweenAnim};
@@ -22,6 +23,7 @@ use strum::{EnumIter, VariantArray};
 
 use std::time::Duration;
 
+use crate::assets::ModelAssets;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::scripting::ScriptingPlugin;
 use crate::game::sound::SoundPlugin;
@@ -1039,4 +1041,25 @@ fn wake_up_spawned_if_floating(
             commands.entity(ent).remove::<Sleeping>();
         }
     }
+}
+
+
+pub fn load_cube_model(
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    gltf_meshes: &Res<Assets<GltfMesh>>,
+    model_assets: &Res<ModelAssets>,
+) -> Result<(Handle<Mesh>, Handle<StandardMaterial>)> {
+    // Spawn cube stacks
+    let gmesh = gltf_meshes.get(&model_assets.cube).ok_or(format!("could not load cube"))?;
+
+    let prim = &gmesh.primitives[0];
+    let cube_mesh = prim.mesh.clone();
+    let std_mat = if let Some(mat) = &prim.material {
+        materials.get(mat).ok_or(format!("could not load cube material"))?.clone()
+    } else {
+        Into::<StandardMaterial>::into(Color::WHITE)
+    };
+    let mat = materials.add(std_mat);
+
+    Ok((cube_mesh, mat))
 }

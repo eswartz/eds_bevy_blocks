@@ -3,6 +3,7 @@ use crate::game::BoomMass;
 use crate::game::Cube;
 use crate::game::OurMidiSynth;
 use crate::game::GameScript;
+use crate::game::load_cube_model;
 use bevy::gltf::GltfMesh;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
@@ -75,15 +76,8 @@ fn on_level_loaded(
     };
 
     // Spawn cube stacks
-    let gmesh = gltf_meshes.get(&model_assets.cube).ok_or(format!("could not load cube"))?;
-
-    let prim = &gmesh.primitives[0];
-    let cube_mesh = prim.mesh.clone();
-    let std_mat = if let Some(mat) = &prim.material {
-        materials.get(mat).ok_or(format!("could not load cube material"))?.clone()
-    } else {
-        Into::<StandardMaterial>::into(Color::WHITE)
-    };
+    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &model_assets)?;
+    let std_mat = materials.get(&mat).ok_or(format!("failed to load material"))?.clone();
 
     const CUBE_GAP: f32 = 0.05;
     let axis_scale = Vec3::splat(cube_size + CUBE_GAP);
@@ -139,7 +133,7 @@ fn on_level_loaded(
                         Cube,
                         Spawned,
                         CrosshairTargetable,
-                        Mesh3d(cube_mesh.clone()),
+                        Mesh3d(mesh.clone()),
                         MeshMaterial3d(mat.clone()),
                         Transform::from_translation(position).with_scale(Vec3::splat(cube_size)),
                     ),
