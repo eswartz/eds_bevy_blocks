@@ -248,7 +248,7 @@ fn main() -> AppExit {
                 ),
             )
             .insert_resource(GuiState {
-                show_fps: true,
+                show_stats: true,
                 ..default()
             })
         ;
