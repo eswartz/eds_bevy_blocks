@@ -74,12 +74,6 @@ pub(crate) fn ensure_3d_camera(
     // } else {
     //     log::warn!("missing CameraEffects on scene");
     // }
-
-    ////
-
-    // Force init.
-    commands.insert_resource(VideoCameraSettingsChanged);
-    commands.insert_resource(VideoEffectSettingsChanged);
 }
 
 fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool) {

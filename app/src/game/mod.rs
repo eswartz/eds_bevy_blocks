@@ -722,7 +722,7 @@ fn lost_level(
 fn check_won_level(
     mut commands: Commands,
     mut end_timer: ResMut<AutoEndLevelTimer>,
-    time: Res<Time<Physics>>,
+    time: Res<Time>,
     level_index: ResMut<LevelIndex>,
     level_list: Res<LevelList>,
 ) {
@@ -747,7 +747,7 @@ fn check_won_level(
 fn check_lost_level(
     mut commands: Commands,
     mut end_timer: ResMut<AutoEndLevelTimer>,
-    time: Res<Time<Physics>>,
+    time: Res<Time>,
 ) {
     if !end_timer.timer.tick(time.delta()).is_finished() {
         return;

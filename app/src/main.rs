@@ -160,7 +160,7 @@ fn main() -> AppExit {
         .add_plugins(LifecyclePlugin)
         .add_plugins(MenuPlugin)
         .add_plugins(GuiPlugin)
-        .add_plugins(WorldUiPlugin)
+        .add_plugins(VideoPlugin)
         .add_plugins(WorldStatePlugin)
         .add_plugins(LightsPlugin)
         .add_plugins(GameActionsPlugin)
