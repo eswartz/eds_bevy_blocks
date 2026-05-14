@@ -13,9 +13,7 @@ use rand::RngExt;
 use rand::prelude::IndexedRandom;
 
 use fedry_bevy_plugin::prelude::*;
-use fedry_runtime::prelude::RtNumber;
-use fedry_runtime::prelude::RtReal;
-use fedry_runtime::prelude::RtSInt;
+use fedry_runtime::prelude::*;
 
 pub(crate) const ID: &str = "level0";
 pub(crate) const NAME: &str = "Level 0";
@@ -91,8 +89,8 @@ fn on_level_loaded(
 
     let half_size = if let Some(half_side_length) = scripting.get_struct_value(script.get_module(),
     "half_side_length")
-    && let Some(half_side_length) = RtSInt::new(&half_side_length) {
-        *half_side_length as i32
+    && let Some(half_side_length) = RtNumber::new(&half_side_length) {
+        half_side_length.as_sint() as i32
     } else {
         6
     };
@@ -159,7 +157,7 @@ fn on_level_loaded(
                         LinearDamping(0.625),
                         AngularDamping(0.625),
                         Mass(cube_mass),
-                        CollisionMargin(0.0),
+                        CollisionMargin(CUBE_GAP / 4.0),
                     ),
 
                     (script.clone(),),

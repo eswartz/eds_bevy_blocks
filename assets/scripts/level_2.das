@@ -46,7 +46,7 @@
         offset: %pos,
         size: %size,
         color: %color_enum,
-        mass: 10.0,
+        mass: 50.0,
         angle: %angle,
         is_static: false,
         life_policy: %life,
@@ -88,7 +88,7 @@
         `side_length: 4,
         `on_update: %on_update,
         `boom_mass: 50000.0,
-        `block_mass: 500.0,
+        `block_mass: 50.0,
         `static: false,
     ]
     CONSUME_FUEL 3

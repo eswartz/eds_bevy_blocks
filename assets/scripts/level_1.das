@@ -1,5 +1,14 @@
-%make_on_update = NEW_BLOCK `make_on_update, () {
+
+%make_on_update = NEW_BLOCK `make_on_update, (in_use_synths) {
     LOCAL cnt, false, CntF
+
+    // TODO: why aren't args auto-available? This is silly.
+    // We could do the IF_NULL handling in the prologue
+    // before child blocks can see them.
+    %in_use_synths = GET_ARG 0, false, Bool
+    LOCAL use_synths, false, Bool
+    %frame = GET_FRAME
+    STORE %frame, use_synths, %in_use_synths
 
     %update_cb = NEW_BLOCK `update_cb, (ctx, ent, ...) {
         %ctx = GET_ARG 0, false, Struct
@@ -30,6 +39,11 @@ fwd:
         %delayi = MOD %t, 0x1f     // speed here
         %delay: RealF = DIV %delayi, 256.0
 
+        %outer = GET_FRAME 1
+        %use_synths = LOAD %outer, use_synths
+        IF_TRUE %use_synths, add_notes, no_notes
+
+add_notes:
         %msg = NEW_STRUCT [
             command: `channel_volume,
             entity: %ent,
@@ -62,6 +76,7 @@ fwd:
         ]
         CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
+no_notes:
         //CONSUME_FUEL 5
         %delay2: RealF = MUL %delay, 5.0
         CALL_INTRINSIC `delay, [%delay2]
@@ -88,15 +103,19 @@ fwd:
 
 ///////
 
-    %on_update = CALL %make_on_update, []
+    %use_synths = COPY false
+    %on_update = CALL %make_on_update, [%use_synths]
 
     %module = NEW_STRUCT [
-        `block_size: 0.375,
+        `block_size: 0.55,
         `half_side_length: 4,
         `on_update: %on_update,
         `boom_mass: 50000.0,
         `block_mass: 500.0,
         `static: false,
+        `cube_gap: 0.02,
+        `collision_margin: 0.0,
+        `with_synth: %use_synths,
     ]
     CONSUME_FUEL 3
     RETURN %module

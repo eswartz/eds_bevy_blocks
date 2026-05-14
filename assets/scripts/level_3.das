@@ -59,7 +59,7 @@
     %shape = NEW_SEQUENCE [`Sphere, 0.5]
 
     %mass = COPY 0.0001
-    %friction = COPY 0.25
+    %friction = COPY 0.125
 
     %collider_shape = NEW_SEQUENCE [`Sphere, 1.0]
     //%collider_scale = DIV %r, 2.0
@@ -114,6 +114,8 @@ x2f:
     ]
 
     %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
+    %grav_scale = NEW_SEQUENCE [0.125]
+
     %ent = CALL_INTRINSIC `bevy_spawn, [
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
         `offset, %pos,
@@ -125,8 +127,8 @@ x2f:
         `color, %color_enum,
         `normal_map, `textures/detail_normal.webp,
         //`emissive, %emissive,
-        //`emissive, 4.0,
-        `metallic, 1.0,
+        //`emissive, 1.0,   // can't see color
+        //`metallic, 1.0,
         `roughness, 0.25,
 
         `alpha_mode, `Blend,
@@ -158,6 +160,8 @@ x2f:
 
         `Restitution, %rest,
 
+        `GravityScale, %grav_scale,
+
         //`Name, "bUTTs!",
     ]
     //CALL_INTRINSIC `delay, [0.125]
@@ -165,7 +169,7 @@ x2f:
 
     CALL_INTRINSIC `delay, [0.001]
     %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
 
     //%cof = NEW_SEQUENCE [%ent]
     //%name = NEW_SEQUENCE ["BUTTS!"]

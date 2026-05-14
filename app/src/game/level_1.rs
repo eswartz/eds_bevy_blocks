@@ -79,25 +79,51 @@ fn on_level_loaded(
     let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &model_assets)?;
     let std_mat = materials.get(&mat).ok_or(format!("failed to load material"))?.clone();
 
-    const CUBE_GAP: f32 = 0.05;
-    let axis_scale = Vec3::splat(cube_size + CUBE_GAP);
-
     let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
-    let half_size = if let Some(half_side_length) = scripting.get_struct_value(
+    let cube_gap = if let Some(v) = scripting.get_struct_value(script.get_module(), "cube_gap")
+    && let Some(v) = RtNumber::new(&v) {
+        v.as_real() as f32
+    } else {
+        0.02
+    };
+
+    let collision_margin = if let Some(v) = scripting.get_struct_value(script.get_module(), "collision_margin")
+    && let Some(v) = RtNumber::new(&v) {
+        v.as_real() as f32
+    } else {
+        cube_gap / 4.0
+    };
+
+    // let enlarge_aabb = if let Some(v) = scripting.get_struct_value(script.get_module(), "enlarge_aabb")
+    // && let Some(v) = RtNumber::new(&v) {
+    //     v.as_real() as f32
+    // } else {
+    //     0.05
+    // };
+    // commands.insert_resource(avian3d::collision::collider::DefaultAabbMargin(enlarge_aabb));
+
+    let half_size = if let Some(v) = scripting.get_struct_value(
         script.get_module(), "half_side_length")
-    && let Some(half_side_length) = RtSInt::new(&half_side_length) {
-        *half_side_length as i32
+    && let Some(v) = RtSInt::new(&v) {
+        *v as i32
     } else {
         6
     };
 
-    let rigid_body = if let Some(is_static) = scripting.get_struct_value(
+    let rigid_body = if let Some(v) = scripting.get_struct_value(
         script.get_module(), "static")
-    && is_static.as_bool() {
+    && v.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
+    };
+
+    let with_synth = if let Some(v) = scripting.get_struct_value(
+        script.get_module(), "with_synth") {
+        v.as_bool()
+    } else {
+        true
     };
 
     let boom_mass = if let Some(mass) = scripting.get_struct_value(
@@ -109,6 +135,7 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
+    let axis_scale = Vec3::new(cube_size + cube_gap, cube_size + cube_gap, cube_size + cube_gap);
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
 
     let mut rng = rand::rng();
@@ -146,15 +173,15 @@ fn on_level_loaded(
                             linear: 0.125,
                             angular: 0.125,
                         },
-                        LinearDamping(0.25),
-                        AngularDamping(0.25),
+                        LinearDamping(0.625),
+                        AngularDamping(0.625),
                         Mass(cube_mass),
-                        CollisionMargin(0.0),
+                        CollisionMargin(collision_margin),
                     ),
 
                     (script.clone(),),
-                    OurMidiSynth,
-                ));
+                ))
+                .insert_if(OurMidiSynth, || with_synth);
             }
         }
     }

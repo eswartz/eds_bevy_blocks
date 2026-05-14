@@ -53,6 +53,10 @@ fn main() -> AppExit {
         Ok(base_dir) => base_dir,
     };
 
+    if dev_tools_enabled() {
+        eprintln!("LD_LIBRARY_PATH={}", std::env::var("LD_LIBRARY_PATH").unwrap_or_default());
+    }
+
     // #[cfg(target_arch = "wasm32")]
     // let _ = console_log::init_with_level(log::Level::Info);
 
