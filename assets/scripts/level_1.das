@@ -5,14 +5,14 @@
     // TODO: why aren't args auto-available? This is silly.
     // We could do the IF_NULL handling in the prologue
     // before child blocks can see them.
-    %in_use_synths = GET_ARG 0, false, Bool
+    %in_use_synths = ARG 0, false, Bool
     LOCAL use_synths, false, Bool
     %frame = GET_FRAME
     STORE %frame, use_synths, %in_use_synths
 
     %update_cb = NEW_BLOCK `update_cb, (ctx, ent, ...) {
-        %ctx = GET_ARG 0, false, Struct
-        %ent = GET_ARG 1, false, CntF
+        %ctx = ARG 0, false, Struct
+        %ent = ARG 1, false, CntF
         %step: CntF = LOAD %ctx, `tick_count, true
 
         %seq: Bool = LESS_UINT %step, 600

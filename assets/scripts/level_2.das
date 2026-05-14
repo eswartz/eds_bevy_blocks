@@ -1,6 +1,6 @@
 %on_update = NEW_BLOCK `update_cb, (ctx, ent, ...) {
-    %ctx = GET_ARG 0, false, Struct
-    %ent = GET_ARG 1, false, CntF
+    %ctx = ARG 0, false, Struct
+    %ent = ARG 1, false, CntF
     %step: CntF = LOAD %ctx, `tick_count, true
 
     %x = MOD %ent, 11

@@ -1,6 +1,6 @@
 %on_update = NEW_BLOCK `on_update, (ctx, ent, ...) {
-    %ctx = GET_ARG 0, false, Struct
-    %ent = GET_ARG 1, false, Cnt64
+    %ctx = ARG 0, false, Struct
+    %ent = ARG 1, false, Cnt64
     %step: CntF = LOAD %ctx, `tick_count, true
 
     %voice = COPY 1
