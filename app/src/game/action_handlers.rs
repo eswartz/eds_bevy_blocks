@@ -146,7 +146,7 @@ fn check_actions(
     else if actions.pressed(&UserAction::Fire) {
         **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
     }
-    if actions.just_released(&UserAction::Fire) && **fire_power > 0. {
+    if actions.released(&UserAction::Fire) && **fire_power > 0. {
         // Fire something.
         commands.write_message(FireProjectile {
             look_xfrm: Transform::from_translation(player_xfrm.translation).with_rotation(look.rotation),
