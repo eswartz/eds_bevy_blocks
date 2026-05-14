@@ -218,7 +218,7 @@ fn check_actions(
         else if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
             // Fire something.
 
-            // FIXME: needs to be outside character collider.
+            // TODO: needs to be outside character collider (i.e. measure it? configure it?).
             let mut pos = position + look.rotation * Vec3::NEG_Z;
 
             let ray = Ray3d::new(player_xfrm.translation, look.rotation * Dir3::NEG_Z);
@@ -293,9 +293,9 @@ fn do_fire(
             MeshMaterial3d(mat.clone()),
             xfrm,
 
-            // DespawnAfter(Duration::from_secs(120)),
             ActiveCollisionHooks::MODIFY_CONTACTS,
-            Dominance(16),
+
+            // Dominance(16),
         ), (
             Spawned,
             Projectile,
