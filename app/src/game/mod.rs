@@ -164,9 +164,11 @@ impl Plugin for GamePlugin {
 
             .add_systems(
                 FixedUpdate,
-                    sleep_when_resting
-                    .run_if(|apply: Option<Res<ApplySleepHelper>>|
-                        apply.is_some_and(|a| **a))
+                    (
+                        sleep_when_resting.run_if(|apply: Option<Res<ApplySleepHelper>>|
+                            apply.is_some_and(|a| **a)),
+                        reset_sleep_when_resting.run_if(resource_changed::<ApplySleepHelper>)
+                    )
                     .before(PhysicsSystems::Prepare)
                     .run_if(not(is_user_paused))
                     .run_if(in_state(LevelState::Playing))
@@ -1017,6 +1019,30 @@ fn sleep_when_resting(
     if rested != 0 || awoken != 0 {
         info!("new rested {rested}, awoken {awoken}");
     }
+}
+
+/// Clear our overrides when the ApplySleepHelper resource changes.
+fn reset_sleep_when_resting(
+    commands: ParallelCommands,
+    grav_q: Query<(Entity, Option<&GravityScale>, Option<&OrigGravityScale>), With<RigidBody>>,
+) {
+    grav_q.par_iter().for_each(|(ent, my_grav_opt, my_orig_grav_opt)| {
+
+        let my_desired_scale = my_orig_grav_opt.map_or(
+            my_grav_opt.map_or(1.0, |g| g.0),
+            |g| g.orig_scale);
+
+        if my_orig_grav_opt.is_some() {
+            commands.command_scope(|mut commands| {
+                let mut ent_commands = commands.entity(ent);
+                if my_desired_scale != 1.0 {
+                    ent_commands.insert(GravityScale(my_desired_scale));
+                } else {
+                    ent_commands.try_remove::<(OrigGravityScale, GravityScale)>();
+                }
+            });
+        }
+    });
 }
 
 fn report_raycast(
