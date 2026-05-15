@@ -1,8 +1,6 @@
 use eds_bevy_common::*;
 use bevy::prelude::*;
 use avian3d::math::AdjustPrecision as _;
-#[cfg(feature = "input_lim")]
-use leafwing_input_manager::prelude::*;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
 
@@ -44,10 +42,6 @@ fn check_actions(
 
     mut player_mode: ResMut<PlayerMode>,
 ) {
-    #[cfg(feature = "input_lim")]
-    {
-        // nothing
-    }
     #[cfg(feature = "input_bei")]
     let Some(gravity) = gravity_opt.as_mut() else { return };
 
@@ -71,39 +65,6 @@ fn check_actions(
         gravity.0 = Vec3::new(0.0, -9.8, 0.0).adjust_precision();
         *player_mode = PlayerMode::Fps;
     }
-}
-
-#[cfg(feature = "input_lim")]
-pub fn extra_input_map() -> InputMap<UserAction> {
-    use eds_bevy_common::UserAction::*;
-
-    let mut input_map = InputMap::default();
-
-    // // input_map.insert(ToggleHelp, KeyCode::F1);
-    // input_map.insert(
-    //     ToggleFps,
-    //     ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::KeyG),
-    // ); // "G"raph
-    // input_map.insert(
-    //     ToggleSkybox,
-    //     ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::KeyB),
-    // ); // "B"ackground
-
-    input_map.insert(
-        ChangeCamera,
-        ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::KeyV),
-    ); // "V"iew
-
-    // input_map.insert(
-    //     SwitchNextAudioTrack,
-    //     ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::MediaTrackNext),
-    // );
-    // input_map.insert(
-    //     SwitchPrevAudioTrack,
-    //     ButtonlikeChord::modified(MOD_CTRL_COMMAND, KeyCode::MediaTrackPrevious),
-    // );
-
-    input_map
 }
 
 #[cfg(feature = "input_bei")]

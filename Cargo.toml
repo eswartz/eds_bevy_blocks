@@ -105,16 +105,6 @@ gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
 
 bevy_skein = "0.5.0"
 
-log = { version = "0.4", features = [
-    "max_level_debug",
-    "release_max_level_info",
-] }
-tracing = { version = "0.1", features = [
-    "max_level_debug",
-    "release_max_level_info",
-] }
-console_log = "1.0.0"
-
 # avian3d = { version = "0.6.0", default-features = false, features = [
 avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = [
 	"3d",
@@ -159,11 +149,6 @@ bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", re
 # web-thread = { version = "0.2" }
 # wasm_thread = { version = "0.3" }
 
-rustc-hash = "2.1.1"
-strum = { version = "0.27.2", features = ["derive", "strum_macros"] }
-strum_macros = "0.27.2"
-
-leafwing-input-manager = { version = "0.20" }
 bevy_enhanced_input = { version = "0.24", features = ["reflect", "state", "serialize"] }
 
 bevy_asset_loader = { version = "0.25.0", features = [
@@ -173,6 +158,7 @@ bevy_asset_loader = { version = "0.25.0", features = [
 ] }
 
 bevy_mod_outline = { version = "0.12" }
+bevy_tweening = "0.15.0"
 
 serde = { version = "1.0", features = ["alloc", "derive", "serde_derive"] }
 rand = { version = "0.10.0" }
@@ -182,7 +168,6 @@ image = { version = "0.25", default-features = false }
 wgpu = "27.0.1"
 bytemuck = "1.25.0"
 anyhow = "1.0.101"
-bevy_tweening = "0.15.0"
 
 # csgrs = { version = "0.21.0", features = ["bevymesh"] }
 # csgrs = { git = "https://github.com/timschmidt/csgrs.git", default-features = false, features = ["bevymesh", "f32"] }
@@ -198,6 +183,18 @@ crossbeam-channel = "0.5.15"
 thiserror = "2.0.12"
 
 test-log = "0.2.18"
+log = { version = "0.4", features = [
+    "max_level_debug",
+    "release_max_level_info",
+] }
+tracing = { version = "0.1", features = [
+    "max_level_debug",
+    "release_max_level_info",
+] }
+console_log = "1.0.0"
+rustc-hash = "2.1.1"
+strum = { version = "0.27.2", features = ["derive", "strum_macros"] }
+strum_macros = "0.27.2"
 
 [patch.crates-io]
 # bevy = { path = "../bevy-fork" }

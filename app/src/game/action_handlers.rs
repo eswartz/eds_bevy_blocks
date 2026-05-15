@@ -12,8 +12,6 @@ use bevy::prelude::*;
 use rand::RngExt as _;
 use rand::seq::IndexedRandom as _;
 
-#[cfg(feature = "input_lim")]
-use leafwing_input_manager::prelude::*;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
 
@@ -117,43 +115,6 @@ pub(crate) fn play_player_out_of_bounds(
                 VolumeNode::from_linear(rng.random_range(0.25..0.5)),
             ));
         }
-    }
-}
-
-#[cfg(feature = "input_lim")]
-fn check_actions(
-    mut commands: Commands,
-    actions: Res<ActionState<UserAction>>,
-    player_q: Query<(Entity, &Transform, &ColliderAabb), With<Player>>,
-    player_look_q: Query<&PlayerLook>,
-    mut fire_power: ResMut<FirePower>,
-    fire_power_windup: Res<FirePowerWindup>,
-    time: Res<Time>,
-) {
-    // Only one player...
-    let Ok((player, player_xfrm, aabb)) = player_q.single() else {
-        log::error!("no single Player");
-        return;
-    };
-    let Ok(look) = player_look_q.get(player) else {
-        log::error!("no PlayerLook");
-        return;
-    };
-
-    if actions.just_pressed(&UserAction::Fire) {
-        **fire_power = fire_power_windup.start;
-    }
-    else if actions.pressed(&UserAction::Fire) {
-        **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
-    }
-    if actions.released(&UserAction::Fire) && **fire_power > 0. {
-        // Fire something.
-        commands.write_message(FireProjectile {
-            look_xfrm: Transform::from_translation(player_xfrm.translation).with_rotation(look.rotation),
-            power: **fire_power,
-        });
-
-        **fire_power = 0.;
     }
 }
 

@@ -37,9 +37,6 @@ use eds_bevy_common::synth::SynthPlugin;
 use eds_bevy_common::client_synth::ClientSynthPlugin;
 use eds_bevy_common::midi_synth::prelude::MidiSynthPlugin;
 
-#[cfg(feature = "input_lim")]
-use leafwing_input_manager::prelude::*;
-
 use eds_bevy_common::*;
 
 
@@ -231,8 +228,6 @@ fn main() -> AppExit {
         .add_plugins(GamePlugin)
     ;
 
-    #[cfg(feature = "input_lim")]
-    app.insert_resource(create_input_map());
     #[cfg(feature = "input_bei")]
     app.add_systems(Startup, create_input_map);
 
@@ -259,15 +254,6 @@ fn main() -> AppExit {
     }
 
     app.run()
-}
-
-#[cfg(feature = "input_lim")]
-fn create_input_map() -> InputMap::<UserAction> {
-    let mut map = InputMap::default();
-    map.merge(&default_gui_input_map());
-    map.merge(&default_fps_input_map());
-    map.merge(&actions::extra_input_map());
-    map
 }
 
 #[cfg(feature = "input_bei")]
