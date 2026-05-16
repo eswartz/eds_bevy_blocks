@@ -28,7 +28,7 @@ impl Plugin for ScriptDebugPlugin {
 }
 
 fn init_reset_on_edit(mut control: ResMut<ScriptControl>) {
-    if dbg!(dev_tools_enabled()) {
+    if dev_tools_enabled() {
         control.set_reset_on_edit(true);
     }
 }

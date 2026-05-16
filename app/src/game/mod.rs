@@ -841,7 +841,7 @@ fn setup_skybox(
         commands.entity(cam).insert(SkyboxModel {
             image: Some(skyboxes.dresden_station_night.clone()),
             brightness: bevy::prelude::light_consts::lux::HALLWAY,
-            mapping: CubemapMapping::From1_0_2f_3f_4_5,
+            mapping: CubemapMapping::PxNxPyFxFyNyFxFyPzNz,
             with_reflection_probe,
             .. default()
         });
