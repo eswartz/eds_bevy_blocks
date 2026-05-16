@@ -51,7 +51,7 @@
         is_static: false,
         life_policy: %life,
 
-        has_synth: true,
+        has_synth: false,
     ]
     %ent = CALL_INTRINSIC `bevy_call_func, [`spawn_cube, %struct]
 
@@ -67,7 +67,7 @@
     ]
     CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
 
-    CALL_INTRINSIC `delay, [2.0]
+    CALL_INTRINSIC `delay, [1.25]
 
     //CALL_INTRINSIC `bevy_call_func, [`set_gravity, 0]
 
