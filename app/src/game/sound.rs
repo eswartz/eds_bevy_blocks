@@ -34,17 +34,19 @@ fn spawn_noise_on_collision<T>(
     projectile_q: Query<&Projectile>,
     floor_q: Query<&Floor>,
     player_q: Query<&Player>,
+    paused: Res<PhysicsPaused>,
 
     mut commands: Commands,
 ) where T: Component {
+    if **paused {
+        return
+    }
+
     let mut rng = rand::rng();
     let mut added = 0;
 
     for event in collisions.iter() {
-        if event.collision_ended() {
-            continue
-        }
-        if !event.is_touching() {
+        if !event.collision_started() && !event.is_touching() {
             continue
         }
         let thing_thing = thing_q.contains(event.collider1) && thing_q.contains(event.collider2);
