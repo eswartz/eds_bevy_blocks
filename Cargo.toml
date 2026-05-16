@@ -126,9 +126,9 @@ bevy_egui = { version = "0.39", features = ["render", "serde"] }
 bevy-inspector-egui = { version = "0.36", default-features = false, features = ["bevy", "bevy_gizmos", "egui_clipboard" ] } #, "documentation"] } #"highlight_changes"] }
 egui = { version = "0.33", features = ["bytemuck"] }
 
-firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "f1e8219" }
+firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "b8164f85" }
 
-bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", rev = "bfd2f33ddd81be928a796febf4ffff599999495a", optional = false, default-features = false, features = [
+bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", optional = false, default-features = false, features = [
     "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
     "cpal",
