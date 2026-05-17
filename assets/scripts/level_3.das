@@ -125,7 +125,7 @@ x2f:
         `rotation, %rot,
 
         `color, %color_enum,
-        `normal_map, `textures/detail_normal.webp,
+        //`normal_map, `textures/detail_normal.webp,
         //`emissive, %emissive,
         //`emissive, 1.0,   // can't see color
         //`metallic, 1.0,
