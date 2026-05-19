@@ -121,7 +121,7 @@ fn on_enter_main_menu(
     // Do not clear CurrentLevel. `Play` goes there and acts as Reset...
 
     commands.spawn((
-        DespawnOnExit(OverlayState::MainMenu),
+        DespawnOnReset(OverlayState::MainMenu),
         Text2d::new(&product_name.0),
         TextFont {
             font_size: 128.0,

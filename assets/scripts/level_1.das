@@ -103,7 +103,7 @@ no_notes:
 
 ///////
 
-    %use_synths = COPY false
+    %use_synths = COPY true
     %on_update = CALL %make_on_update, [%use_synths]
 
     %module = NEW_STRUCT [

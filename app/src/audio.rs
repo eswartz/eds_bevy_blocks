@@ -58,7 +58,7 @@ impl Plugin for AudioPlugin {
 //         },
 //         PoolSize(2 ..= 4),
 
-//         MusicBus,
+//         MusicNode,
 
 //         // So we can apply fading.
 //         sample_effects![

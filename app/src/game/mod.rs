@@ -862,7 +862,7 @@ pub(crate) fn spawn_midi_synths(
     synth_q: Query<Entity, (With<OurMidiSynth>, Without<MidiSynth>)>,
     mut synth_map: ResMut<SynthProxyMap>,
 ) -> Result<()> {
-    let params = MidiSynthParams::default();
+    let params = MidiSynthParams::default().is_world_positioned(true);
 
     for ent in synth_q.iter() {
         let (sample_sender, sample_receiver) = crossbeam_channel::unbounded();
