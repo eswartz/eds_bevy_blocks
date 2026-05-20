@@ -2,11 +2,10 @@
 %make_on_update = NEW_BLOCK `make_on_update, (in_use_synths) {
     LOCAL cnt, false, CntF
 
-    // TODO: why aren't args auto-available? This is silly.
-    // We could do the IF_NULL handling in the prologue
-    // before child blocks can see them.
     %in_use_synths = ARG 0, false, Bool
     LOCAL use_synths, false, Bool
+
+    // Make it visible to closure.
     %frame = GET_FRAME
     STORE %frame, use_synths, %in_use_synths
 

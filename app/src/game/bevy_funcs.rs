@@ -286,7 +286,7 @@ pub(crate) fn set_gravity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<
         } else if let Ok(new_vec) = convert_obj_to_value::<Scalar>(&ctx, &args[0]) {
             gravity.0 = Vector::new(0., new_vec, 0.);
         } else {
-            return Err(RuntimeError::LiteralError(format!("expected Vec3 or Real, got {}", RtDisplay::new(&rt, &args[0]))))?;
+            return Err(RuntimeError::LiteralError(format!("expected Vec3 or Real, got {}", rt.display_obj(&args[0]))))?;
         }
         old_vel
     } else {
@@ -300,7 +300,7 @@ pub(crate) fn set_gravity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<
             commands.entity(entity).insert(GravityScale(new_vec / -9.81));
             gravity.0 = Vector::new(0., new_vec, 0.);
         } else {
-            return Err(RuntimeError::LiteralError(format!("expected Vec3 or Real, got {}", RtDisplay::new(&rt, &args[0]))))?;
+            return Err(RuntimeError::LiteralError(format!("expected Vec3 or Real, got {}", rt.display_obj(&args[0]))))?;
         }
         old_vel
     };
