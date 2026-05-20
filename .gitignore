@@ -1,3 +1,7 @@
 .gdb_history
 target/**
 /Cargo.lock
+err
+.vscode
+# not yet
+art/

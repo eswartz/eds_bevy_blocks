@@ -9,6 +9,7 @@ mod level_0;
 mod level_1;
 mod level_2;
 mod level_3;
+mod level_4;
 
 use avian3d::math::*;
 use bevy::asset::RenderAssetUsages;
@@ -92,6 +93,7 @@ impl Plugin for GamePlugin {
             .add_plugins(level_1::LevelPlugin)
             .add_plugins(level_2::LevelPlugin)
             .add_plugins(level_3::LevelPlugin)
+            .add_plugins(level_4::LevelPlugin)
 
             .insert_resource(BaseEntity(Entity::PLACEHOLDER, Transform::IDENTITY))
 

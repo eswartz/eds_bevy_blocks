@@ -8,14 +8,14 @@ use bevy::prelude::*;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::*;
 
-pub(crate) const ID: &str = "level3";
-pub(crate) const NAME: &str = "Level 3";
+pub(crate) const ID: &str = "level4";
+pub(crate) const NAME: &str = "Level 4";
 
 fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
     list.0.push(LevelInfo {
         id: ID.to_string(),
         label: NAME.to_string(),
-        scene: maps.level_3.clone(),
+        scene: maps.level_4.clone(),
     });
 }
 
@@ -46,7 +46,7 @@ fn on_level_loaded(
     // Get configuration data for the initial arrangement.
     let script: Script<GameScript> = Script::new(
         &modules,
-        &script_assets.level_3,
+        &script_assets.level_4,
         &scripting.rt,
         ExecutionMode::Async,
     )?;
@@ -63,7 +63,7 @@ fn on_level_loaded(
         .map_or_else(|| Vec3::new(12.0, 1.0, -15.0),
         |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0);
 
-    let mat = materials.add(Color::srgb(0.5, 0.7, 0.3));
+    let mat = materials.add(Color::srgb(0.2, 0.3, 0.9));
     let cube_size = 0.1;
     let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
 
@@ -81,9 +81,7 @@ fn on_level_loaded(
         commands.spawn((
             (
                 ChildOf(world.0),
-                Name::new("SPAWNER"),
-                // Cube,
-                // Spawned,
+                Name::new("CONTROLLER"),
                 CrosshairTargetable,
                 Mesh3d(cube_mesh.clone()),
                 MeshMaterial3d(mat.clone()),

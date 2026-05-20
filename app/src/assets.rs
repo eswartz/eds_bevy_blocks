@@ -31,6 +31,8 @@ pub struct MapAssets {
     pub level_2: Handle<Scene>,
     #[asset(path = "maps/level_3.glb#Scene0")]
     pub level_3: Handle<Scene>,
+    #[asset(path = "maps/level_4.glb#Scene0")]
+    pub level_4: Handle<Scene>,
 }
 
 #[derive(Resource, AssetCollection)]
@@ -51,4 +53,6 @@ pub struct ScriptAssets {
     pub level_2: Handle<ScriptModule>,
     #[asset(path = "scripts/level_3.das")]
     pub level_3: Handle<ScriptModule>,
+    #[asset(path = "scripts/level_4.das")]
+    pub level_4: Handle<ScriptModule>,
 }
