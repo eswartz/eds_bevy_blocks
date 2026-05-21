@@ -130,7 +130,7 @@ fn check_actions(
     player_q: Query<(Entity, &Transform, &ColliderAabb), With<Player>>,
     player_look_q: Query<&PlayerLook>,
 
-    exist_q: Query<Entity>,
+    rigid_q: Query<Entity, With<RigidBody>>,
     fx: Res<CommonFxAssets>,
     materials: ResMut<Assets<StandardMaterial>>,
 
@@ -197,7 +197,7 @@ fn check_actions(
             let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
             let power = **fire_power;
 
-            do_fire(commands.reborrow(), xfrm, power, grabbed_opt, exist_q,
+            do_fire(commands.reborrow(), xfrm, power, grabbed_opt, rigid_q,
                 fx, materials, mesh_params.p0().0, world, &boom_mass,
             );
 
@@ -214,7 +214,7 @@ fn do_fire(
 
     grabbed_opt: Option<Res<GrabbedItem>>,
 
-    exist_q: Query<Entity>,
+    rigid_q: Query<Entity, With<RigidBody>>,
     fx: Res<CommonFxAssets>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -227,7 +227,7 @@ fn do_fire(
     let mut any = false;
     if let Some(grabbed) = &grabbed_opt {
         // Fire the item we are holding, if it still exists.
-        if exist_q.contains(grabbed.entity) {
+        if rigid_q.contains(grabbed.entity) {
             commands.queue(WakeBody(grabbed.entity));
             commands.entity(grabbed.entity).insert((
                 LinearVelocity(vel.adjust_precision()),
