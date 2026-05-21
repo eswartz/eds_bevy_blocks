@@ -60,12 +60,13 @@
     ]
     //%ent = CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %struct]
 
+    // Package ScriptCreationInfo data.
     %async = NEW_SEQUENCE [`Async]
-    %struct = NEW_STRUCT [
+    %sci = NEW_STRUCT [
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %struct]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %sci]
 
     CALL_INTRINSIC `delay, [1.25]
 

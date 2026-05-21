@@ -56,7 +56,6 @@ fn on_level_loaded(
         &script_assets.level_0,
         &scripting.rt,
         ExecutionMode::Async,
-        // ExecutionMode::Sync,
     )?;
 
     let cube_size = if let Some(size) = script.get_module().map().get(&scripting.rt.pool.for_str("block_size"))

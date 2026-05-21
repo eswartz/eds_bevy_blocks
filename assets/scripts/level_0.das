@@ -8,12 +8,12 @@
 
 //        CALL_INTRINSIC `print, ["<", %step]
 
-        %t = COPY %ent
-        //%tns = LSHR %t, 32
-        //%tns2 = ADD %t, %tns
-        //%tn = MOD %tns2, 0xa00
-        %tn = MOD %t, 0xa00
-        %tnc = ADD %tn, 0x1f400
+        %t: CntF = COPY %ent
+        //%tns: CntF = LSHR %t, 32
+        //%tns2: CntF = ADD %t, %tns
+        //%tn: CntF = MOD %tns2, 0xa00
+        %tn: CntF = MOD %t, 0xa00
+        %tnc: CntF = ADD %tn, 0x1f400
         %ts = CALL_INTRINSIC char_to_string, [%tnc]
 
         CONSUME_FUEL 5

@@ -197,17 +197,24 @@ pub(crate) fn add_script(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<
         return Err(RuntimeError::MissingArgument(0));
     }
 
+    // Fetch the user struct which encodes ScriptCreationInfo.
     let ctx: ConvertContext = ctx_p.as_ctx();
-    let script_info = convert_obj_to_value::<ScriptCreationInfo>(
-        &ctx, &args[0])
+    let script_info = convert_obj_to_value::<ScriptCreationInfo>(&ctx, &args[0])
         .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
 
     let handle = ctx.assets.load(&script_info.path);
 
-    pending.insert(PendingScript {
+    // User data.
+    let data = if args.len() > 1 {
+        args[1].clone()
+    } else {
+        ObjectPtr::for_nil()
+    };
+    pending.push(PendingScript {
         target: entity,
         handle,
         info: script_info,
+        data,
     });
 
     Ok(ExecState::Result(ObjectPtr::for_nil()))
