@@ -11,8 +11,8 @@
 
     // World grid unit count;
     // this squared is # of new entities!
-    //%grid_units = COPY 128
-    %grid_units = COPY 256
+    %grid_units = COPY 128
+    //%grid_units = COPY 256
     //%grid_units = COPY 192
     //%grid_units = COPY 16
 
@@ -38,7 +38,9 @@
 
     // Note: don't try to use alpha here, else we really slow down from OIT sorting!
     %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 1]
-    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.125]
+    %shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
+    %info =  NEW_SEQUENCE [`subdivisions, 2]
+    %shape = NEW_STRUCT [`kind, %shape, `info, %info]
 
     // Spawn all the grid points, initializing them with
     // the coordinates to render.
@@ -73,6 +75,9 @@ x_step:
 
     %name = CALL_INTRINSIC `to_string, ["(", %x, ", ", %y, ")"]
 
+    %rot = NEW_STRUCT [x: -90.0]
+    %rot = NEW_SEQUENCE [`Deg, %rot]
+
     %new = CALL_INTRINSIC `bevy_spawn, [
         `offset, %pos,
 
@@ -81,6 +86,8 @@ x_step:
         //`color_texture, "textures/palette.png",
 
         `shape, %shape,
+        `rotation, %rot,
+        //`rigid_body, `Static,
 
         `CrosshairTargetable, nil,
         `Name, %name,

@@ -3,7 +3,7 @@
 %on_init = NEW_BLOCK `on_init, (ctx, ent, ...) {
 
     %ent = ARG 1, false, Cnt64
-    //CALL_INTRINSIC `delay, [0.01]
+    //CALL_INTRINSIC `delay, [1.0]
     CALL_INTRINSIC `bevy_call_func, [%ent, `set_palette_material]
     //CALL_INTRINSIC `print, ["New block: ", %ent, "\n"]
 
