@@ -43,7 +43,7 @@ fn on_level_loaded(
     modules: Res<Assets<ScriptModule>>,
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
-    // Get configuration data for the initial arrangement.
+    // Get configuration data.
     let script: Script<GameScript> = Script::new(
         &modules,
         &script_assets.level_4,

@@ -30,6 +30,9 @@ fn register_funcs(mut commands: Commands, runtime: Res<ScriptRuntime>) {
         rt.pool.for_str("translate"),
         commands.register_system(translate));
     bevy_system_service.add_runtime_system(
+        rt.pool.for_str("position"),
+        commands.register_system(position));
+    bevy_system_service.add_runtime_system(
         rt.pool.for_str("add_velocity"),
         commands.register_system(add_velocity));
     bevy_system_service.add_runtime_system(
@@ -42,5 +45,12 @@ fn register_funcs(mut commands: Commands, runtime: Res<ScriptRuntime>) {
     bevy_system_service.add_runtime_system(
         rt.pool.for_str("remove_script"),
         commands.register_system(remove_script));
+
+    bevy_system_service.add_runtime_system(
+        rt.pool.for_str("set_mesh_tag"),
+        commands.register_system(set_mesh_tag));
+    bevy_system_service.add_runtime_system(
+        rt.pool.for_str("set_palette_material"),
+        commands.register_system(set_palette_material));
 
 }

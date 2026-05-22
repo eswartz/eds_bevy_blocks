@@ -1,11 +1,21 @@
 // This computes a given coordinate in the Mandelbrot set.
 
+%on_init = NEW_BLOCK `on_init, (ctx, ent, ...) {
+
+    %ent = ARG 1, false, Cnt64
+    //CALL_INTRINSIC `delay, [0.01]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `set_palette_material]
+    //CALL_INTRINSIC `print, ["New block: ", %ent, "\n"]
+
+    RETURN nil
+}
+
 %on_update = NEW_BLOCK `on_update, (ctx, ent, data, ...) {
     %ctx = ARG 0, false, Struct
     %ent = ARG 1, false, Cnt64
     %data = ARG 2, false, Struct
 
-    //
+    //CALL_INTRINSIC `print, ["Update: ", %ent, "\n"]
     //    `cr: %x,
     //    `ci: %y,
     //    `zr: %x,
@@ -35,8 +45,6 @@ check_high:
     IF_TRUE %t, enter, skip
 
 enter:
-    CONSUME_FUEL 1
-
     %zr: RealF = LOAD %data, `zr
     %zi: RealF = LOAD %data, `zi
 
@@ -46,7 +54,7 @@ loop:
 
 calc:
     %iters: CntF = ADD %iters, 1
-    //CONSUME_FUEL 1
+    CONSUME_FUEL 1
 
     // advance z = z²+c
     // (a+bi) * (c+di) = ac - bd + (ad+bc)i
@@ -72,19 +80,27 @@ calc:
 
 exit:
     // finally finished here
+    %depth: RealF = DIV %iters, %max_iters
+
     %iters = NEG %iters
     JUMP done
 
 past_max:
     // too many iters
+    %depth = COPY 1.0
 
 done:
-    %itersz: RealF = DIV %iters, %max_iters
-    %itersz: RealF = ABS %itersz
-    %vec = NEW_STRUCT [x: 0, y: 0, z: %itersz]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `translate, %vec]
+    %pos = LOAD %data, `pos
+    %posx = LOAD %pos, `x
+    %posy = LOAD %pos, `y
+    %posz = LOAD %pos, `z
+    %posz = ADD %posz, %depth
+    %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `position, %vec]
 
     //CALL_INTRINSIC `print, [%cr, "+", %ci, "i out at ", %iters, "\n"]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `set_mesh_tag, %iters]
+
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
@@ -94,6 +110,7 @@ skip:
 }
 
 %module = NEW_STRUCT [
+    `on_init: %on_init,
     `on_update: %on_update,
 ]
 RETURN %module

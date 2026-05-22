@@ -3,11 +3,13 @@ use std::sync::Arc;
 use crate::assets::ModelAssets;
 use crate::game::Cube;
 use crate::game::OurMidiSynth;
+use crate::game::SpawnPaletteMaterial;
 use crate::game::UserScript;
 use avian3d::math::AdjustPrecision as _;
 use avian3d::math::Vector;
 use bevy::ecs::world::CommandQueue;
 use bevy::gltf::GltfMesh;
+use bevy::mesh::MeshTag;
 use eds_bevy_common::*;
 
 use avian3d::prelude::*;
@@ -253,6 +255,25 @@ pub(crate) fn translate(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<O
     Ok(ExecState::Result(ObjectPtr::for_nil()))
 }
 
+pub(crate) fn position(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
+    ctx: ConvertContextParam,
+    mut xfrm_q: Query<&mut Transform>,
+) -> ExecResult {
+    if args.len() < 1 {
+        return Err(RuntimeError::MissingArgument(0));
+    }
+
+    let translation = convert_obj_to_value::<Vec3>(&ctx.as_ctx(), &args[0])
+        .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
+
+    let mut xfrm = xfrm_q.get_mut(entity)
+        .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?;
+
+    xfrm.translation = translation;
+
+    Ok(ExecState::Result(ObjectPtr::for_nil()))
+}
+
 pub(crate) fn add_velocity(In((entity, _rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
     mut commands: Commands,
     ctx: ConvertContextParam,
@@ -321,7 +342,42 @@ pub(crate) fn set_gravity(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<
         fields.insert(k, v);
     }
     let struc = fedry_runtime::prelude::Struct::from_fields(fields);
+
     Ok(ExecState::Result(
         ObjectPtr::for_struct(&rt.memory, &rt.types.struct_type, struc)?
     ))
+}
+
+/// Set the material to use our palette-mapped extension.
+pub(crate) fn set_palette_material(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
+    mut commands: Commands,
+) -> ExecResult {
+    if args.len() != 0 {
+        return Err(RuntimeError::TooManyArguments(
+            Arc::new(BlockId(None, rt.pool.ensure_str_ref("set_palette_material"))),
+            args.len() as ArgIndex, 0));
+    }
+
+    commands.entity(entity).insert(SpawnPaletteMaterial);
+
+    Ok(ExecState::Result(ObjectPtr::for_nil()))
+}
+
+
+pub(crate) fn set_mesh_tag(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<ObjectPtr>)>,
+    mut commands: Commands,
+) -> ExecResult {
+    if args.len() < 1 {
+        return Err(RuntimeError::MissingArgument(0));
+    }
+
+    let index = RtNumber::new(&args[0])
+        .ok_or_else(|| RuntimeError::LiteralError(
+            format!("expected a number, got {}", rt.display_obj(&args[0]))
+        ))?
+        .as_uint();
+
+    commands.entity(entity).insert(MeshTag(index as u32));
+
+    Ok(ExecState::Result(ObjectPtr::for_nil()))
 }

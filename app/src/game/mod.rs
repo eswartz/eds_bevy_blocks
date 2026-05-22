@@ -17,8 +17,13 @@ use bevy::color::palettes::tailwind;
 use bevy::ecs::query::QueryData;
 use bevy::gltf::GltfMesh;
 use bevy::mesh::*;
+use bevy::pbr::{ExtendedMaterial, MaterialExtension};
+use bevy::platform::collections::HashMap;
+use bevy::render::render_resource::AsBindGroup;
+use bevy::shader::ShaderRef;
 use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
 pub use action_handlers::*;
+use fedry_runtime::prelude::RuntimeError;
 use strum::{EnumIter, VariantArray};
 
 use std::time::Duration;
@@ -221,11 +226,92 @@ impl Plugin for GamePlugin {
                     .run_if(in_state(ProgramState::InGame)),
             )
 
+            .insert_resource(PaletteMaterialHandles(default()))
+            .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>::default())
+            .add_systems(Update, handle_palette)
         ;
+
         register_script_key::<GameScript>(app);
         register_script_key::<UserScript>(app);
     }
 }
+
+#[derive(Resource, Default)]
+pub struct PaletteMaterialHandles
+(
+    HashMap<
+        Handle<StandardMaterial>,
+        Handle<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>,
+    >,
+);
+
+#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
+pub struct PaletteMaterialExtension {
+}
+
+const PM_SHADER_ASSET_PATH: &str = "shaders/palette_material.wgsl";
+
+impl MaterialExtension for PaletteMaterialExtension {
+    // fn vertex_shader() -> ShaderRef {
+    //     PM_SHADER_ASSET_PATH.into()
+    // }
+
+    fn fragment_shader() -> ShaderRef {
+        PM_SHADER_ASSET_PATH.into()
+    }
+
+    fn deferred_fragment_shader() -> ShaderRef {
+        PM_SHADER_ASSET_PATH.into()
+    }
+}
+
+#[derive(Component, Debug, Default, Clone, Reflect)]
+#[component(storage = "SparseSet")]
+#[reflect(Component, Default, Clone)]
+#[type_path = "fedry"]
+pub struct SpawnPaletteMaterial;
+
+pub(crate) fn handle_palette(
+    mut commands: Commands,
+    mut pal_mats: ResMut<Assets<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>>,
+    mut pal_mat_cache: ResMut<PaletteMaterialHandles>,
+
+    std_mats: Res<Assets<StandardMaterial>>,
+
+    mat_q: Query<(Entity, &MeshMaterial3d<StandardMaterial>), With<SpawnPaletteMaterial>>,
+) -> Result {
+    for (entity, std_mat_handle) in mat_q.iter() {
+        let mut ent_commands = commands.entity(entity);
+
+        let std_mat = std_mats.get(std_mat_handle.id())
+            .ok_or_else(|| RuntimeError::LiteralError(
+                format!("no StandardMaterial on {entity}")
+            ))?;
+        let pal_mat = pal_mat_cache.0
+            .entry(std_mat_handle.0.clone())
+            .or_insert_with(|| {
+                pal_mats.add(ExtendedMaterial {
+                    base: std_mat.clone(),
+                    // base: StandardMaterial {
+                    //     unlit: true,
+                    //     base_color_texture: Some(assets.load("textures/palette.png")),
+                    //     ..default()
+                    // },
+                    extension: default(),
+                })
+            });
+
+        ent_commands.remove::<(
+            SpawnPaletteMaterial,
+            MeshMaterial3d<StandardMaterial>,
+        )>();
+
+        ent_commands.insert(MeshMaterial3d(pal_mat.clone()));
+    }
+
+    Ok(())
+}
+
 
 /// Current difficulty.
 #[derive(Resource, Default, Debug, Clone, PartialEq, Reflect)]

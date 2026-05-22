@@ -1,16 +1,20 @@
-%on_playing = NEW_BLOCK `update_cb, (ctx, ent, ...) {
+%on_init = NEW_BLOCK `init, (ctx, ent, ...) {
     %ctx = ARG 0, false, Struct
 //    %ent = ARG 1, false, CntF
     %step: CntF = LOAD %ctx, `tick_count, true
 
     // World grid position
     %gridcx = COPY 0.0
-    %gridcy = COPY 1.0
+    %gridcy = COPY 4.0
     // World grid size
-    %gridsz = COPY 4.0
+    %gridsz = COPY 16.0
 
-    // World grid unit count
-    %grid_units = COPY 128      // this squared is # of new entities
+    // World grid unit count;
+    // this squared is # of new entities!
+    //%grid_units = COPY 128
+    %grid_units = COPY 256
+    //%grid_units = COPY 192
+    //%grid_units = COPY 16
 
     %unitsz: RealF = DIV %gridsz, %grid_units
     %unitsz_h: RealF = DIV %unitsz, 2.0
@@ -21,21 +25,25 @@
     %sz = DIV 4.0, 1.0
 
     // Zoom to specific spot
-    %cx = COPY 0.39001807130093577
-    %cy = COPY 0.13832018404139265
-    //%sz = DIV 1.0, 1024.0
-    %sz = DIV 1.0, 2.0
+    %cx = COPY 0.390018071300935778312029
+    %cy = COPY 0.138320184041392651089585
+    %sz = DIV 1.0, 1024.0
+    %sz = DIV %sz, 1048576.0
+    //%sz = DIV %sz, 1024.0
+    //%sz = DIV 1.0, 2.0
 
-    %max_iters = COPY 1_000
+    %max_iters = COPY 5000
 
     %cellsz = DIV %sz, %grid_units
 
     // Note: don't try to use alpha here, else we really slow down from OIT sorting!
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 0.75]
-    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
+    %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 1]
+    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.125]
 
     // Spawn all the grid points, initializing them with
     // the coordinates to render.
+
+    %tag = NEW_SEQUENCE [0]
 
     %grid_units_h = LSHR %grid_units, 1
     %y: IntF = SUB 0, %grid_units_h
@@ -61,20 +69,27 @@ x_step:
     %wy: RealF = NEG %wy    // top-down
     %wy = ADD %wy, %gridcy
 
-    %pos = NEW_STRUCT [x: %wx, y: %wy, z: -0.5]
+    %pos = NEW_STRUCT [x: %wx, y: %wy, z: 1.0]
 
     %name = CALL_INTRINSIC `to_string, ["(", %x, ", ", %y, ")"]
 
     %new = CALL_INTRINSIC `bevy_spawn, [
         `offset, %pos,
 
-        `color, %color_enum,
-        `shape, %shape,
+        //`color, %color_enum,
         `unlit, true,
+        //`color_texture, "textures/palette.png",
+
+        `shape, %shape,
 
         `CrosshairTargetable, nil,
         `Name, %name,
+
+        `MeshTag, %tag,
     ]
+
+    //CALL_INTRINSIC `bevy_call_func, [%new, `set_mesh_tag, 0]
+
     //CALL_INTRINSIC `print, ["making ", %name, " -> ", %new, "\n"]
     //CONSUME_FUEL 10
 
@@ -91,6 +106,8 @@ x_step:
         `zi: 0.0,
         `max_iters: %max_iters,
         `iters: 0,
+
+        `pos: %pos,
     ]
     //CALL_INTRINSIC `print, [%data, "\n"]
 
@@ -118,7 +135,7 @@ exit:
 ///////
 
     %module = NEW_STRUCT [
-        `on_playing: %on_playing,
+        `on_init: %on_init,
     ]
     CONSUME_FUEL 3
     RETURN %module
