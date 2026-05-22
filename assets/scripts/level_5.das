@@ -122,7 +122,7 @@ x_step:
     // Package ScriptCreationInfo data.
     %async = NEW_SEQUENCE [`Async]
     %sci = NEW_STRUCT [
-        path: `scripts/mandel_ent.das,
+        path: `scripts/mandel_img.das,
         mode: %async,
     ]
     CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci, %data]
