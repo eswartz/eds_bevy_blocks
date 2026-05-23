@@ -2,7 +2,6 @@
 mod action_handlers;
 mod sound;
 mod script_debug;
-mod scripting;
 mod bevy_funcs;
 mod gravity_sleep;
 mod level_0;
@@ -22,7 +21,7 @@ use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
-use fedry_bevy_plugin::prelude::{handle_pending_scripts, register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
+use fedry_bevy_plugin::prelude::{register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
 pub use action_handlers::*;
 use fedry_runtime::prelude::RuntimeError;
 use strum::{EnumIter, VariantArray};
@@ -30,9 +29,9 @@ use strum::{EnumIter, VariantArray};
 use std::time::Duration;
 
 use crate::assets::ModelAssets;
+use crate::game::bevy_funcs::register_funcs;
 use crate::game::gravity_sleep::GravitySleepPlugin;
 use crate::game::script_debug::ScriptDebugPlugin;
-use crate::game::scripting::ScriptingPlugin;
 use crate::game::sound::SoundPlugin;
 use eds_bevy_common::*;
 // use crate::player_spawning::spawn_player;
@@ -91,7 +90,6 @@ impl Plugin for GamePlugin {
                 ignore_mass: true,
                 .. default()
             })
-            .add_plugins(ScriptingPlugin)
 
             .init_resource::<LevelDifficulty>()
 
@@ -128,10 +126,6 @@ impl Plugin for GamePlugin {
                 PreUpdate,
                 add_raytracing_to_meshes,
             )
-            .add_systems(
-                PreUpdate,
-                handle_pending_scripts::<UserScript>,
-            )
 
             .add_systems(
                 Update,
@@ -144,6 +138,10 @@ impl Plugin for GamePlugin {
                 .run_if(in_state(GameplayState::Playing))
             )
 
+            .add_systems(
+                Startup,
+                register_funcs,
+            )
             .add_systems(OnEnter(LevelState::LevelLoaded),
                 (
                     |mut commands: Commands| {
@@ -231,10 +229,11 @@ impl Plugin for GamePlugin {
             .insert_resource(PaletteMaterialHandles(default()))
             .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>::default())
             .add_systems(Update, handle_palette)
+
+            .add_systems(OnEnter(LevelState::Advance), cleanup_materials)
         ;
 
         register_script_key::<GameScript>(app);
-        register_script_key::<UserScript>(app);
     }
 }
 
@@ -337,10 +336,6 @@ impl std::ops::Deref for BoomMass {
 /// Marker for scripts driven by the game itself.
 #[derive(Debug, Clone, PartialEq, Hash, Reflect, QueryData)]
 pub(crate) struct GameScript;
-
-/// Marker for scripts driven by scripts themselves.
-#[derive(Debug, Clone, PartialEq, Hash, Reflect, QueryData)]
-pub(crate) struct UserScript;
 
 /// Difficulty rating.
 #[derive(
@@ -1042,4 +1037,12 @@ pub fn load_cube_model(
     let mat = materials.add(std_mat);
 
     Ok((cube_mesh, mat))
+}
+
+fn cleanup_materials(
+    pal_mats: Option<ResMut<PaletteMaterialHandles>>,
+) {
+    if let Some(mut pal_mats) = pal_mats {
+        pal_mats.0.clear();
+    }
 }

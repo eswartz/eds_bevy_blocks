@@ -228,7 +228,7 @@ fn do_fire(
     if let Some(grabbed) = &grabbed_opt {
         // Fire the item we are holding, if it still exists.
         if rigid_q.contains(grabbed.entity) {
-            commands.queue(WakeBody(grabbed.entity));
+            // commands.queue(WakeBody(grabbed.entity));    // sometimes crashes
             commands.entity(grabbed.entity).insert((
                 LinearVelocity(vel.adjust_precision()),
             ));

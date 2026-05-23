@@ -15,14 +15,6 @@
     %ent = ARG 1, false, Cnt64
     %data = ARG 2, false, Struct
 
-    //CALL_INTRINSIC `print, ["Update: ", %ent, "\n"]
-    //    `cr: %x,
-    //    `ci: %y,
-    //    `zr: %x,
-    //    `zi: %y,
-    //    `max_iters: 1000,
-    //    `iters: 0,
-
     // center
     %cr: RealF = LOAD %data, `cr
     %ci: RealF = LOAD %data, `ci
@@ -87,19 +79,30 @@ exit:
 
 past_max:
     // too many iters
-    %depth = COPY 1.0
+    %depth = COPY 0.0
 
 done:
-    %pos = LOAD %data, `pos
-    %posx = LOAD %pos, `x
-    %posy = LOAD %pos, `y
-    %posz = LOAD %pos, `z
-    %posz = ADD %posz, %depth
-    %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `position, %vec]
+    %coord = LOAD %data, `coord
+    %px = LOAD %coord, `x
+    %py = LOAD %coord, `y
 
-    //CALL_INTRINSIC `print, [%cr, "+", %ci, "i out at ", %iters, "\n"]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `set_mesh_tag, %iters]
+    //CALL_INTRINSIC `print, [%px, "x", %py, %iters, " @", %depth, "\n"]
+
+    //%color_enum = NEW_SEQUENCE [`Hsva, `hue, 0, `saturation, 0, `value, %depth, `alpha, 1]
+    %color_enum = NEW_SEQUENCE [`Srgba, `red, %depth, `green, %depth, `blue, %depth]
+
+    // The entity whose image to mutate.
+    %img_handle = LOAD %data, `img
+
+    %img = NEW_SEQUENCE [`Handle, %img_handle]
+    CALL_INTRINSIC `bevy_call_func, [
+        %ent,
+        set_image_pixel,
+        %img_handle,
+        %px,
+        %py,
+        %color_enum,
+    ]
 
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
