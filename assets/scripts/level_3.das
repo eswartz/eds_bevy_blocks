@@ -150,10 +150,10 @@ x2f:
         //'bevy_light::spot_light::SpotLight', %spot_light,
         //'SpotLightTexture', %spot_light_tex,
         //'bevy_light::point_light::PointLight', %point_light,
-        'DirectionalLight', %dir_light,
+        //'DirectionalLight', %dir_light,
         //'DirectionalLightTexture', %dir_light_tex,
-        //'PointLight', %point_light,
-        //'PointLightTexture', %pt_light_tex,
+        'PointLight', %point_light,
+        'PointLightTexture', %pt_light_tex,
 
         // needed to avoid losing lights at camera edges
         `NoFrustumCulling, nil,
@@ -167,7 +167,7 @@ x2f:
     //CALL_INTRINSIC `delay, [0.125]
     //CALL_INTRINSIC `delay, [0.5]
 
-    CALL_INTRINSIC `delay, [0.001]
+    //CALL_INTRINSIC `delay, [0.001]
     %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
     //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
 
@@ -178,7 +178,7 @@ x2f:
     //    `Name, %name,
     //]
 
-    CALL_INTRINSIC `delay, [0.01]
+    CALL_INTRINSIC `delay, [0.1]
     RETURN nil
 }
 

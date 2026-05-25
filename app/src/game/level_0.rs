@@ -47,13 +47,23 @@ fn on_level_loaded(
     scripting: Res<ScriptRuntime>,
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
+    fuel: Res<ScriptFuel<GameScript>>,
 
     gltf_meshes: Res<Assets<GltfMesh>>,
     model_assets: Res<ModelAssets>,
 ) -> Result {
+
+    commands.insert_resource(InstructionText(
+        r#"
+        Left Click: Fire heavy bar (hold for strength)
+        Right Click: Grab and move
+        "#.to_string()
+    ));
+
     let script: Script<GameScript> = Script::new(
         &modules,
         &script_assets.level_0,
+        &fuel.available,
         &scripting.rt,
         ExecutionMode::Async,
     )?;

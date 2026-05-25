@@ -230,7 +230,7 @@ impl Plugin for GamePlugin {
             .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>::default())
             .add_systems(Update, handle_palette)
 
-            .add_systems(OnEnter(LevelState::Advance), cleanup_materials)
+            .add_systems(OnEnter(LevelState::Advance), cleanup_palette_materials)
         ;
 
         register_script_key::<GameScript>(app);
@@ -692,13 +692,6 @@ pub(crate) fn spawn_level(
         })
     ;
     commands.insert_resource(CurrentScore::default());
-
-    commands.insert_resource(InstructionText(
-        r#"
-        Left Click: Fire heavy bar (hold for strength)
-        Right Click: Grab and move
-        "#.to_string()
-    ));
 }
 
 fn init_player_settings(
@@ -1039,7 +1032,7 @@ pub fn load_cube_model(
     Ok((cube_mesh, mat))
 }
 
-fn cleanup_materials(
+fn cleanup_palette_materials(
     pal_mats: Option<ResMut<PaletteMaterialHandles>>,
 ) {
     if let Some(mut pal_mats) = pal_mats {

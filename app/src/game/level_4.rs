@@ -41,12 +41,21 @@ fn on_level_loaded(
     scripting: Res<ScriptRuntime>,
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
+    fuel: Res<ScriptFuel<GameScript>>,
+
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
+    commands.insert_resource(InstructionText(
+        r#"
+        Watch.
+        "#.to_string()
+    ));
+
     // Get configuration data.
     let script: Script<GameScript> = Script::new(
         &modules,
         &script_assets.level_4,
+        &fuel.available,
         &scripting.rt,
         ExecutionMode::Async,
     )?;

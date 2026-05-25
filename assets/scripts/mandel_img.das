@@ -10,11 +10,20 @@
     RETURN nil
 }
 
-%on_update = NEW_BLOCK `on_update, (ctx, ent, data, ...) {
+%on_update = NEW_BLOCK `on_update, (ctx, ent, ent_data, ...) {
     %ctx = ARG 0, false, Struct
     %ent = ARG 1, false, Cnt64
-    %data = ARG 2, false, Struct
+    %ent_data = ARG 2, false, Struct
 
+    // see if we have any work
+    %work = LOAD %ent_data, `worklist
+
+work_loop:
+    %data = CALL_INTRINSIC `sequence_pop, [%work]
+    IF_NIL %data, skip, work
+
+work:
+    //CALL_INTRINSIC `print, [%ent, "> ", %data, "\n"]
     // center
     %cr: RealF = LOAD %data, `cr
     %ci: RealF = LOAD %data, `ci
@@ -46,8 +55,13 @@ loop:
 
 calc:
     %iters: CntF = ADD %iters, 1
-    CONSUME_FUEL 1
+    //%f = AND %iters, 0x3f
+    //%f = EQUAL_UINT %f, 0
+    //IF_TRUE %f, fuel, calc_do
+//fuel:
+    //CONSUME_FUEL 1
 
+//calc_do:
     // advance z = z²+c
     // (a+bi) * (c+di) = ac - bd + (ad+bc)i
     // (zr+zi) * (zr+zi) = zr² - zi² + (2*zr*zi)
@@ -88,10 +102,11 @@ done:
 
     //CALL_INTRINSIC `print, [%px, "x", %py, %iters, " @", %depth, "\n"]
 
-    //%color_enum = NEW_SEQUENCE [`Hsva, `hue, 0, `saturation, 0, `value, %depth, `alpha, 1]
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, %depth, `green, %depth, `blue, %depth]
+    %c: RealF = MUL %depth, 16.0
+    %c: RealF = MOD %c, 1.0
+    //%color_enum = NEW_SEQUENCE [`Hsva, `hue, 0, `saturation, 0, `value, %c, `alpha, 1]
+    %color_enum = NEW_SEQUENCE [`Srgba, `red, %c, `green, %c, `blue, %c]
 
-    // The entity whose image to mutate.
     %img_handle = LOAD %data, `img
 
     %img = NEW_SEQUENCE [`Handle, %img_handle]
@@ -107,6 +122,9 @@ done:
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
+
+    CONSUME_FUEL 1
+    JUMP work_loop
 
 skip:
     RETURN nil

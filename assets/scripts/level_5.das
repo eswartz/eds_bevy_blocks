@@ -2,10 +2,14 @@
 
 // This script generates worker entities to compute a single pixel
 // of the Mandelbrot set.
-%on_init = NEW_BLOCK `init, (ctx, ent, ...) {
+%on_init = NEW_BLOCK `init, (ctx, ent, data, ...) {
     %ctx = ARG 0, false, Struct
     %ent = ARG 1, false, CntF
-    %step: CntF = LOAD %ctx, `tick_count, true
+    %data = ARG 2, false, Struct
+
+    // number of entities to chug through data.
+    %num_workers = COPY 1024
+    %num_workers = COPY 128
 
     // World grid position
     %gridcx = COPY 0.0
@@ -18,9 +22,10 @@
     // Pixel grid unit count;
     // this squared is # of pixels and new entities!
     //%grid_units = COPY 256
-    %grid_units = COPY 192
+    //%grid_units = COPY 192
     //%grid_units = COPY 64
-    //%grid_units = COPY 512
+    %grid_units = COPY 512
+    %grid_units = COPY 1024
     //%grid_units = COPY 128
 
     // Default computation center
@@ -47,7 +52,8 @@
     %info =  NEW_SEQUENCE [`subdivisions, %grid_units]
     %shape = NEW_STRUCT [`kind, %shape, `info, %info]
 
-    %pos = NEW_STRUCT [x: 0.0, y: %gridsz_h, z: 5.0]
+    %y = ADD %gridsz_h, 0.025
+    %pos = NEW_STRUCT [x: 0.0, y: %y, z: 5.0]
 
     %rot = NEW_STRUCT [x: -90.0]
     %rot = NEW_SEQUENCE [`Deg, %rot]
@@ -77,15 +83,16 @@
         `rigid_body, `Static,
     ]
 
-    // Spawn all the grid points, initializing them with
-    // the coordinates to render. These are POD entities.
+    // Compute the work.
+
+    %worklist = NEW_SEQUENCE []
 
     %grid_units_h = LSHR %grid_units, 1
     %y: IntF = SUB 0, %grid_units_h
 
 y_loop:
     %cmp = LESS_SINT %y, %grid_units_h
-    IF_TRUE %cmp, y_step, exit
+    IF_TRUE %cmp, y_step, cells_done
 
 y_step:
     %x: IntF = SUB 0, %grid_units_h
@@ -95,10 +102,6 @@ x_loop:
     IF_TRUE %cmp, x_step, y_next
 
 x_step:
-    %name = CALL_INTRINSIC `to_string, ["(", %x, ", ", %y, ")"]
-
-    %worker = CALL_INTRINSIC `bevy_spawn, [`Name, %name]
-
     // State for cell.
     %cr: RealF = MUL %x, %cell_sz
     %cr: RealF = ADD %cr, %cx
@@ -112,9 +115,8 @@ x_step:
         `y: %py,
     ]
 
-    //CALL_INTRINSIC `print, [%coord, "\n"]
-    // Gather parameters for the worker script.
-    %data = NEW_STRUCT [
+    // Parameters for the cell.
+    %cell_data = NEW_STRUCT [
         `cr: %cr,
         `ci: %ci,
         `zr: 0.0,
@@ -128,14 +130,8 @@ x_step:
         `coord: %coord,
     ]
 
-    // Package ScriptCreationInfo data.
-    %async = NEW_SEQUENCE [`Async]
-    %sci = NEW_STRUCT [
-        path: `scripts/mandel_img.das,
-        mode: %async,
-    ]
-    CALL_INTRINSIC `bevy_call_func, [%worker, `add_script, %sci, %data]
-    //CONSUME_FUEL 1    // FIXME: stalls script
+    CALL_INTRINSIC `sequence_append, [%worklist, %cell_data]
+    %cell_data = COPY nil
 
 x_next:
     %x = ADD %x, 1
@@ -144,6 +140,32 @@ x_next:
 y_next:
     %y = ADD %y, 1
     JUMP y_loop
+
+cells_done:
+
+    %i = COPY 0
+
+make_worker_loop:
+    %f = LESS_UINT %i, %num_workers
+    IF_TRUE %f, make_worker, exit
+
+make_worker:
+    // Package ScriptCreationInfo data.
+    %worker = CALL_INTRINSIC `bevy_spawn, [`Name, "WORKER"]
+
+    %async = NEW_SEQUENCE [`Async]
+    %sci = NEW_STRUCT [
+        path: `scripts/mandel_img.das,
+        mode: %async,
+    ]
+    %cell_data = NEW_STRUCT [
+        worklist: %worklist,
+    ]
+    CALL_INTRINSIC `bevy_call_func, [%worker, `add_script, %sci, %cell_data]
+    //CONSUME_FUEL 1    // FIXME: stalls script
+
+    %i: CntF = ADD %i, 1
+    JUMP make_worker_loop
 
 exit:
     RETURN nil
