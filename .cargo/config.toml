@@ -41,3 +41,4 @@ codegen-backend = "llvm"
 [patch.crates-io]
 ## Support webp
 gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
+gilrs = { git = "https://gitlab.com/gilrs-project/gilrs.git", branch = "master" }
