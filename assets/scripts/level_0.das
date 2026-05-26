@@ -27,16 +27,16 @@
         CONSUME_FUEL 1
 
         CONSUME_FUEL 10
-        CALL_INTRINSIC spin, [50]
+        //CALL_INTRINSIC spin, [50]
         CONSUME_FUEL 50
         CONSUME_FUEL 10
-        CALL_INTRINSIC print, [%ts]             // uncomment for fun
+        //CALL_INTRINSIC print, [%ts]             // uncomment for fun
         CONSUME_FUEL 10
         //CALL_INTRINSIC print, [%ts]
         //CONSUME_FUEL 10
         CONSUME_FUEL 10
 
-        CALL_INTRINSIC spin, [10]
+        //CALL_INTRINSIC spin, [10]
         CONSUME_FUEL 10
 
 //        CALL_INTRINSIC print, [%ts]
