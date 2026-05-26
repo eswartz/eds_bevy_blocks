@@ -151,7 +151,11 @@ pub fn assign_extra_actions(
         ExponentialCurve::splat(1.25),
         Negate::y(),
         Bindings::spawn((
-            Spawn((Binding::mouse_wheel(), SwizzleAxis::YYY)),
+            Spawn((
+                Binding::mouse_wheel(),
+                SwizzleAxis::YYY,
+                default_mouse_wheel_scale(1.0)
+            )),
             Bidirectional::new(KeyCode::ArrowUp, KeyCode::ArrowDown),
             Bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2),
         )),
