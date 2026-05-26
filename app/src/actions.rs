@@ -126,6 +126,16 @@ pub fn assign_extra_actions(
         ],
     ));
 
+    ////////
+
+    commands.spawn((
+        include.clone(),
+        Action::<actions::PausePhysics>::new(),
+        bindings![
+            KeyCode::ScrollLock,
+        ],
+    ));
+
     commands.spawn((
         include.clone(),
         Action::<actions::ChangeCamera>::new(),
@@ -133,4 +143,42 @@ pub fn assign_extra_actions(
             KeyCode::KeyV.with_mod_keys(MOD_CTRL_COMMAND),
         ],
     ));
+
+    commands.spawn((
+        include.clone(),
+        Action::<actions::Zoom>::new(),
+        // Scale::splat(2.5),
+        ExponentialCurve::splat(1.25),
+        Negate::y(),
+        Bindings::spawn((
+            Spawn((Binding::mouse_wheel(), SwizzleAxis::YYY)),
+            Bidirectional::new(KeyCode::ArrowUp, KeyCode::ArrowDown),
+            Bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2),
+        )),
+    ));
+    // commands.spawn((
+    //     include.clone(),
+    //     Action::<actions::Zoom>::new(),
+    //     DeadZone::default(),
+    //     Bindings::spawn((
+    //         Spawn((Binding::mouse_wheel(),
+    //             Negate::y(),
+    //             Scale::new(Vec3::splat(100.0))
+    //         )),
+
+    //         Bidirectional::new(GamepadButton::LeftTrigger, GamepadButton::RightTrigger)
+    //             .with((
+    //                 Scale::new(Vec3::splat(100.0)),
+    //             )),
+
+    //         // Axial::right_stick()
+    //         //     .with((
+    //         //         DeadZone::default(),
+    //         //         Scale::new(Vec3::splat(100.0)),
+    //         //         SmoothNudge::default(),
+    //         //     )),
+    //         // Spawn((axesBinding::MouseButton { button: (), mod_keys: () }
+    //     )),
+    // ));
+
 }
