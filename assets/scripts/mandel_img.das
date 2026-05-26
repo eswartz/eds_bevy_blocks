@@ -1,4 +1,5 @@
-// This computes a given coordinate in the Mandelbrot set.
+// This computes a given coordinate in the Mandelbrot set
+// by taking an available entry from a `worklist.
 
 %on_init = NEW_BLOCK `on_init, (ctx, ent, ...) {
 

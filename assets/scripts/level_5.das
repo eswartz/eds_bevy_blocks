@@ -8,8 +8,9 @@
     %data = ARG 2, false, Struct
 
     // number of entities to chug through data.
-    %num_workers = COPY 1024
-    %num_workers = COPY 128
+    //%num_workers = COPY 1024
+    //%num_workers = COPY 128
+    %num_workers = COPY 256
 
     // World grid position
     %gridcx = COPY 0.0
@@ -64,6 +65,7 @@
 
     //%color = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1,  `blue, 1]
 
+    // Spawn the billboard showing the image of the render.
     %img_ent = CALL_INTRINSIC `bevy_spawn, [
         `Name, "Mandelbrot",
 
@@ -84,7 +86,6 @@
     ]
 
     // Compute the work.
-
     %worklist = NEW_SEQUENCE []
 
     %grid_units_h = LSHR %grid_units, 1
@@ -103,13 +104,15 @@ x_loop:
 
 x_step:
     // State for cell.
-    %cr: RealF = MUL %x, %cell_sz
+    %cellx = COPY %x
+    %celly = COPY %y
+    %cr: RealF = MUL %cellx, %cell_sz
     %cr: RealF = ADD %cr, %cx
-    %ci: RealF = MUL %y, %cell_sz
+    %ci: RealF = MUL %celly, %cell_sz
     %ci: RealF = ADD %ci, %cy
 
-    %px = ADD %x, %grid_units_h
-    %py = ADD %y, %grid_units_h
+    %px = ADD %cellx, %grid_units_h
+    %py = ADD %celly, %grid_units_h
     %coord = NEW_STRUCT [
         `x: %px,
         `y: %py,
@@ -175,6 +178,8 @@ exit:
 
     %module = NEW_STRUCT [
         `on_init: %on_init,
+
+        `boom_mass: 100.0,
     ]
     CONSUME_FUEL 3
     RETURN %module
