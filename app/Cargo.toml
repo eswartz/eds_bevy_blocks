@@ -14,6 +14,8 @@ ebc = ["fedry_bevy_plugin/ebc"]
 solari = ["bevy/bevy_solari", "eds_bevy_common/solari"]
 dlss = ["bevy/dlss"]
 
+tracing = ["bevy/trace_tracy"]
+
 # bevy_cli required features
 release = [
     "reqs", "ebc",
@@ -31,6 +33,7 @@ dev = [
     "bevy/dynamic_linking",
     "bevy/bevy_dev_tools",
     "bevy/bevy_ui_debug",
+
     # Improve error messages coming from Bevy
     "bevy/track_location",
     # "dep:bevy-inspector-egui",

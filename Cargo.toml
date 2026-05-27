@@ -99,7 +99,7 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "wayland",
 
     "pbr_light_textures",
-    # "trace_tracy",
+    # "trace_tracy",        # from dev_native profile
 ] }
 
 # Make a reference so we can override it via patch.crates-io in dependent crates.
