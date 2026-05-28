@@ -105,7 +105,12 @@ done:
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
 
+    %type = LOAD %ctx, `type_id, false
+    CALL_INTRINSIC `bevy_call_func, [%ent, `remove_script, %type]
+    //CALL_INTRINSIC `print, [%ent, "/", %type]
+
 skip:
+
     RETURN nil
 }
 
