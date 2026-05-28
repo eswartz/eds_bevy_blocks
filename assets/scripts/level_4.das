@@ -20,9 +20,9 @@
     // World grid unit count;
     // this squared is # of new entities!
     %grid_units = COPY 128
-    //%grid_units = COPY 256
-    //%grid_units = COPY 192
-    //%grid_units = COPY 16
+    //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
+    //%grid_units = COPY 192  // barely 4x power supported
+    %grid_units = COPY 160
 
     %unitsz: RealF = DIV %gridsz, %grid_units
     %unitsz_h: RealF = DIV %unitsz, 2.0
@@ -36,11 +36,15 @@
     %cx = COPY 0.390018071300935778312029
     %cy = COPY 0.138320184041392651089585
     %sz = DIV 1.0, 1024.0
-    %sz = DIV %sz, 1048576.0
+    //%sz = DIV 1.0, 128.0
+    //%sz = DIV %sz, 1048576.0
+    %sz = DIV %sz, 1024.0
     //%sz = DIV %sz, 1024.0
+    %sz = DIV %sz, 64.0
     //%sz = DIV 1.0, 2.0
+    //%sz = DIV %sz, 2048.0
 
-    %max_iters = COPY 5000
+    %max_iters = COPY 2500
 
     %cellsz = DIV %sz, %grid_units
 
