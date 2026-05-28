@@ -91,6 +91,21 @@ fn main() -> AppExit {
                         ..ImageSamplerDescriptor::linear()
                     },
                 })
+                .set({
+                    TaskPoolPlugin {
+                        task_pool_options: TaskPoolOptions {
+                            compute: bevy::app::TaskPoolThreadAssignmentPolicy {
+                                min_threads: 16,
+                                max_threads: usize::MAX,
+                                percent: 1.0,
+                                on_thread_spawn: None,
+                                on_thread_destroy: None,
+
+                            },
+                        // async_compute: ttp.task_pool_options.async_compute,
+                        .. default()
+                    }
+                }})
             ,
 
             // bevy::render::experimental::occlusion_culling::OcclusionCullingPlugin, // already
