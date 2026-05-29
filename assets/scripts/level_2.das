@@ -92,5 +92,4 @@
         `block_mass: 50.0,
         `static: false,
     ]
-    CONSUME_FUEL 3
     RETURN %module

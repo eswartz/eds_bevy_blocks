@@ -16,7 +16,6 @@
         %tnc: CntF = ADD %tn, 0x1f400
         %ts = CALL_INTRINSIC char_to_string, [%tnc]
 
-        CONSUME_FUEL 5
         %task = GET_SYSTEM task
 
         %outer = GET_FRAME 1
@@ -24,23 +23,13 @@
         %new = ADD %cnt, 1
         STORE %outer, cnt, %new
 
-        CONSUME_FUEL 1
-
-        CONSUME_FUEL 10
         //CALL_INTRINSIC spin, [50]
-        CONSUME_FUEL 50
-        CONSUME_FUEL 10
         //CALL_INTRINSIC print, [%ts]             // uncomment for fun
-        CONSUME_FUEL 10
         //CALL_INTRINSIC print, [%ts]
-        //CONSUME_FUEL 10
-        CONSUME_FUEL 10
 
         //CALL_INTRINSIC spin, [10]
-        CONSUME_FUEL 10
 
 //        CALL_INTRINSIC print, [%ts]
-        CONSUME_FUEL 10
 
 //        CALL_INTRINSIC `print, [">"]
         RETURN nil
@@ -65,5 +54,4 @@
         `block_mass: 100.0,
         `static: false,
     ]
-    CONSUME_FUEL 3
     RETURN %module

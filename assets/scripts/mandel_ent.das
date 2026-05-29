@@ -54,7 +54,6 @@ loop:
 
 calc:
     %iters: CntF = ADD %iters, 1
-    CONSUME_FUEL 1
 
     // advance z = z²+c
     // (a+bi) * (c+di) = ac - bd + (ad+bc)i

@@ -189,5 +189,4 @@ x2f:
         `boom_mass: 50000.0,
         `count: 1,
     ]
-    CONSUME_FUEL 3
     RETURN %module

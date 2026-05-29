@@ -165,7 +165,6 @@ make_worker:
         worklist: %worklist,
     ]
     CALL_INTRINSIC `bevy_call_func, [%worker, `add_script, %sci, %cell_data]
-    //CONSUME_FUEL 1    // FIXME: stalls script
 
     %i: CntF = ADD %i, 1
     JUMP make_worker_loop
@@ -181,5 +180,4 @@ exit:
 
         `boom_mass: 100.0,
     ]
-    CONSUME_FUEL 3
     RETURN %module

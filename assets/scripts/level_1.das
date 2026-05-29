@@ -76,19 +76,15 @@ add_notes:
         CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
 no_notes:
-        //CONSUME_FUEL 5
         %delay2: RealF = MUL %delay, 5.0
         CALL_INTRINSIC `delay, [%delay2]
 
-        CONSUME_FUEL 5
         %task = GET_SYSTEM task
 
         %outer = GET_FRAME 1
         %cnt = LOAD %outer, cnt
         %new = ADD %cnt, 1
         STORE %outer, cnt, %new
-
-        CONSUME_FUEL 1
 
         RETURN nil
     }
@@ -116,5 +112,4 @@ no_notes:
         `collision_margin: 0.0,
         `with_synth: %use_synths,
     ]
-    CONSUME_FUEL 3
     RETURN %module

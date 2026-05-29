@@ -60,7 +60,6 @@ calc:
     //%f = EQUAL_UINT %f, 0
     //IF_TRUE %f, fuel, calc_do
 //fuel:
-    //CONSUME_FUEL 1
 
 //calc_do:
     // advance z = z²+c
@@ -124,7 +123,6 @@ done:
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
 
-    CONSUME_FUEL 1
     JUMP work_loop
 
 skip:

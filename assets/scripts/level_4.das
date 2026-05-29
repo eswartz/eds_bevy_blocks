@@ -111,7 +111,6 @@ x_step:
     //CALL_INTRINSIC `bevy_call_func, [%new, `set_mesh_tag, 0]
 
     //CALL_INTRINSIC `print, ["making ", %name, " -> ", %new, "\n"]
-    //CONSUME_FUEL 10
 
     // State for cell.
     %cr: RealF = MUL %x, %cellsz
@@ -138,7 +137,6 @@ x_step:
         mode: %mode,
     ]
     CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci, %data]
-    //CONSUME_FUEL 1
 
 x_next:
     %x = ADD %x, 1
@@ -157,5 +155,4 @@ exit:
     %module = NEW_STRUCT [
         `on_init: %on_init,
     ]
-    CONSUME_FUEL 3
     RETURN %module
