@@ -22,7 +22,7 @@
     %grid_units = COPY 128
     //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
     //%grid_units = COPY 192  // barely 4x power supported
-    %grid_units = COPY 160
+    //%grid_units = COPY 160
 
     %unitsz: RealF = DIV %gridsz, %grid_units
     %unitsz_h: RealF = DIV %unitsz, 2.0
@@ -132,10 +132,10 @@ x_step:
     //CALL_INTRINSIC `print, [%data, "\n"]
 
     // Package ScriptCreationInfo data.
-    %async = NEW_SEQUENCE [`Async]
+    %mode = NEW_SEQUENCE [`Async]
     %sci = NEW_STRUCT [
         path: `scripts/mandel_ent.das,
-        mode: %async,
+        mode: %mode,
     ]
     CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci, %data]
     //CONSUME_FUEL 1

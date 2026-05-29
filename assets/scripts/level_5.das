@@ -156,10 +156,10 @@ make_worker:
     // Package ScriptCreationInfo data.
     %worker = CALL_INTRINSIC `bevy_spawn, [`Name, "WORKER"]
 
-    %async = NEW_SEQUENCE [`Async]
+    %mode = NEW_SEQUENCE [`Async]
     %sci = NEW_STRUCT [
         path: `scripts/mandel_img.das,
-        mode: %async,
+        mode: %mode,
     ]
     %cell_data = NEW_STRUCT [
         worklist: %worklist,
