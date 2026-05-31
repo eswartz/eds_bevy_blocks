@@ -60,7 +60,9 @@ fn on_level_loaded(
         ExecutionMode::Async,
     )?;
 
-    let boom_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "boom_mass")
+    let script_module = script.module();
+
+    let boom_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
@@ -76,7 +78,7 @@ fn on_level_loaded(
     let cube_size = 0.1;
     let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
 
-    let count = if let Some(v) = scripting.get_struct_value(script.get_module(), "count")
+    let count = if let Some(v) = scripting.get_struct_value(&script_module, "count")
         && let Some(v) = RtNumber::new(&v) {
         v.as_uint() as usize
     } else {

@@ -69,14 +69,16 @@ fn on_level_loaded(
         ExecutionMode::Async,
     )?;
 
-    let cube_size = if let Some(size) = script.get_module().map().get(&scripting.rt.pool.for_str("block_size"))
+    let script_module = script.module();
+
+    let cube_size = if let Some(size) = script_module.map().get(&scripting.rt.pool.for_str("block_size"))
     && let Some(size) = RtReal::new(&size) {
         *size as f32
     } else {
         0.75
     };
 
-    let cube_mass = if let Some(mass) = scripting.get_struct_value(script.get_module(), "block_mass")
+    let cube_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "block_mass")
     && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
@@ -89,21 +91,21 @@ fn on_level_loaded(
 
     let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
-    let cube_gap = if let Some(v) = scripting.get_struct_value(script.get_module(), "cube_gap")
+    let cube_gap = if let Some(v) = scripting.get_struct_value(&script_module, "cube_gap")
     && let Some(v) = RtNumber::new(&v) {
         v.as_real() as f32
     } else {
         0.02
     };
 
-    let collision_margin = if let Some(v) = scripting.get_struct_value(script.get_module(), "collision_margin")
+    let collision_margin = if let Some(v) = scripting.get_struct_value(&script_module, "collision_margin")
     && let Some(v) = RtNumber::new(&v) {
         v.as_real() as f32
     } else {
         cube_gap / 4.0
     };
 
-    // let enlarge_aabb = if let Some(v) = scripting.get_struct_value(script.get_module(), "enlarge_aabb")
+    // let enlarge_aabb = if let Some(v) = scripting.get_struct_value(&script_module, "enlarge_aabb")
     // && let Some(v) = RtNumber::new(&v) {
     //     v.as_real() as f32
     // } else {
@@ -112,7 +114,7 @@ fn on_level_loaded(
     // commands.insert_resource(avian3d::collision::collider::DefaultAabbMargin(enlarge_aabb));
 
     let half_size = if let Some(v) = scripting.get_struct_value(
-        script.get_module(), "half_side_length")
+        &script_module, "half_side_length")
     && let Some(v) = RtSInt::new(&v) {
         *v as i32
     } else {
@@ -120,7 +122,7 @@ fn on_level_loaded(
     };
 
     let rigid_body = if let Some(v) = scripting.get_struct_value(
-        script.get_module(), "static")
+        &script_module, "static")
     && v.as_bool() {
         RigidBody::Static
     } else {
@@ -128,14 +130,14 @@ fn on_level_loaded(
     };
 
     let with_synth = if let Some(v) = scripting.get_struct_value(
-        script.get_module(), "with_synth") {
+        &script_module, "with_synth") {
         v.as_bool()
     } else {
         true
     };
 
     let boom_mass = if let Some(mass) = scripting.get_struct_value(
-        script.get_module(), "boom_mass")
+        &script_module, "boom_mass")
     && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {

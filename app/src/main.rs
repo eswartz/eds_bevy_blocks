@@ -95,6 +95,7 @@ fn main() -> AppExit {
                     TaskPoolPlugin {
                         task_pool_options: TaskPoolOptions {
                             compute: bevy::app::TaskPoolThreadAssignmentPolicy {
+                                // Let scripts go go go.
                                 min_threads: bevy::tasks::available_parallelism(),
                                 max_threads: usize::MAX,
                                 percent: 1.0,

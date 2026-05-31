@@ -19,7 +19,9 @@
 
     // World grid unit count;
     // this squared is # of new entities!
-    %grid_units = COPY 128
+    //%grid_units = COPY 128
+    %grid_units = COPY 48
+    //%grid_units = COPY 4
     //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
     //%grid_units = COPY 192  // barely 4x power supported
     //%grid_units = COPY 160
@@ -44,7 +46,7 @@
     //%sz = DIV 1.0, 2.0
     //%sz = DIV %sz, 2048.0
 
-    %max_iters = COPY 2500
+    %max_iters = COPY 1500
 
     %cellsz = DIV %sz, %grid_units
 
@@ -91,6 +93,8 @@ x_step:
     %rot = NEW_SEQUENCE [`Deg, %rot]
 
     %new = CALL_INTRINSIC `bevy_spawn, [
+        `scriptable, true,
+
         `offset, %pos,
 
         //`color, %color_enum,

@@ -28,7 +28,7 @@
         //CALL_INTRINSIC print, [%ts]
 
         //CALL_INTRINSIC spin, [10]
-        //%x: CntF = DIV 0, 0
+        _ = DIV 0, 0
 //        CALL_INTRINSIC print, [%ts]
 
         //CALL_INTRINSIC `print, []
