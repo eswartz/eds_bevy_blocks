@@ -26,7 +26,7 @@
     //%grid_units = COPY 192
     //%grid_units = COPY 64
     %grid_units = COPY 512
-    %grid_units = COPY 1024
+    //%grid_units = COPY 1024
     //%grid_units = COPY 128
 
     // Default computation center
@@ -60,7 +60,7 @@
     %rot = NEW_SEQUENCE [`Deg, %rot]
 
     %imgsz = NEW_SEQUENCE [`x, %grid_units, `y, %grid_units]
-    %img_data = NEW_SEQUENCE [`size, %imgsz, `format, `Rgba8Unorm]
+    %img_data = NEW_SEQUENCE [`size, %imgsz, `format, `Rgba8Unorm, `filter, `Nearest]
     %img = CALL_INTRINSIC `bevy_call_func, [`new_image, %img_data]
 
     //%color = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1,  `blue, 1]
