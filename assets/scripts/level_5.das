@@ -26,7 +26,7 @@
     //%grid_units = COPY 192
     //%grid_units = COPY 64
     %grid_units = COPY 512
-    //%grid_units = COPY 1024
+    %grid_units = COPY 1024
     //%grid_units = COPY 128
 
     // Default computation center
