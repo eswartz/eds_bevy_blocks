@@ -129,7 +129,7 @@ impl Plugin for GamePlugin {
             )
 
             .add_systems(
-                Update,
+                FixedUpdate,
                 (
                     init_player_settings,
                     spawn_player_on_start,
@@ -158,7 +158,7 @@ impl Plugin for GamePlugin {
                 )
             )
             .add_systems(
-                FixedUpdate,
+                Update,
                 (
                     report_raycast,
                 )
@@ -199,7 +199,7 @@ impl Plugin for GamePlugin {
             )
 
             .add_systems(
-                Update,
+                FixedUpdate,
                 (
                     update_current_score,
                 )
@@ -210,7 +210,7 @@ impl Plugin for GamePlugin {
             )
 
             .add_systems(
-                Update,
+                FixedUpdate,
                 (
                     check_next_level,
                     check_won_level.run_if(in_state(LevelState::Won)),
