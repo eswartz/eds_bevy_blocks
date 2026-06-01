@@ -10,7 +10,7 @@ impl Plugin for GameActionsPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(
-                FixedUpdate,
+                Update,
                 (
                     check_actions,
                 )
