@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
@@ -57,8 +59,10 @@ fn on_level_loaded(
         &script_assets.level_4,
         &fuel.available,
         &scripting.rt,
-        ExecutionMode::Async,
+        ExecutionMode::Sync,
     )?;
+
+    fuel.available.fetch_add(50_000_000, Ordering::SeqCst);
 
     let script_module = script.module();
 
