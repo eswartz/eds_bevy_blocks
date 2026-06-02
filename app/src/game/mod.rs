@@ -232,8 +232,10 @@ impl Plugin for GamePlugin {
             .add_systems(PreUpdate, handle_palette)
 
             .insert_resource(DepthMapMaterialHandles(default()))
-            .add_systems(PreUpdate, handle_depth_map)
-            .add_systems(PreUpdate, tick_depth_map)
+            .add_systems(PreUpdate, (
+                handle_depth_map,
+                tick_depth_map,
+            ).chain())
 
             .add_systems(PreUpdate, apply_uv_box_map)
 
@@ -363,6 +365,10 @@ pub(crate) fn handle_depth_map(
             depth_map.ticks = 10;
             continue;
         }
+        else if depth_map.source.is_handle() && depth_map.ticks != 0 {
+            debug!("Waiting...");
+            continue;
+        }
 
         let new_mat_handle = if let Some(exist_handle) = mat_cache.0.get(&mesh_mat)
             && let Some(depth_mat) = std_mats.get(exist_handle)
@@ -403,7 +409,7 @@ pub(crate) fn tick_depth_map(
         if depth_map.ticks > 0
         && let TextureSource::Handle(handle) = &depth_map.source
         && images.get(handle).is_some() {
-            depth_map.ticks = 0;
+            depth_map.ticks -= 1;
         }
     }
 

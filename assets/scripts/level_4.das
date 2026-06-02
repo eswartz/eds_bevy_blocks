@@ -19,8 +19,8 @@
 
     // World grid unit count;
     // this squared is # of new entities!
-    //%grid_units = COPY 128
-    %grid_units = COPY 48
+    %grid_units = COPY 128
+    //%grid_units = COPY 48
     //%grid_units = COPY 4
     //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
     //%grid_units = COPY 192  // barely 4x power supported
