@@ -97,7 +97,8 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
     let info = {
         let type_regy = world.get_resource::<AppTypeRegistry>().ok_or(RuntimeError::LiteralError(format!("no AppTypeRegistry")))?;
         let assets = world.get_resource::<AssetServer>().ok_or(RuntimeError::LiteralError(format!("no AssetServer")))?;
-        let ctx: ConvertContext = ConvertContext::new(&rt, &type_regy, &assets);
+        let modify = world.get_resource::<ScriptModifyEntities>().ok_or(RuntimeError::LiteralError(format!("no ScriptModifyEntities")))?;
+        let ctx: ConvertContext = ConvertContext::new(&rt, &type_regy, &assets, &modify);
         convert_obj_to_value::<SpawnInfo>(&ctx, &args[0])
             .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?
     };

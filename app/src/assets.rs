@@ -18,6 +18,8 @@ impl MusicAssets {
 #[derive(Resource, AssetCollection)]
 #[allow(unused)]
 pub struct FxAssets {
+    #[asset(path = "textures/boom_texture.webp")]
+    pub boom_texture: Handle<Image>,
 }
 
 

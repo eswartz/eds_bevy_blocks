@@ -20,13 +20,12 @@
 
     %gridsz_h = DIV %gridsz, 2.0
 
-    // Pixel grid unit count;
-    // this squared is # of pixels and new entities!
+    // Pixel grid unit count
     //%grid_units = COPY 256
     //%grid_units = COPY 192
     //%grid_units = COPY 64
     %grid_units = COPY 512
-    %grid_units = COPY 1024
+    //%grid_units = COPY 1024
     //%grid_units = COPY 128
 
     // Default computation center
@@ -50,7 +49,8 @@
 
     // Create an entity to display the image.
     %shape = NEW_SEQUENCE [`Plane, x, %gridsz, y, %gridsz]
-    %info =  NEW_SEQUENCE [`subdivisions, %grid_units]
+    //%info =  NEW_SEQUENCE [`subdivisions, %grid_units]
+    %info =  NEW_SEQUENCE [`subdivisions, 8]
     %shape = NEW_STRUCT [`kind, %shape, `info, %info]
 
     %y = ADD %gridsz_h, 0.025

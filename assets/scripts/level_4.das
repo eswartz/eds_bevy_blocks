@@ -20,8 +20,9 @@
     // World grid unit count;
     // this squared is # of new entities!
     %grid_units = COPY 128
+    //%grid_units = COPY 96
     //%grid_units = COPY 48
-    //%grid_units = COPY 4
+    //%grid_units = COPY 16
     //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
     //%grid_units = COPY 192  // barely 4x power supported
     //%grid_units = COPY 160
@@ -41,12 +42,12 @@
     //%sz = DIV 1.0, 128.0
     //%sz = DIV %sz, 1048576.0
     %sz = DIV %sz, 1024.0
-    //%sz = DIV %sz, 1024.0
+    %sz = DIV %sz, 1024.0
     %sz = DIV %sz, 64.0
     //%sz = DIV 1.0, 2.0
     //%sz = DIV %sz, 2048.0
 
-    %max_iters = COPY 1500
+    %max_iters = COPY 2500
 
     %cellsz = DIV %sz, %grid_units
 
@@ -92,6 +93,9 @@ x_step:
     %rot = NEW_STRUCT [x: -90.0]
     %rot = NEW_SEQUENCE [`Deg, %rot]
 
+    %prod: CntF = MUL %x, %y
+    SET_INDEX %tag, 0, %prod
+
     %new = CALL_INTRINSIC `bevy_spawn, [
         `scriptable, true,
 
@@ -111,8 +115,6 @@ x_step:
 
         `MeshTag, %tag,
     ]
-
-    //CALL_INTRINSIC `bevy_call_func, [%new, `set_mesh_tag, 0]
 
     //CALL_INTRINSIC `print, ["making ", %name, " -> ", %new, "\n"]
 

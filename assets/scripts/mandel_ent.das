@@ -89,6 +89,8 @@ past_max:
     %depth = COPY 1.0
 
 done:
+    //CALL_INTRINSIC `delay, [0.05]
+
     %pos = LOAD %data, `pos
     %posx = LOAD %pos, `x
     %posy = LOAD %pos, `y
@@ -109,7 +111,6 @@ done:
     //CALL_INTRINSIC `print, [%ent, "/", %type]
 
 skip:
-
     RETURN nil
 }
 

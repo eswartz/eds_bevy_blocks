@@ -1,9 +1,12 @@
 use std::time::Duration;
 
+use crate::assets::FxAssets;
 use crate::game::*;
 
 use avian3d::math::AdjustPrecision as _;
 use avian3d::math::Scalar;
+use bevy::ecs::system::SystemParam;
+use bevy::math::Affine2;
 use bevy_seedling::sample::PlaybackSettings;
 use bevy_seedling::prelude::*;
 
@@ -118,38 +121,64 @@ pub(crate) fn play_player_out_of_bounds(
     }
 }
 
+#[derive(SystemParam)]
+struct ActionParams<'w, 's> {
+    fire_events: Query<'w, 's, &'static ActionEvents, (With<Action<actions::Firing>>, With<PlayerAction>)>,
+
+    select_events: Query<'w, 's, &'static ActionEvents, (With<Action<actions::Interact>>, With<PlayerAction>)>,
+    highlighting_mode: ResMut<'w, HighlightingMode>,
+
+    player_q: Query<'w, 's, (Entity, &'static Transform, &'static ColliderAabb), With<Player>>,
+    player_look_q: Query<'w, 's, &'static PlayerLook>,
+
+    rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
+    common_fx: Res<'w, CommonFxAssets>,
+    fx: Res<'w, FxAssets>,
+    materials: ResMut<'w, Assets<StandardMaterial>>,
+
+    mesh_params: ParamSet<'w, 's, (
+        (ResMut<'w, Assets<Mesh>>,),
+        (MeshRayCast<'w, 's>,)
+    )>,
+
+    world: Res<'w, WorldMarkerEntity>,
+
+    grabbed_opt: Option<Res<'w, GrabbedItem>>,
+
+    fire_power: ResMut<'w, FirePower>,
+    fire_power_windup: Res<'w, FirePowerWindup>,
+
+    boom_mass: Res<'w, BoomMass>,
+    time: Res<'w, Time>,
+
+}
+
 #[cfg(feature = "input_bei")]
 fn check_actions(
     mut commands: Commands,
-
-    fire_events: Query<&ActionEvents, (With<Action<actions::Firing>>, With<PlayerAction>)>,
-
-    select_events: Query<&ActionEvents, (With<Action<actions::Interact>>, With<PlayerAction>)>,
-    mut highlighting_mode: ResMut<HighlightingMode>,
-
-    player_q: Query<(Entity, &Transform, &ColliderAabb), With<Player>>,
-    player_look_q: Query<&PlayerLook>,
-
-    rigid_q: Query<Entity, With<RigidBody>>,
-    fx: Res<CommonFxAssets>,
-    materials: ResMut<Assets<StandardMaterial>>,
-
-    mut mesh_params: ParamSet<(
-        (ResMut<Assets<Mesh>>,),
-        (MeshRayCast,)
-    )
-    >,
-
-    world: Res<WorldMarkerEntity>,
-
-    grabbed_opt: Option<Res<GrabbedItem>>,
-
-    mut fire_power: ResMut<FirePower>,
-    fire_power_windup: Res<FirePowerWindup>,
-
-    boom_mass: Res<BoomMass>,
-    time: Res<Time>,
+    params: ActionParams,
 ) {
+    let ActionParams{
+        fire_events,
+        select_events,
+        mut highlighting_mode,
+        player_q,
+        player_look_q,
+        rigid_q,
+        common_fx,
+        fx,
+        materials,
+        mut mesh_params,
+        world,
+        grabbed_opt,
+        mut fire_power,
+        fire_power_windup,
+
+        boom_mass,
+        time,
+    } = params;
+
+
     if let Ok(select) = select_events.single() {
         if select.contains(ActionEvents::START) {
             *highlighting_mode = (*highlighting_mode).toggle_enabled();
@@ -198,7 +227,7 @@ fn check_actions(
             let power = **fire_power;
 
             do_fire(commands.reborrow(), xfrm, power, grabbed_opt, rigid_q,
-                fx, materials, mesh_params.p0().0, world, &boom_mass,
+                common_fx, fx, materials, mesh_params.p0().0, world, &boom_mass,
             );
 
             **fire_power = 0.;
@@ -215,7 +244,8 @@ fn do_fire(
     grabbed_opt: Option<Res<GrabbedItem>>,
 
     rigid_q: Query<Entity, With<RigidBody>>,
-    fx: Res<CommonFxAssets>,
+    common_fx: Res<CommonFxAssets>,
+    fx: Res<FxAssets>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
@@ -240,7 +270,17 @@ fn do_fire(
     } else {
         // Fire a new item.
         // let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
-        let mat = materials.add(Color::lch(1.2, 0.4, 1.1));
+        // let emissive = LinearRgba::new(0.1, 0.1, 0.1, 0.1);
+        let mat = materials.add(StandardMaterial {
+            // base_color: Color::lch(1.2, 0.4, 1.1),
+            base_color_texture: Some(fx.boom_texture.clone()),
+            metallic: 1.0,
+            reflectance: 0.5,
+            // emissive,
+            perceptual_roughness: 0.1,
+            uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
+            .. default()
+        });
         let size = Vec3::new(2.0, 0.5, 0.5);
         // let size = Vec3::new(0.5, 2.0, 0.5);
         // let size = Vec3::new(2.0, 1.0, 0.25);
@@ -277,7 +317,7 @@ fn do_fire(
     if any {
         commands.spawn((
             UiSfx,
-            SamplePlayer::new(fx.swoosh.clone()),
+            SamplePlayer::new(common_fx.swoosh.clone()),
             VolumeNode::from_linear(0.5),
         ));
     }
