@@ -270,14 +270,15 @@ fn do_fire(
     } else {
         // Fire a new item.
         // let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
-        // let emissive = LinearRgba::new(0.1, 0.1, 0.1, 0.1);
+        let emissive = LinearRgba::new(0.5, 0.5, 1.25, 1.0);
         let mat = materials.add(StandardMaterial {
             // base_color: Color::lch(1.2, 0.4, 1.1),
             base_color_texture: Some(fx.boom_texture.clone()),
-            metallic: 1.0,
+            alpha_mode: AlphaMode::Add,
+            metallic: 0.0,
             reflectance: 0.5,
-            // emissive,
-            perceptual_roughness: 0.1,
+            emissive,
+            perceptual_roughness: 0.25,
             uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
             .. default()
         });
