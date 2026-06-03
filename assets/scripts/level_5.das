@@ -75,7 +75,8 @@
         `offset, %pos,
 
         `unlit, true,
-        `double_sided, true,
+        //`double_sided, true,
+        `cull_face, `None,
         //`color, %color,
 
         `shape, %shape,

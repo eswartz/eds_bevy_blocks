@@ -103,7 +103,8 @@ x_step:
 
         //`color, %color_enum,
         `unlit, true,
-        `double_sided, true,
+        //`double_sided, true,
+        `cull_face, `None,
         //`color_texture, "textures/palette.png",
 
         `shape, %shape,

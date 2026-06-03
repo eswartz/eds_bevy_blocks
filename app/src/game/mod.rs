@@ -372,9 +372,9 @@ pub(crate) fn handle_depth_map(
 
         let new_mat_handle = if let Some(exist_handle) = mat_cache.0.get(&mesh_mat)
             && let Some(depth_mat) = std_mats.get(exist_handle)
-            && depth_mat.depth_map.as_ref().is_some_and(|dm| dbg!(dm.id()) == dbg!(new_depth_map.id()))
+            && depth_mat.depth_map.as_ref().is_some_and(|dm| dm.id() == new_depth_map.id())
         {
-            info!("Reusing {exist_handle:?} on depth map in {entity}");
+            debug!("Reusing {exist_handle:?} on depth map in {entity}");
             exist_handle.clone()
         } else {
             let new_mat = StandardMaterial {
