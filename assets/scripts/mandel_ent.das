@@ -97,7 +97,7 @@ done:
     %posz = LOAD %pos, `z
     %posz = ADD %posz, %depth
     %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `position, %vec]
+    CALL_INTRINSIC `bevy_call_func, [%ent, `set_position, %vec]
 
     //CALL_INTRINSIC `print, [%cr, "+", %ci, "i out at ", %iters, "\n"]
     CALL_INTRINSIC `bevy_call_func, [%ent, `set_mesh_tag, %iters]
@@ -106,11 +106,22 @@ done:
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
 
-    %type = LOAD %ctx, `type_id, false
-    CALL_INTRINSIC `bevy_call_func, [%ent, `remove_script, %type]
-    //CALL_INTRINSIC `print, [%ent, "/", %type]
+    // // Unload!
+    //%type = LOAD %ctx, `type_id, false
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `remove_script, %type]
 
 skip:
+    // Always face the viewer.
+    %pent = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_entity]
+    %ppos = CALL_INTRINSIC `bevy_call_func, [%pent, `get_position]
+    //CALL_INTRINSIC `print, [%ppos, "\n"]
+
+    //%plook = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_look]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `set_rotation, %plook]
+
+    %la = CALL_INTRINSIC `bevy_call_func, [%ent, `look_at, %ppos, 0.25]
+    //CALL_INTRINSIC `print, [%pent, " @", %ppos, "=", %la, "\n"]
+
     RETURN nil
 }
 

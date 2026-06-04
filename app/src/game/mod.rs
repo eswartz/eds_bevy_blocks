@@ -466,6 +466,7 @@ impl std::ops::Deref for BoomMass {
 
 /// Marker for scripts driven by the game itself.
 #[derive(Debug, Default, Clone, PartialEq, Hash, Reflect, QueryData)]
+#[type_path = "fedry"]
 pub(crate) struct GameScript;
 
 /// Difficulty rating.

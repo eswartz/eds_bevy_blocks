@@ -270,7 +270,7 @@ fn do_fire(
     } else {
         // Fire a new item.
         // let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
-        let emissive = LinearRgba::new(0.5, 0.5, 1.25, 1.0);
+        let emissive = LinearRgba::new(0.25, 0.25, 1.0, 1.0);
         let mat = materials.add(StandardMaterial {
             // base_color: Color::lch(1.2, 0.4, 1.1),
             base_color_texture: Some(fx.boom_texture.clone()),

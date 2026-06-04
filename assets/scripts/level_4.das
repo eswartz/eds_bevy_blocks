@@ -21,8 +21,9 @@
     // this squared is # of new entities!
     %grid_units = COPY 128
     //%grid_units = COPY 96
-    //%grid_units = COPY 48
+    %grid_units = COPY 48
     //%grid_units = COPY 16
+    //%grid_units = COPY 2
     //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
     //%grid_units = COPY 192  // barely 4x power supported
     //%grid_units = COPY 160
@@ -53,7 +54,8 @@
 
     // Note: don't try to use alpha here, else we really slow down from OIT sorting!
     %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 1]
-    %shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
+    //%shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
+    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
     %info =  NEW_SEQUENCE [`subdivisions, 2]
     %shape = NEW_STRUCT [`kind, %shape, `info, %info]
 
@@ -108,7 +110,7 @@ x_step:
         //`color_texture, "textures/palette.png",
 
         `shape, %shape,
-        `rotation, %rot,
+        //`rotation, %rot,
         //`rigid_body, `Static,
 
         `CrosshairTargetable, nil,
@@ -138,10 +140,9 @@ x_step:
     //CALL_INTRINSIC `print, [%data, "\n"]
 
     // Package ScriptCreationInfo data.
-    %mode = NEW_SEQUENCE [`Async]
     %sci = NEW_STRUCT [
         path: `scripts/mandel_ent.das,
-        mode: %mode,
+        mode: `Async,
     ]
     CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci, %data]
 

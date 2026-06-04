@@ -1,16 +1,6 @@
 // This computes a given coordinate in the Mandelbrot set
 // by taking an available entry from a `worklist.
 
-%on_init = NEW_BLOCK `on_init, (ctx, ent, ...) {
-
-    %ent = ARG 1, false, Cnt64
-    //CALL_INTRINSIC `delay, [1.0]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `set_palette_material]
-    //CALL_INTRINSIC `print, ["New block: ", %ent, "\n"]
-
-    RETURN nil
-}
-
 %on_update = NEW_BLOCK `on_update, (ctx, ent, ent_data, ...) {
     %ctx = ARG 0, false, Struct
     %ent = ARG 1, false, Cnt64
@@ -130,7 +120,7 @@ skip:
 }
 
 %module = NEW_STRUCT [
-    `on_init: %on_init,
+    //`on_init: %on_init,
     `on_update: %on_update,
 ]
 RETURN %module
