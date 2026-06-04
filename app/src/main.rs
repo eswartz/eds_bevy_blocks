@@ -79,7 +79,7 @@ fn main() -> AppExit {
                     // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
                     meta_check: if cfg!(target_arch = "wasm32") { AssetMetaCheck::Never } else { AssetMetaCheck::Always },
                     // watch_for_changes_override: if cfg!(target_arch = "wasm32") { Some(true) } else { None },
-                    file_path: dbg!(base_dir.join("assets").display().to_string()),
+                    file_path: base_dir.join("assets").display().to_string(),
                     ..default()
                 })
                 .set(ImagePlugin {
@@ -113,7 +113,7 @@ fn main() -> AppExit {
         ))
 
         .add_plugins(PhysicsPlugins::default()
-            .with_collision_hooks::<GeometryCollisionHooks>()
+            // .with_collision_hooks::<GeometryCollisionHooks>()
             .build()
             // .disable::<IslandPlugin>()
             // .disable::<IslandSleepingPlugin>()
