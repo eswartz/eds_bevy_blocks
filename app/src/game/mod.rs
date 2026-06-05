@@ -22,7 +22,7 @@ use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
 use fedry_bevy_plugin::bevy_service::TextureSource;
-use fedry_bevy_plugin::prelude::{register_script_key, FedryScriptingPlugin, pause_scripting, unpause_scripting};
+use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
 pub use action_handlers::*;
 use fedry_runtime::prelude::RuntimeError;
 use rustc_hash::FxHashMap;
@@ -803,6 +803,7 @@ pub(crate) fn spawn_level(
     level_list: Res<LevelList>,
     level_index: Res<LevelIndex>,
     world: Res<WorldMarkerEntity>,
+    mut script_root: ResMut<ScriptRoot>,
 ) {
     setup_level(commands.reborrow(), &level_list, &level_index);
 
@@ -812,6 +813,9 @@ pub(crate) fn spawn_level(
 
     let level = &level_list.0[level_index.0];
     log::info!("Entering level {}", level.label);
+
+    // Put any script content here.
+    script_root.0 = world.0;
 
     commands
         .spawn((
@@ -823,6 +827,7 @@ pub(crate) fn spawn_level(
             commands.set_state(GameplayState::Playing);
         })
     ;
+
     commands.insert_resource(CurrentScore::default());
 }
 

@@ -31,29 +31,53 @@
     // Color::Srgba(Srgba(red, green, blue))
     //%srgba = NEW_STRUCT [red: %r, green: %g, blue: %b]
     //%color = NEW_SEQUENCE [%srgba]
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
+    //%color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b]
+
+    %hue = MOD %step, 360.0
+    %color_enum = NEW_SEQUENCE [`Hsva, `hue, %hue, `saturation, 0.75, `value, %r]
 
     %rot_x = MOD %step, 45
 
     %angle = NEW_STRUCT [x:0, y: %rot_x, z: 0]
+    %angle = NEW_SEQUENCE [`Deg, %angle]
 
     %life = NEW_SEQUENCE [`Temporary, `secs, 360.0]
     //%life = NEW_SEQUENCE [`Keep]
 
     // Make a cuboid.
 
-    %struct = NEW_STRUCT [
-        offset: %pos,
-        size: %size,
-        color: %color_enum,
-        mass: 50.0,
-        angle: %angle,
-        is_static: false,
-        life_policy: %life,
+    //%struct = NEW_STRUCT [
+    //    offset: %pos,
+    //    size: %size,
+    //    color: %color_enum,
+    //    mass: 50.0,
+    //    angle: %angle,
+    //    is_static: false,
+    //    life_policy: %life,
+    //    has_synth: false,
+    //]
 
-        has_synth: false,
+    %shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
+    %collider_shape = NEW_SEQUENCE [`Cube, x, 1.25, y, 0.02, z, 1.25]
+    //%collider_shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
+
+    %new = CALL_INTRINSIC `bevy_spawn, [
+        `parent, %ent,
+
+        `Name, "CUBE",
+        `offset, %pos,
+    //    `rotation, %angle,
+
+        `color, %color_enum,
+
+        `rigid_body, `Dynamic,
+        `shape, %shape,
+        `collider_shape, %collider_shape,
+
+        `mass, 50.0,
+
+        `Cube, nil,
     ]
-    %ent = CALL_INTRINSIC `bevy_call_func, [`spawn_cube, %struct]
 
     %struct = NEW_STRUCT [
         y: 10.0,
@@ -66,13 +90,15 @@
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `add_script, %sci]
+    CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci]
 
     CALL_INTRINSIC `delay, [1.25]
 
     //CALL_INTRINSIC `bevy_call_func, [`set_gravity, 0]
 
-    //CALL_INTRINSIC `delay, [2.5]
+    //CALL_INTRINSIC `print, [%ent, ' - 1\n']
+    CALL_INTRINSIC `delay, [2.5]
+    //CALL_INTRINSIC `print, [%ent, ' - 2\n']
 
     //CALL_INTRINSIC `bevy_call_func, [`set_gravity, -9.8]
     //CALL_INTRINSIC `bevy_call_func, [%ent, `set_gravity, 100.0]

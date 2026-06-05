@@ -68,6 +68,7 @@
 
     // Spawn the billboard showing the image of the render.
     %img_ent = CALL_INTRINSIC `bevy_spawn, [
+        `parent, %ent,
         `Name, "Mandelbrot",
 
         `texture, %img,
@@ -156,7 +157,10 @@ make_worker_loop:
 
 make_worker:
     // Package ScriptCreationInfo data.
-    %worker = CALL_INTRINSIC `bevy_spawn, [`Name, "WORKER"]
+    %worker = CALL_INTRINSIC `bevy_spawn, [
+        `parent, %ent,
+        `Name, "WORKER",
+    ]
 
     %mode = NEW_SEQUENCE [`Async]
     %sci = NEW_STRUCT [

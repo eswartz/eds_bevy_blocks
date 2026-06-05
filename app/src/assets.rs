@@ -43,8 +43,8 @@ pub struct MapAssets {
 pub struct ModelAssets {
     #[asset(path = "models/cube.glb#Mesh0")]
     pub cube: Handle<GltfMesh>,
-    #[asset(path = "models/tile.glb#Mesh0")]
-    pub tile: Handle<GltfMesh>,
+    // #[asset(path = "models/tile.glb#Mesh0")]
+    // pub tile: Handle<GltfMesh>,
 }
 
 #[derive(Resource, AssetCollection)]

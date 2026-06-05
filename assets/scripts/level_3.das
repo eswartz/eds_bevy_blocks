@@ -116,7 +116,9 @@ x2f:
     %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
     %grav_scale = NEW_SEQUENCE [0.125]
 
-    %ent = CALL_INTRINSIC `bevy_spawn, [
+    %new = CALL_INTRINSIC `bevy_spawn, [
+        `parent, %ent,
+
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
         `offset, %pos,
         // Scale is mapped to bevy_transform::components::transform::Transform.scale
@@ -169,14 +171,7 @@ x2f:
 
     //CALL_INTRINSIC `delay, [0.001]
     %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
-
-    //%cof = NEW_SEQUENCE [%ent]
-    //%name = NEW_SEQUENCE ["BUTTS!"]
-    //%new_ent = CALL_INTRINSIC `bevy_spawn, [
-    //    `ChildOf, %cof,
-    //    `Name, %name,
-    //]
+    //CALL_INTRINSIC `bevy_call_func, [%new, `add_velocity, %vec]
 
     CALL_INTRINSIC `delay, [0.1]
     RETURN nil

@@ -56,14 +56,14 @@ pub(crate) struct SpawnInfo {
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[derive(Reflect)]
 #[type_path = "game"]
-pub enum SpawnedLifetimePolicy {
+pub(crate) enum SpawnedLifetimePolicy {
     /// Create as a temporary object, which will be despawned
     /// after a given amount of game time.
     Temporary{ secs: f32 },
-    /// (Try to) keep the object.
+    /// Try to keep the object (default).
     /// This is typically bounded by the current level's end.
     #[default]
-    Keep,
+    Forever,
 }
 
 impl Default for SpawnInfo {
@@ -75,7 +75,7 @@ impl Default for SpawnInfo {
             angle: Vec3::ZERO,
             mass: 1.0,
             is_static: false,
-            life_policy: SpawnedLifetimePolicy::Keep,
+            life_policy: SpawnedLifetimePolicy::Forever,
             has_synth: false,
         }
     }
@@ -95,10 +95,7 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
         world_entity.0
     };
     let info = {
-        let type_regy = world.get_resource::<AppTypeRegistry>().ok_or(RuntimeError::LiteralError(format!("no AppTypeRegistry")))?;
-        let assets = world.get_resource::<AssetServer>().ok_or(RuntimeError::LiteralError(format!("no AssetServer")))?;
-        let modify = world.get_resource::<ScriptModifyEntities>().ok_or(RuntimeError::LiteralError(format!("no ScriptModifyEntities")))?;
-        let ctx: ConvertContext = ConvertContext::new(&rt, &type_regy, &assets, &modify);
+        let ctx: ConvertContext = ConvertContext::for_rt_world(&rt, world).map_err(|e| RuntimeError::LiteralError(e.to_string()))?;
         convert_obj_to_value::<SpawnInfo>(&ctx, &args[0])
             .map_err(|e| RuntimeError::LiteralError(format!("{e}")))?
     };
@@ -109,7 +106,7 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
         let models = world.get_resource::<ModelAssets>().ok_or(RuntimeError::LiteralError(format!("no ModelAssets")))?;
         let gmesh = {
             let meshes = world.get_resource::<Assets<GltfMesh>>().ok_or(RuntimeError::LiteralError(format!("no Assets<GltfMesh>")))?;
-            meshes.get(&models.tile).ok_or(RuntimeError::LiteralError(format!("no GltfMesh")))?
+            meshes.get(&models.cube).ok_or(RuntimeError::LiteralError(format!("no GltfMesh")))?
         };
         let prim = gmesh.primitives[0].clone();
 
@@ -192,7 +189,7 @@ pub(crate) fn spawn_cube(In((entity, rt, args)): In<(Entity, Arc<Runtime>, Vec<O
             ],
         ),
         DespawnAfter(match info.life_policy {
-            SpawnedLifetimePolicy::Keep => Duration::ZERO,
+            SpawnedLifetimePolicy::Forever => Duration::ZERO,
             SpawnedLifetimePolicy::Temporary { secs } => Duration::from_secs_f32(secs),
         })
     )).id();

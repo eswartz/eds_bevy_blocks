@@ -8,7 +8,7 @@
 
 %on_init = NEW_BLOCK `init, (ctx, ent, ...) {
     %ctx = ARG 0, false, Struct
-//    %ent = ARG 1, false, CntF
+    %ent = ARG 1, false, CntF
     %step: CntF = LOAD %ctx, `tick_count, true
 
     // World grid position
@@ -99,6 +99,7 @@ x_step:
     SET_INDEX %tag, 0, %prod
 
     %new = CALL_INTRINSIC `bevy_spawn, [
+        `parent, %ent,
         `scriptable, true,
 
         `offset, %pos,
