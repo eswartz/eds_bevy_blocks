@@ -21,7 +21,7 @@
     // this squared is # of new entities!
     %grid_units = COPY 128
     //%grid_units = COPY 96
-    %grid_units = COPY 48
+    %grid_units = COPY 64
     //%grid_units = COPY 16
     //%grid_units = COPY 2
     //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18

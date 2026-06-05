@@ -38,7 +38,10 @@
 
     %rot_x = MOD %step, 45
 
-    %angle = NEW_STRUCT [x:0, y: %rot_x, z: 0]
+    %angle = NEW_STRUCT [y: %rot_x, x: 0, z: 0]
+    //%angle = NEW_STRUCT [x: %rot_x, y: 0, z: 0]
+    //%angle = NEW_STRUCT [x: 0, y: 0, z: %rot_x]
+    //w%angle = NEW_STRUCT [x: %rot_x, y: 0, z: %rot_x]
     %angle = NEW_SEQUENCE [`Deg, %angle]
 
     %life = NEW_SEQUENCE [`Temporary, `secs, 360.0]
@@ -58,15 +61,15 @@
     //]
 
     %shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
-    %collider_shape = NEW_SEQUENCE [`Cube, x, 1.25, y, 0.02, z, 1.25]
+    %collider_shape = NEW_SEQUENCE [`Cube, x, 1.25, y, 0.025, z, 1.25]
     //%collider_shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
 
     %new = CALL_INTRINSIC `bevy_spawn, [
         `parent, %ent,
 
-        `Name, "CUBE",
+        `Name, "TILE",
         `offset, %pos,
-    //    `rotation, %angle,
+        `rotation, %angle,
 
         `color, %color_enum,
 

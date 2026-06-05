@@ -1,11 +1,15 @@
 // This computes a given coordinate in the Mandelbrot set.
 
-%on_init = NEW_BLOCK `on_init, (ctx, ent, ...) {
+%on_init = NEW_BLOCK `on_init, (ctx, ent, data, ...) {
 
     %ent = ARG 1, false, Cnt64
+    %data = ARG 2, false, Struct
     //CALL_INTRINSIC `delay, [1.0]
     CALL_INTRINSIC `bevy_call_func, [%ent, `set_palette_material]
     //CALL_INTRINSIC `print, ["New block: ", %ent, "\n"]
+
+    %pent = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_entity]
+    STORE %data, `player, %pent
 
     RETURN nil
 }
@@ -112,16 +116,15 @@ done:
 
 skip:
     // Always face the viewer.
-    //CALL_INTRINSIC `delay, [0.05]
+    %pent = LOAD %data, `player
 
-    %pent = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_entity]
     %ppos = CALL_INTRINSIC `bevy_call_func, [%pent, `get_position]
     //CALL_INTRINSIC `print, [%ppos, "\n"]
 
     //%plook = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_look]
     //CALL_INTRINSIC `bevy_call_func, [%ent, `set_rotation, %plook]
 
-    %la = CALL_INTRINSIC `bevy_call_func, [%ent, `look_at, %ppos, 0.5]
+    %la = CALL_INTRINSIC `bevy_call_func, [%ent, `look_at, %ppos, 0.25]
     //CALL_INTRINSIC `print, [%pent, " @", %ppos, "=", %la, "\n"]
 
     RETURN nil

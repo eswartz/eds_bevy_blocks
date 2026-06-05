@@ -274,7 +274,7 @@ fn do_fire(
         let mat = materials.add(StandardMaterial {
             // base_color: Color::lch(1.2, 0.4, 1.1),
             base_color_texture: Some(fx.boom_texture.clone()),
-            alpha_mode: AlphaMode::Add,
+            //alpha_mode: AlphaMode::Add,
             metallic: 0.0,
             reflectance: 0.5,
             emissive,
