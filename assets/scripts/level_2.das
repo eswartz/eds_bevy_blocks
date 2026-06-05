@@ -82,10 +82,8 @@
         `Cube, nil,
     ]
 
-    %struct = NEW_STRUCT [
-        y: 10.0,
-    ]
-    //%ent = CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %struct]
+    //%struct = NEW_STRUCT [y: 1.0,]
+    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %struct]
 
     // Package ScriptCreationInfo data.
     %async = NEW_SEQUENCE [`Async]
@@ -93,15 +91,15 @@
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
-    CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci]
+    //CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci]
 
-    CALL_INTRINSIC `delay, [1.25]
+    //CALL_INTRINSIC `print, [%ent, ' - 1\n']
+    CALL_INTRINSIC `delay, [0.5]
+    //CALL_INTRINSIC `print, [%ent, ' - 2\n']
 
     //CALL_INTRINSIC `bevy_call_func, [`set_gravity, 0]
 
-    //CALL_INTRINSIC `print, [%ent, ' - 1\n']
-    CALL_INTRINSIC `delay, [2.5]
-    //CALL_INTRINSIC `print, [%ent, ' - 2\n']
+    //CALL_INTRINSIC `delay, [2.5]
 
     //CALL_INTRINSIC `bevy_call_func, [`set_gravity, -9.8]
     //CALL_INTRINSIC `bevy_call_func, [%ent, `set_gravity, 100.0]

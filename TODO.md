@@ -10,7 +10,3 @@ P=(-3.285, 1.168, 2.725)
 P=(-3.290, 1.718, 2.713)
 
 -- startup LevelState::Configuring should release mouse, esp. if it takes forever.
-
--- `delay intrinsic isn't working in the new scheduler.
-
--- fix parenting so that level 3 tiles don't destroy parent block
