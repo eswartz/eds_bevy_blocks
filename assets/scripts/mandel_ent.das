@@ -118,14 +118,14 @@ skip:
     // Always face the viewer.
     %pent = LOAD %data, `player
 
-    %ppos = CALL_INTRINSIC `bevy_call_func, [%pent, `get_position]
-    //CALL_INTRINSIC `print, [%ppos, "\n"]
+//    %ppos = CALL_INTRINSIC `bevy_call_func, [%pent, `get_position]
+//    //CALL_INTRINSIC `print, [%ppos, "\n"]
 
-    //%plook = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_look]
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `set_rotation, %plook]
+//    //%plook = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_look]
+//    //CALL_INTRINSIC `bevy_call_func, [%ent, `set_rotation, %plook]
 
-    %la = CALL_INTRINSIC `bevy_call_func, [%ent, `look_at, %ppos, 0.25]
-    //CALL_INTRINSIC `print, [%pent, " @", %ppos, "=", %la, "\n"]
+    %la = CALL_INTRINSIC `bevy_call_func, [%ent, `look_at, %pent, 0.25]
+//    //CALL_INTRINSIC `print, [%pent, " @", %ppos, "=", %la, "\n"]
 
     RETURN nil
 }
