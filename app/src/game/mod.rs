@@ -898,9 +898,7 @@ fn check_next_level(
     next_level_index_opt.map(|next_level| {
         commands.remove_resource::<NextLevelIndex>();
         *level_index = LevelIndex(next_level.0);
-        // commands.set_state(GameplayState::Setup);
         commands.set_state(ProgramState::InGame);
-
     });
 }
 
