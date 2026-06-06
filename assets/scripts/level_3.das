@@ -116,7 +116,7 @@ x2f:
     %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
     %grav_scale = NEW_SEQUENCE [0.125]
 
-    %new = CALL_INTRINSIC `bevy_spawn, [
+    %new = SYSCALL `bevy_spawn, [
         `parent, %ent,
 
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
@@ -166,14 +166,14 @@ x2f:
 
         //`Name, "bUTTs!",
     ]
-    //CALL_INTRINSIC `delay, [0.125]
-    //CALL_INTRINSIC `delay, [0.5]
+    //SYSCALL `delay, [0.125]
+    //SYSCALL `delay, [0.5]
 
-    //CALL_INTRINSIC `delay, [0.001]
+    //SYSCALL `delay, [0.001]
     %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
-    //CALL_INTRINSIC `bevy_call_func, [%new, `add_velocity, %vec]
+    //SYSCALL `bevy_call_func, [%new, `add_velocity, %vec]
 
-    CALL_INTRINSIC `delay, [0.1]
+    SYSCALL `delay, [0.1]
     RETURN nil
 }
 

@@ -24,7 +24,7 @@
     //%grid_units = COPY 64
     //%grid_units = COPY 16
     //%grid_units = COPY 2
-    %grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
+    //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
     //%grid_units = COPY 192  // barely 4x power supported
     //%grid_units = COPY 160
 
@@ -90,7 +90,7 @@ x_step:
 
     %pos = NEW_STRUCT [x: %wx, y: %wy, z: 1.0]
 
-    %name = CALL_INTRINSIC `to_string, ["(", %x, ", ", %y, ")"]
+    %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
     %rot = NEW_STRUCT [x: -90.0]
     %rot = NEW_SEQUENCE [`Deg, %rot]
@@ -98,7 +98,7 @@ x_step:
     %prod: CntF = MUL %x, %y
     SET_INDEX %tag, 0, %prod
 
-    %new = CALL_INTRINSIC `bevy_spawn, [
+    %new = SYSCALL `bevy_spawn, [
         `parent, %ent,
         `scriptable, true,
 
@@ -120,7 +120,7 @@ x_step:
         `MeshTag, %tag,
     ]
 
-    //CALL_INTRINSIC `print, ["making ", %name, " -> ", %new, "\n"]
+    //SYSCALL `print, ["making ", %name, " -> ", %new, "\n"]
 
     // State for cell.
     %cr: RealF = MUL %x, %cellsz
@@ -138,14 +138,14 @@ x_step:
 
         `pos: %pos,
     ]
-    //CALL_INTRINSIC `print, [%data, "\n"]
+    //SYSCALL `print, [%data, "\n"]
 
     // Package ScriptCreationInfo data.
     %sci = NEW_STRUCT [
         path: `scripts/mandel_ent.das,
         mode: `Async,
     ]
-    CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci, %data]
+    SYSCALL `bevy_call_func, [%new, `add_script, %sci, %data]
 
 x_next:
     %x = ADD %x, 1

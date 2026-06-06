@@ -10,11 +10,11 @@
     %work = LOAD %ent_data, `worklist
 
 work_loop:
-    %data = CALL_INTRINSIC `sequence_pop, [%work]
+    %data = SYSCALL `sequence_pop, [%work]
     IF_NIL %data, skip, work
 
 work:
-    //CALL_INTRINSIC `print, [%ent, "> ", %data, "\n"]
+    //SYSCALL `print, [%ent, "> ", %data, "\n"]
     // center
     %cr: RealF = LOAD %data, `cr
     %ci: RealF = LOAD %data, `ci
@@ -71,7 +71,7 @@ calc:
     %mag: RealF = ADD %magr, %magi
     %t = LESS_REAL %mag, 4.0
 
-    //CALL_INTRINSIC `print, [%cr, "+", %ci, "i #", %iters, " = ", %zr, "+", %zi, "i\n"]
+    //SYSCALL `print, [%cr, "+", %ci, "i #", %iters, " = ", %zr, "+", %zi, "i\n"]
     IF_TRUE %t, loop, exit
 
 exit:
@@ -90,7 +90,7 @@ done:
     %px = LOAD %coord, `x
     %py = LOAD %coord, `y
 
-    //CALL_INTRINSIC `print, [%px, "x", %py, %iters, " @", %depth, "\n"]
+    //SYSCALL `print, [%px, "x", %py, %iters, " @", %depth, "\n"]
 
     %c: RealF = MUL %depth, 16.0
     %c: RealF = MOD %c, 1.0
@@ -100,7 +100,7 @@ done:
     %img_handle = LOAD %data, `img
 
     %img = NEW_SEQUENCE [`Handle, %img_handle]
-    CALL_INTRINSIC `bevy_call_func, [
+    SYSCALL `bevy_call_func, [
         %ent,
         set_image_pixel,
         %img_handle,

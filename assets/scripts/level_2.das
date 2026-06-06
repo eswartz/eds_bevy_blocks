@@ -64,7 +64,7 @@
     %collider_shape = NEW_SEQUENCE [`Cube, x, 1.25, y, 0.025, z, 1.25]
     //%collider_shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
 
-    %new = CALL_INTRINSIC `bevy_spawn, [
+    %new = SYSCALL `bevy_spawn, [
         `parent, %ent,
 
         `Name, "TILE",
@@ -83,7 +83,7 @@
     ]
 
     //%struct = NEW_STRUCT [y: 1.0,]
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %struct]
+    //SYSCALL `bevy_call_func, [%ent, `add_velocity, %struct]
 
     // Package ScriptCreationInfo data.
     %async = NEW_SEQUENCE [`Async]
@@ -91,25 +91,25 @@
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
-    //CALL_INTRINSIC `bevy_call_func, [%new, `add_script, %sci]
+    //SYSCALL `bevy_call_func, [%new, `add_script, %sci]
 
-    //CALL_INTRINSIC `print, [%ent, ' - 1\n']
-    CALL_INTRINSIC `delay, [0.5]
-    //CALL_INTRINSIC `print, [%ent, ' - 2\n']
+    //SYSCALL `print, [%ent, ' - 1\n']
+    SYSCALL `delay, [0.0625]
+    //SYSCALL `print, [%ent, ' - 2\n']
 
-    //CALL_INTRINSIC `bevy_call_func, [`set_gravity, 0]
+    //SYSCALL `bevy_call_func, [`set_gravity, 0]
 
-    //CALL_INTRINSIC `delay, [2.5]
+    //SYSCALL `delay, [2.5]
 
-    //CALL_INTRINSIC `bevy_call_func, [`set_gravity, -9.8]
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `set_gravity, 100.0]
+    //SYSCALL `bevy_call_func, [`set_gravity, -9.8]
+    //SYSCALL `bevy_call_func, [%ent, `set_gravity, 100.0]
 
     RETURN nil
 }
 
 ///////
 
-    //CALL_INTRINSIC `bevy_call_func, [`set_gravity, -9.8]
+    //SYSCALL `bevy_call_func, [`set_gravity, -9.8]
 
     %module = NEW_STRUCT [
         `block_size: 0.375,

@@ -17,7 +17,7 @@
         channel: %voice,
         program: %p,
     ]
-    CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+    SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
     %msg = NEW_STRUCT [
         command: `note_on,
@@ -27,7 +27,7 @@
         drums: true,
         velocity: 0.125,
     ]
-    CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+    SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
     %msg = NEW_STRUCT [
         command: `note_off,
@@ -37,16 +37,16 @@
         drums: true,
         delay: 0.25,
     ]
-    CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+    SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-    CALL_INTRINSIC `delay, [0.125]
+    SYSCALL `delay, [0.125]
 
     %y = MOD %step, 8
     %y = DIV %y, 2.0
     %vec = NEW_STRUCT [x: -0.1, y: %y, z: 0.1]
 
-    //%pos = CALL_INTRINSIC `bevy_call_func, [%ent, `translate, %vec]
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `add_velocity, %vec]
+    //%pos = SYSCALL `bevy_call_func, [%ent, `translate, %vec]
+    //SYSCALL `bevy_call_func, [%ent, `add_velocity, %vec]
 
     RETURN nil
 }

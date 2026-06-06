@@ -6,7 +6,7 @@
         %ent = ARG 1, false, Cnt64
         %step: CntF = LOAD %ctx, `tick_count, true
 
-//        CALL_INTRINSIC `print, ["<", %step]
+//        SYSCALL `print, ["<", %step]
 
         %t: CntF = COPY %ent
         //%tns: CntF = LSHR %t, 32
@@ -14,7 +14,7 @@
         //%tn: CntF = MOD %tns2, 0xa00
         %tn: CntF = MOD %t, 0xa00
         %tnc: CntF = ADD %tn, 0x1f400
-        %ts = CALL_INTRINSIC char_to_string, [%tnc]
+        %ts = SYSCALL char_to_string, [%tnc]
 
         %task = GET_SYSTEM task
 
@@ -23,15 +23,15 @@
         %new = ADD %cnt, 1
         STORE %outer, cnt, %new
 
-        //CALL_INTRINSIC spin, [50]
-        //CALL_INTRINSIC print, [%ts]             // uncomment for fun
-        //CALL_INTRINSIC print, [%ts]
+        //SYSCALL spin, [50]
+        //SYSCALL print, [%ts]             // uncomment for fun
+        //SYSCALL print, [%ts]
 
-        //CALL_INTRINSIC spin, [10]
+        //SYSCALL spin, [10]
         _ = DIV 0, 0
-//        CALL_INTRINSIC print, [%ts]
+//        SYSCALL print, [%ts]
 
-        //CALL_INTRINSIC `print, []
+        //SYSCALL `print, []
         RETURN nil
     }
 

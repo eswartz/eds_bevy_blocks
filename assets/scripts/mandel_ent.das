@@ -4,11 +4,11 @@
 
     %ent = ARG 1, false, Cnt64
     %data = ARG 2, false, Struct
-    //CALL_INTRINSIC `delay, [1.0]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `set_palette_material]
-    //CALL_INTRINSIC `print, ["New block: ", %ent, "\n"]
+    //SYSCALL `delay, [1.0]
+    SYSCALL `bevy_call_func, [%ent, `set_palette_material]
+    //SYSCALL `print, ["New block: ", %ent, "\n"]
 
-    %pent = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_entity]
+    %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]
     STORE %data, `player, %pent
 
     RETURN nil
@@ -19,7 +19,7 @@
     %ent = ARG 1, false, Cnt64
     %data = ARG 2, false, Struct
 
-    //CALL_INTRINSIC `print, ["Update: ", %ent, "\n"]
+    //SYSCALL `print, ["Update: ", %ent, "\n"]
     //    `cr: %x,
     //    `ci: %y,
     //    `zr: %x,
@@ -78,7 +78,7 @@ calc:
     %mag: RealF = ADD %magr, %magi
     %t = LESS_REAL %mag, 4.0
 
-    //CALL_INTRINSIC `print, [%cr, "+", %ci, "i #", %iters, " = ", %zr, "+", %zi, "i\n"]
+    //SYSCALL `print, [%cr, "+", %ci, "i #", %iters, " = ", %zr, "+", %zi, "i\n"]
     IF_TRUE %t, loop, exit
 
 exit:
@@ -93,7 +93,7 @@ past_max:
     %depth = COPY 1.0
 
 done:
-    //CALL_INTRINSIC `delay, [0.05]
+    //SYSCALL `delay, [0.05]
 
     %pos = LOAD %data, `pos
     %posx = LOAD %pos, `x
@@ -101,10 +101,10 @@ done:
     %posz = LOAD %pos, `z
     %posz = ADD %posz, %depth
     %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `set_position, %vec]
+    SYSCALL `bevy_call_func, [%ent, `set_position, %vec]
 
-    //CALL_INTRINSIC `print, [%cr, "+", %ci, "i out at ", %iters, "\n"]
-    CALL_INTRINSIC `bevy_call_func, [%ent, `set_mesh_tag, %iters]
+    //SYSCALL `print, [%cr, "+", %ci, "i out at ", %iters, "\n"]
+    SYSCALL `bevy_call_func, [%ent, `set_mesh_tag, %iters]
 
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
@@ -112,20 +112,20 @@ done:
 
     // // Unload!
     //%type = LOAD %ctx, `type_id, false
-    //CALL_INTRINSIC `bevy_call_func, [%ent, `remove_script, %type]
+    //SYSCALL `bevy_call_func, [%ent, `remove_script, %type]
 
 skip:
     // Always face the viewer.
     %pent = LOAD %data, `player
 
-//    %ppos = CALL_INTRINSIC `bevy_call_func, [%pent, `get_position]
-//    //CALL_INTRINSIC `print, [%ppos, "\n"]
+//    %ppos = SYSCALL `bevy_call_func, [%pent, `get_position]
+//    //SYSCALL `print, [%ppos, "\n"]
 
-//    //%plook = CALL_INTRINSIC `bevy_call_func, [%ent, `get_player_look]
-//    //CALL_INTRINSIC `bevy_call_func, [%ent, `set_rotation, %plook]
+//    //%plook = SYSCALL `bevy_call_func, [%ent, `get_player_look]
+//    //SYSCALL `bevy_call_func, [%ent, `set_rotation, %plook]
 
-    %la = CALL_INTRINSIC `bevy_call_func, [%ent, `look_at, %pent, 0.25]
-//    //CALL_INTRINSIC `print, [%pent, " @", %ppos, "=", %la, "\n"]
+    %la = SYSCALL `bevy_call_func, [%ent, `look_at, %pent, 0.5]
+//    //SYSCALL `print, [%pent, " @", %ppos, "=", %la, "\n"]
 
     RETURN nil
 }

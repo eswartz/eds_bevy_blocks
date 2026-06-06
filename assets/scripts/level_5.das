@@ -62,12 +62,12 @@
     %imgsz = NEW_SEQUENCE [`x, %grid_units, `y, %grid_units]
     %imgp = NEW_SEQUENCE [`filter, `Nearest]
     %img_data = NEW_SEQUENCE [`size, %imgsz, `format, `Rgba8Unorm, `params, %imgp]
-    %img = CALL_INTRINSIC `bevy_call_func, [`new_image, %img_data]
+    %img = SYSCALL `bevy_call_func, [`new_image, %img_data]
 
     //%color = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1,  `blue, 1]
 
     // Spawn the billboard showing the image of the render.
-    %img_ent = CALL_INTRINSIC `bevy_spawn, [
+    %img_ent = SYSCALL `bevy_spawn, [
         `parent, %ent,
         `Name, "Mandelbrot",
 
@@ -136,7 +136,7 @@ x_step:
         `coord: %coord,
     ]
 
-    CALL_INTRINSIC `sequence_append, [%worklist, %cell_data]
+    SYSCALL `sequence_append, [%worklist, %cell_data]
     %cell_data = COPY nil
 
 x_next:
@@ -157,7 +157,7 @@ make_worker_loop:
 
 make_worker:
     // Package ScriptCreationInfo data.
-    %worker = CALL_INTRINSIC `bevy_spawn, [
+    %worker = SYSCALL `bevy_spawn, [
         `parent, %ent,
         `Name, "WORKER",
     ]
@@ -170,7 +170,7 @@ make_worker:
     %cell_data = NEW_STRUCT [
         worklist: %worklist,
     ]
-    CALL_INTRINSIC `bevy_call_func, [%worker, `add_script, %sci, %cell_data]
+    SYSCALL `bevy_call_func, [%worker, `add_script, %sci, %cell_data]
 
     %i: CntF = ADD %i, 1
     JUMP make_worker_loop

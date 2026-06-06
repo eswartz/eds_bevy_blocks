@@ -19,7 +19,7 @@
 sleep:
         %d3: RealF = MOD %ent, 127
         %d3: RealF = DIV %d3, 1.0
-        CALL_INTRINSIC `delay, [%d3]
+        SYSCALL `delay, [%d3]
 skip:
         %t = ADD %ent, %step
         %tn = MOD %t, 0xa00
@@ -48,14 +48,14 @@ add_notes:
             entity: %ent,
             velocity: 0.75
         ]
-        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+        SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
         %msg = NEW_STRUCT [
             command: `program_change,
             entity: %ent,
             channel: %channel,
             program: %program,
         ]
-        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+        SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
         %msg = NEW_STRUCT [
             command: `note_on,
@@ -64,7 +64,7 @@ add_notes:
             midi: %note,
             velocity: 0.25,
         ]
-        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+        SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
         %msg = NEW_STRUCT [
             command: `note_off,
@@ -73,11 +73,11 @@ add_notes:
             midi: %note,
             delay: %delay,
         ]
-        CALL_INTRINSIC `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
+        SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
 no_notes:
         %delay2: RealF = MUL %delay, 5.0
-        CALL_INTRINSIC `delay, [%delay2]
+        SYSCALL `delay, [%delay2]
 
         %task = GET_SYSTEM task
 
