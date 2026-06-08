@@ -178,7 +178,6 @@ fn check_actions(
         time,
     } = params;
 
-
     if let Ok(select) = select_events.single() {
         if select.contains(ActionEvents::START) {
             *highlighting_mode = (*highlighting_mode).toggle_enabled();
@@ -202,10 +201,10 @@ fn check_actions(
         if fire.contains(ActionEvents::START) {
             **fire_power = fire_power_windup.start;
         }
-        else if fire.contains(ActionEvents::FIRE) {
+        if fire.contains(ActionEvents::ONGOING) || fire.contains(ActionEvents::FIRE) {
             **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
         }
-        else if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
+        if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
             // Fire something.
 
             // TODO: needs to be outside character collider (i.e. measure it? configure it?).

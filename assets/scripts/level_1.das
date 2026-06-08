@@ -62,7 +62,7 @@ add_notes:
             entity: %ent,
             channel: %channel,
             midi: %note,
-            velocity: 0.25,
+            velocity: 0.5,
         ]
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 

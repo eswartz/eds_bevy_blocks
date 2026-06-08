@@ -21,11 +21,9 @@ use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
-use fedry_bevy_plugin::bevy_service::TextureSource;
 use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
 pub use action_handlers::*;
 use fedry_runtime::prelude::RuntimeError;
-use rustc_hash::FxHashMap;
 use strum::{EnumIter, VariantArray};
 
 use std::time::Duration;
@@ -231,7 +229,7 @@ impl Plugin for GamePlugin {
             .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>::default())
             .add_systems(PreUpdate, handle_palette)
 
-            .insert_resource(DepthMapMaterialHandles(default()))
+            .insert_resource(DepthMapStorage { orig_to_edited: default() })
             .add_systems(PreUpdate, (
                 handle_depth_map,
                 tick_depth_map,
@@ -321,129 +319,6 @@ pub(crate) fn handle_palette(
 
     Ok(())
 }
-
-/// When added or modified on an entity, ensures the StandardMaterial
-/// has the texture applied to the [StandardMaterial::depth_map].
-#[derive(Component, Debug, Default, Clone, Reflect)]
-#[component(storage = "SparseSet")]
-#[reflect(Component, Default, Clone)]
-#[type_path = "fedry"]
-pub struct SpawnDepthMapMaterial {
-    pub source: TextureSource,
-    pub parallax_depth_scale: f32,
-    pub parallax_mapping_method: ParallaxMappingMethod,
-    pub max_parallax_layer_count: f32,
-
-    ticks: u32,
-}
-
-#[derive(Resource, Default, Deref, DerefMut)]
-pub struct DepthMapMaterialHandles(
-    FxHashMap<Handle<StandardMaterial>, Handle<StandardMaterial>,>,
-);
-
-pub(crate) fn handle_depth_map(
-    assets: ResMut<AssetServer>,
-    images: Res<Assets<Image>>,
-    mut std_mats: ResMut<Assets<StandardMaterial>>,
-    mut mat_cache: ResMut<DepthMapMaterialHandles>,
-    mut mat_q: Query<(Entity, &mut SpawnDepthMapMaterial, &mut MeshMaterial3d<StandardMaterial>), Changed<SpawnDepthMapMaterial>>,
-) -> Result {
-    for (entity, mut depth_map, mut mesh_mat) in mat_q.iter_mut() {
-        let std_mat = std_mats
-            .get(mesh_mat.id())
-            .ok_or_else(|| RuntimeError::LiteralError(format!("no StandardMaterial on {entity}")))?
-            .clone();
-
-        // Ensure we have (or start loading) the texture.
-        let new_depth_map = depth_map.source.get_handle(&assets, false);
-        if !depth_map.source.is_handle() || images.get(&new_depth_map).is_none() {
-            // Wait for it to be loaded to avoid wgpu validation crash
-            // `Incompatible sample count: the RenderPass uses textures with sample count 1 but the RenderPipeline with 'pbr_opaque_mesh_pipeline' label uses attachments with format 4`
-            info!("Waiting...");
-            depth_map.source = TextureSource::Handle(new_depth_map);
-            depth_map.ticks = 10;
-            continue;
-        }
-        else if depth_map.source.is_handle() && depth_map.ticks != 0 {
-            debug!("Waiting...");
-            continue;
-        }
-
-        let new_mat_handle = if let Some(exist_handle) = mat_cache.0.get(&mesh_mat)
-            && let Some(depth_mat) = std_mats.get(exist_handle)
-            && depth_mat.depth_map.as_ref().is_some_and(|dm| dm.id() == new_depth_map.id())
-        {
-            debug!("Reusing {exist_handle:?} on depth map in {entity}");
-            exist_handle.clone()
-        } else {
-            let new_mat = StandardMaterial {
-                depth_map: Some(new_depth_map),
-                parallax_depth_scale: depth_map.parallax_depth_scale,
-                parallax_mapping_method: depth_map.parallax_mapping_method,
-                max_parallax_layer_count: depth_map.max_parallax_layer_count,
-                ..std_mat
-            };
-            let new_mat_handle = std_mats.add(new_mat);
-
-            info!("New depth map material {:?}", new_mat_handle);
-            mat_cache.0.insert(
-                mesh_mat.0.clone(),
-                new_mat_handle.clone(),
-            );
-            new_mat_handle.clone()
-        };
-
-        // Just update.
-        mesh_mat.set_if_neq(MeshMaterial3d(new_mat_handle));
-    }
-
-    Ok(())
-}
-
-pub(crate) fn tick_depth_map(
-    images: Res<Assets<Image>>,
-    mut depth_q: Query<&mut SpawnDepthMapMaterial>,
-) -> Result {
-    for mut depth_map in depth_q.iter_mut() {
-        if depth_map.ticks > 0
-        && let TextureSource::Handle(handle) = &depth_map.source
-        && images.get(handle).is_some() {
-            depth_map.ticks -= 1;
-        }
-    }
-
-    Ok(())
-}
-
-/// Marker used to apply a "box" UV mapping -- i.e. taking
-/// the AABB of the mesh and assigning UV coordinates
-/// based on the "face" of the mesh given its vector
-/// from the center.
-#[derive(Component, Debug, Default, Clone, Reflect)]
-#[component(storage = "SparseSet")]
-#[reflect(Component, Default, Clone)]
-#[type_path = "fedry"]
-pub struct ApplyUvBoxMap {
-    pub repeats: Vec3,
-}
-
-pub(crate) fn apply_uv_box_map(
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut mesh_q: Query<(Entity, &ApplyUvBoxMap, &mut Mesh3d), Changed<ApplyUvBoxMap>>,
-) -> Result {
-    for (_entity, uv_map, mut mesh3d) in mesh_q.iter_mut() {
-        let Some(mesh) = meshes.get(mesh3d.id()) else { continue };
-
-        let mesh = create_uvmapped_mesh_scaled(mesh.clone(), uv_map.repeats);
-
-        mesh3d.0 = meshes.add(mesh);
-    }
-
-    Ok(())
-}
-
-
 
 /// Current difficulty.
 #[derive(Resource, Default, Debug, Clone, PartialEq, Reflect)]

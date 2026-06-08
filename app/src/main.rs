@@ -9,6 +9,7 @@ mod game;
 
 #[cfg(target_arch = "wasm32")]
 use console_log;
+use eds_bevy_common::colliders::CollidersPlugin;
 
 use crate::actions::GameActionsPlugin;
 use crate::assets::*;
@@ -165,6 +166,8 @@ fn main() -> AppExit {
         .insert_resource(HighlightingMode::Disabled)
 
         .add_plugins(ActionPlugin)
+        .add_plugins(CollidersPlugin)
+        .add_plugins(MaterialsPlugin)
         .add_plugins(EffectsPlugin)
         .add_plugins(SkyboxPlugin)
         .add_plugins(LevelsPlugin)

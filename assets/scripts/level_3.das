@@ -164,7 +164,7 @@ x2f:
 
         `GravityScale, %grav_scale,
 
-        //`Name, "bUTTs!",
+        `Name, "BALL!",
     ]
     //SYSCALL `delay, [0.125]
     //SYSCALL `delay, [0.5]
