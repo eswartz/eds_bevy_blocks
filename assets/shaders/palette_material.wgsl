@@ -69,9 +69,9 @@ fn fragment(
 ) -> FragmentOutput {
     // Get tag, used as iteration count (-ve = done, +ve = progress)
     var tag = i32(mesh_functions::get_tag(in_orig.instance_index));
+    var in = in_orig;
 /*
 
-    var in = in_orig;
     let tex_dim = textureDimensions(base_color_texture);
     // Find the texel coordinate as derived from the tag.
     let texel_coord = vec2<u32>(tag % tex_dim.x, tag / tex_dim.x);
@@ -108,6 +108,11 @@ fn fragment(
     //out.color = vec4<f32>(f32(tag) / 256.0, 1.0, 1.0, 1.0);
 */
 
+#ifdef PREPASS_PIPELINE
+    // In deferred mode we can't modify anything after that, as lighting is run in a separate fullscreen shader.
+    var pbr_input = pbr_input_from_standard_material(in, is_front);
+    let out = deferred_output(in, pbr_input);
+#else
     var out: FragmentOutput;
 
     //let tex_dim = textureDimensions(base_color_texture);
@@ -116,6 +121,7 @@ fn fragment(
 
     let c = f32(tag & 0xff ^ ((tag & 0x2) >> 1)) / 256.0;
     out.color = vec4<f32>(c, c, c, 1.0);
+#endif
     return out;
 
 }
