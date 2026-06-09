@@ -7,6 +7,7 @@ mod actions;
 mod camera;
 mod game;
 
+use bevy::render::renderer::RenderDevice;
 #[cfg(target_arch = "wasm32")]
 use console_log;
 use eds_bevy_common::colliders::CollidersPlugin;
@@ -18,6 +19,7 @@ use crate::camera::ensure_3d_camera;
 use crate::game::GamePlugin;
 use crate::menus::MenuPlugin;
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use avian3d::prelude::*;
@@ -216,6 +218,9 @@ fn main() -> AppExit {
 
         .insert_resource(ProductName("Blocks".to_string()))
 
+        .add_systems(Startup,
+            setup_adapter)
+
         .add_systems(OnEnter(OverlayState::GameOverScreen),
             on_game_over_screen)
         .add_systems(OnExit(OverlayState::GameOverScreen),
@@ -250,6 +255,12 @@ fn main() -> AppExit {
     }
 
     app.run()
+}
+
+fn setup_adapter(device: Res<RenderDevice>) {
+    device.wgpu_device().on_uncaptured_error(Arc::new(|err| {
+        error!("{err}");
+    }));
 }
 
 #[cfg(feature = "input_bei")]
