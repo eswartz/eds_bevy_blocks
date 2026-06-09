@@ -28,6 +28,8 @@ use bevy::solari::{
 #[cfg(feature = "solari")]
 use wgpu::TextureUsages;
 
+use crate::flashlight::Flashlight;
+
 /// Make sure Entities with Camera3d + WorldCamera and ViewCamera exist,
 /// reusing but reconfiguring any existing entities.
 pub(crate) fn ensure_3d_camera(
@@ -117,6 +119,14 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
 
             // Audio is from the perspective of the camera.
             SpatialListener3D::default(),
+
+            children![
+                (
+                    Name::new("LIGHT"),
+                    Transform::from_xyz(0.0, 0.5, -1.0),
+                    Flashlight::default(),
+                )
+            ],
         ),
     ));
 

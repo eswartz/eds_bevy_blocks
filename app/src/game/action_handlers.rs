@@ -131,6 +131,9 @@ struct ActionParams<'w, 's> {
     player_q: Query<'w, 's, (Entity, &'static Transform, &'static ColliderAabb), With<Player>>,
     player_look_q: Query<'w, 's, &'static PlayerLook>,
 
+    flashlight_events: Query<'w, 's, &'static ActionEvents, (With<Action<actions::ToggleFlashlight>>, With<PlayerAction>)>,
+    flashlight_q: Query<'w, 's, &'static mut Flashlight>,
+
     rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
     common_fx: Res<'w, CommonFxAssets>,
     fx: Res<'w, FxAssets>,
@@ -164,6 +167,8 @@ fn check_actions(
         mut highlighting_mode,
         player_q,
         player_look_q,
+        flashlight_events,
+        mut flashlight_q,
         rigid_q,
         common_fx,
         fx,
@@ -230,6 +235,14 @@ fn check_actions(
             );
 
             **fire_power = 0.;
+        }
+    }
+
+    if let Ok(events) = flashlight_events.single() {
+        if events.contains(ActionEvents::START) || events.contains(ActionEvents::ONGOING) {
+            for mut light in flashlight_q.iter_mut() {
+                light.enabled ^= true;
+            }
         }
     }
 }

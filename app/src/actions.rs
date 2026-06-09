@@ -160,29 +160,5 @@ pub fn assign_extra_actions(
             Bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2),
         )),
     ));
-    // commands.spawn((
-    //     include.clone(),
-    //     Action::<actions::Zoom>::new(),
-    //     DeadZone::default(),
-    //     Bindings::spawn((
-    //         Spawn((Binding::mouse_wheel(),
-    //             Negate::y(),
-    //             Scale::new(Vec3::splat(100.0))
-    //         )),
-
-    //         Bidirectional::new(GamepadButton::LeftTrigger, GamepadButton::RightTrigger)
-    //             .with((
-    //                 Scale::new(Vec3::splat(100.0)),
-    //             )),
-
-    //         // Axial::right_stick()
-    //         //     .with((
-    //         //         DeadZone::default(),
-    //         //         Scale::new(Vec3::splat(100.0)),
-    //         //         SmoothNudge::default(),
-    //         //     )),
-    //         // Spawn((axesBinding::MouseButton { button: (), mod_keys: () }
-    //     )),
-    // ));
 
 }
