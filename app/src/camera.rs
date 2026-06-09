@@ -123,7 +123,7 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
             children![
                 (
                     Name::new("LIGHT"),
-                    Transform::from_xyz(0.0, 0.5, -1.0),
+                    Transform::from_xyz(0.0, 0.5, -1.0).rotate_x(-std::f32::consts::FRAC_PI_4),
                     Flashlight::default(),
                 )
             ],
