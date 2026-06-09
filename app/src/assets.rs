@@ -20,6 +20,8 @@ impl MusicAssets {
 pub struct FxAssets {
     #[asset(path = "textures/boom_texture.webp")]
     pub boom_texture: Handle<Image>,
+    #[asset(path = "textures/boom_normal.webp")]
+    pub boom_normal: Handle<Image>,
 }
 
 

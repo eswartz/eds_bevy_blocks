@@ -38,30 +38,10 @@ impl Plugin for ActionHandlersPlugin {
                 .run_if(in_state(ProgramState::InGame)),
             )
 
-            // .add_systems(
-            //     FixedUpdate,
-            //     decay_physics
-            //         .before(PhysicsSystems::StepSimulation)
-            //         .run_if(not(is_paused))
-            //         .run_if(in_state(LevelState::Playing))
-            //         .run_if(in_state(ProgramState::InGame))
-            //         // .run_if(is_in_level(ID))
-            // )
-
-            .add_systems(
-                FixedUpdate,
-                (
-                    check_actions,
-                    // handle_fire,
-                )
-                    .run_if(not(is_paused))
-                    .run_if(not(is_in_menu))
-                    .run_if(is_level_active)
-                    .run_if(not(debug_gui_wants_direct_input))
-                    .run_if(in_state(LevelState::Playing))
-                    .run_if(in_state(ProgramState::InGame))
-                ,
-            )
+            .add_observer(on_firing_start)
+            .add_observer(on_firing_hold)
+            .add_observer(on_firing_release)
+            .add_observer(on_flashlight_toggle)
         ;
     }
 }
@@ -93,7 +73,6 @@ impl FirePowerWindup {
     }
 }
 
-
 pub(crate) fn play_player_out_of_bounds(
     mut commands: Commands,
     mut reader: MessageReader<HitDeathboxMessage>,
@@ -123,16 +102,8 @@ pub(crate) fn play_player_out_of_bounds(
 
 #[derive(SystemParam)]
 struct ActionParams<'w, 's> {
-    fire_events: Query<'w, 's, &'static ActionEvents, (With<Action<actions::Firing>>, With<PlayerAction>)>,
-
-    select_events: Query<'w, 's, &'static ActionEvents, (With<Action<actions::Interact>>, With<PlayerAction>)>,
-    highlighting_mode: ResMut<'w, HighlightingMode>,
-
     player_q: Query<'w, 's, (Entity, &'static Transform, &'static ColliderAabb), With<Player>>,
     player_look_q: Query<'w, 's, &'static PlayerLook>,
-
-    flashlight_events: Query<'w, 's, &'static ActionEvents, (With<Action<actions::ToggleFlashlight>>, With<PlayerAction>)>,
-    flashlight_q: Query<'w, 's, &'static mut Flashlight>,
 
     rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
     common_fx: Res<'w, CommonFxAssets>,
@@ -140,8 +111,8 @@ struct ActionParams<'w, 's> {
     materials: ResMut<'w, Assets<StandardMaterial>>,
 
     mesh_params: ParamSet<'w, 's, (
-        (ResMut<'w, Assets<Mesh>>,),
-        (MeshRayCast<'w, 's>,)
+        ResMut<'w, Assets<Mesh>>,
+        MeshRayCast<'w, 's>,
     )>,
 
     world: Res<'w, WorldMarkerEntity>,
@@ -149,45 +120,50 @@ struct ActionParams<'w, 's> {
     grabbed_opt: Option<Res<'w, GrabbedItem>>,
 
     fire_power: ResMut<'w, FirePower>,
-    fire_power_windup: Res<'w, FirePowerWindup>,
 
     boom_mass: Res<'w, BoomMass>,
-    time: Res<'w, Time>,
-
 }
 
 #[cfg(feature = "input_bei")]
-fn check_actions(
+fn on_firing_start(
+    _fire: On<Start<actions::Firing>>,
+    mut fire_power: ResMut<FirePower>,
+    fire_power_windup: Res<FirePowerWindup>,
+) {
+    **fire_power = fire_power_windup.start;
+}
+
+#[cfg(feature = "input_bei")]
+fn on_firing_hold(
+    _fire: On<Fire<actions::Firing>>,
+    mut fire_power: ResMut<FirePower>,
+    fire_power_windup: Res<FirePowerWindup>,
+    time: Res<Time>,
+) {
+    **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
+}
+
+#[cfg(feature = "input_bei")]
+fn on_firing_release(
+    _fire: On<Complete<actions::Firing>>,
     mut commands: Commands,
     params: ActionParams,
+    mut boom_mat: Local<Handle<StandardMaterial>>,
 ) {
+    // Fire something.
     let ActionParams{
-        fire_events,
-        select_events,
-        mut highlighting_mode,
         player_q,
         player_look_q,
-        flashlight_events,
-        mut flashlight_q,
         rigid_q,
         common_fx,
         fx,
-        materials,
+        mut materials,
         mut mesh_params,
         world,
         grabbed_opt,
         mut fire_power,
-        fire_power_windup,
-
         boom_mass,
-        time,
     } = params;
-
-    if let Ok(select) = select_events.single() {
-        if select.contains(ActionEvents::START) {
-            *highlighting_mode = (*highlighting_mode).toggle_enabled();
-        }
-    }
 
     // Only one player...
     let Ok((player, player_xfrm, aabb)) = player_q.single() else {
@@ -202,47 +178,66 @@ fn check_actions(
     let eyes = player_eyes(player_xfrm, aabb, look);
     let position = player_gun(&look.rotation, eyes);
 
-    if let Ok(fire) = fire_events.single() {
-        if fire.contains(ActionEvents::START) {
-            **fire_power = fire_power_windup.start;
-        }
-        if fire.contains(ActionEvents::ONGOING) || fire.contains(ActionEvents::FIRE) {
-            **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
-        }
-        if fire.contains(ActionEvents::COMPLETE) && **fire_power > 0. {
-            // Fire something.
+    // TODO: needs to be outside character collider (i.e. measure it? configure it?).
+    let mut pos = position + look.rotation * Vec3::NEG_Z;
 
-            // TODO: needs to be outside character collider (i.e. measure it? configure it?).
-            let mut pos = position + look.rotation * Vec3::NEG_Z;
-
-            let ray = Ray3d::new(player_xfrm.translation, look.rotation * Dir3::NEG_Z);
-            let mut params = mesh_params.p1();
-            let hits = params.0.cast_ray(ray, &MeshRayCastSettings::default()
-                .always_early_exit()
-                .with_visibility(RayCastVisibility::Visible),
-            );
-            if let Some(hit) = hits.get(0) {
-                // Adjust to world.
-                // pos = hit.1.distance;
-                pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.min(1.0));
-            }
-
-            let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
-            let power = **fire_power;
-
-            do_fire(commands.reborrow(), xfrm, power, grabbed_opt, rigid_q,
-                common_fx, fx, materials, mesh_params.p0().0, world, &boom_mass,
-            );
-
-            **fire_power = 0.;
-        }
+    let ray = Ray3d::new(player_xfrm.translation, look.rotation * Dir3::NEG_Z);
+    let mut raycast = mesh_params.p1();
+    let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default()
+        .always_early_exit()
+        .with_visibility(RayCastVisibility::Visible),
+    );
+    if let Some(hit) = hits.get(0) {
+        // Adjust to world (stay in local space).
+        pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.min(0.5));
     }
 
-    if let Ok(events) = flashlight_events.single() {
-        if events.contains(ActionEvents::START) || events.contains(ActionEvents::ONGOING) {
-            for mut light in flashlight_q.iter_mut() {
-                light.enabled ^= true;
-            }
+    let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
+    let power = **fire_power;
+
+    let mat = if *boom_mat == Handle::default() {
+        let emissive = LinearRgba::new(0.25, 0.25, 1.0, 1.0);
+        let mat = materials.add(StandardMaterial {
+            base_color_texture: Some(fx.boom_texture.clone()),
+            metallic: 1.0,
+            reflectance: 0.5,
+            emissive,
+            perceptual_roughness: 0.25,
+            uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
+            specular_transmission: 0.5,
+            alpha_mode: AlphaMode::Add,
+            normal_map_texture: Some(fx.boom_normal.clone()),
+            .. default()
+        });
+        *boom_mat = mat.clone();
+        mat
+    } else {
+        boom_mat.clone()
+    };
+
+    do_fire(commands.reborrow(), xfrm, power, mat,
+        grabbed_opt, rigid_q,
+        common_fx, mesh_params.p0(), world, &boom_mass,
+    );
+
+    **fire_power = 0.;
+}
+
+#[cfg(feature = "input_bei")]
+fn on_flashlight_toggle(
+    _fire: On<Start<actions::ToggleFlashlight>>,
+    camera_q: Query<Entity, With<PlayerCamera>>,
+    child_q: Query<&Children>,
+    mut flashlight_q: Query<&mut Flashlight>,
+) {
+    let Ok(camera) = camera_q.single() else {
+        warn!("no single PlayerCamera");
+        return
+    };
+
+    for ent in child_q.iter_descendants(camera) {
+        if let Ok(mut flashlight) = flashlight_q.get_mut(ent) {
+            flashlight.enabled ^= true;
         }
     }
 }
@@ -252,13 +247,12 @@ fn do_fire(
 
     xfrm: Transform,
     power: f32,
+    boom_mat: Handle<StandardMaterial>,
 
     grabbed_opt: Option<Res<GrabbedItem>>,
 
     rigid_q: Query<Entity, With<RigidBody>>,
     common_fx: Res<CommonFxAssets>,
-    fx: Res<FxAssets>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
     world: Res<WorldMarkerEntity>,
@@ -281,19 +275,6 @@ fn do_fire(
         }
     } else {
         // Fire a new item.
-        // let mat = materials.add(Color::srgba(0.7, 0.2, 0.2, 1.1));
-        let emissive = LinearRgba::new(0.25, 0.25, 1.0, 1.0);
-        let mat = materials.add(StandardMaterial {
-            // base_color: Color::lch(1.2, 0.4, 1.1),
-            base_color_texture: Some(fx.boom_texture.clone()),
-            //alpha_mode: AlphaMode::Add,
-            metallic: 0.0,
-            reflectance: 0.5,
-            emissive,
-            perceptual_roughness: 0.25,
-            uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
-            .. default()
-        });
         let size = Vec3::new(2.0, 0.5, 0.5);
         // let size = Vec3::new(0.5, 2.0, 0.5);
         // let size = Vec3::new(2.0, 1.0, 0.25);
@@ -304,7 +285,7 @@ fn do_fire(
             ChildOf(world.0),
             Name::new("BOOM"),
             Mesh3d(mesh.clone()),
-            MeshMaterial3d(mat.clone()),
+            MeshMaterial3d(boom_mat),
             xfrm,
 
             ActiveCollisionHooks::MODIFY_CONTACTS,
