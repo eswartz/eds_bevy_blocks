@@ -79,7 +79,8 @@ impl Plugin for GamePlugin {
 
             .add_systems(
                 PreUpdate,
-                    wake_up_spawned_if_floating.run_if(resource_changed::<Gravity>)
+                    // wake_up_spawned_if_floating.run_if(resource_changed::<Gravity>)
+                    wake_up_spawned.run_if(resource_changed::<Gravity>)
                     .run_if(not(is_in_menu))
                     .run_if(in_state(ProgramState::InGame))
                 ,
@@ -1007,17 +1008,28 @@ fn report_raycast(
     }
 }
 
+// /// Avian doesn't reliably wake up (or cause [RigidBody]s to move)
+// /// when changing Gravity. Maybe that's intentional, maybe a bug?
+// fn wake_up_spawned_if_floating(
+//     mut commands: Commands,
+//     collisions: Res<ContactGraph>,
+//     sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>, Without<Player>)>
+// ) {
+//     for ent in sleep_q.iter() {
+//         if collisions.entities_colliding_with(ent).next().is_none() {
+//             commands.entity(ent).remove::<Sleeping>();
+//         }
+//     }
+// }
+
 /// Avian doesn't reliably wake up (or cause [RigidBody]s to move)
 /// when changing Gravity. Maybe that's intentional, maybe a bug?
-fn wake_up_spawned_if_floating(
+fn wake_up_spawned(
     mut commands: Commands,
-    collisions: Res<ContactGraph>,
     sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>, Without<Player>)>
 ) {
     for ent in sleep_q.iter() {
-        if collisions.entities_colliding_with(ent).next().is_none() {
-            commands.entity(ent).remove::<Sleeping>();
-        }
+        commands.entity(ent).remove::<Sleeping>();
     }
 }
 
