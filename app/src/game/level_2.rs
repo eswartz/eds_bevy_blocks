@@ -1,7 +1,6 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::Cube;
-use crate::game::OurMidiSynth;
 use crate::game::GameScript;
 use avian3d::math::Scalar;
 use eds_bevy_common::*;
@@ -46,8 +45,6 @@ fn on_level_loaded(
     script_assets: Res<ScriptAssets>,
     modules: Res<Assets<ScriptModule>>,
     fuel: Res<ScriptFuel<GameScript>>,
-
-    player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
     // Get configuration data for the initial arrangement.
     // Later, we attach this to each Cube as well.
@@ -116,50 +113,60 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let center = player_xfrm_q.iter().next()
-        .map_or_else(|| Vec3::new(12.0, axis_scale.y / 2.0, -15.0),
-        |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0);
+    let center = if let Some(pos) = scripting.get_struct_value(&script_module, "center_pos")
+        && let Some(pos) = scripting.get_vec3(&pos)  {
+        pos
+    } else {
+        Vec3::new(12.0, axis_scale.y / 2.0, -15.0)
+    };
 
+    if let Some(data_obj) = scripting.get_struct_value(&script_module, "block_data") {
+        if let Some(data) = RtStruct::new(&data_obj) {
+            let data = data.map();
+            let into = script.data();
+            let mut into = into.map_mut();
+            for (k, v) in data.iter() {
+                into.insert(*k, v.clone());
+            }
+        } else {
+            log::error!("block_data is not a Struct but {}", scripting.rt.display_obj(&data_obj));
+        }
+    }
+
+    let y = 0;
     for x in 0..size
     {
-        //for y in 0..size
-        let y = 0;
+        for z in 0..size
         {
-            for z in 0..size
-            //let z = 0;
-            {
-                let position = Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
-                commands.spawn((
-                    (
-                        ChildOf(world.0),
-                        Name::new("CUBE"),
-                        Cube,
-                        Spawned,
-                        CrosshairTargetable,
-                        Mesh3d(cube_mesh.clone()),
-                        MeshMaterial3d(mat.clone()),
-                        Transform::from_translation(position),
-                    ),
-                    (
-                        rigid_body.clone(),
-                        collider.clone(),
-                        Restitution::new(0.0), //.with_combine_rule(CoefficientCombine::Min),
-                        Friction::new(0.9),
-                        SleepThreshold {
-                            linear: 0.125,
-                            angular: 0.125,
-                        },
-                        LinearDamping(1.0 / 16.0),
-                        AngularDamping(1.0 / 16.0),
-                        Mass(cube_mass),
-                        CollisionMargin(0.0),
-                    ),
+            let position = Vec3::new(x as f32, y as f32, z as f32) * axis_scale + center;
+            commands.spawn((
+                (
+                    ChildOf(world.0),
+                    Name::new("CUBE"),
+                    Cube,
+                    Spawned,
+                    CrosshairTargetable,
+                    Mesh3d(cube_mesh.clone()),
+                    MeshMaterial3d(mat.clone()),
+                    Transform::from_translation(position),
+                ),
+                (
+                    rigid_body.clone(),
+                    collider.clone(),
+                    Restitution::new(0.0), //.with_combine_rule(CoefficientCombine::Min),
+                    Friction::new(0.9),
+                    SleepThreshold {
+                        linear: 0.125,
+                        angular: 0.125,
+                    },
+                    LinearDamping(1.0 / 16.0),
+                    AngularDamping(1.0 / 16.0),
+                    Mass(cube_mass),
+                    CollisionMargin(0.0),
+                ),
 
-                    (script.clone(),),
-
-                    OurMidiSynth,
-                ));
-            }
+                (script.clone(),),
+            ));
         }
     }
 
