@@ -44,6 +44,7 @@
     //w%angle = NEW_STRUCT [x: %rot_x, y: 0, z: %rot_x]
     %angle = NEW_SEQUENCE [`Deg, %angle]
 
+    //%life = NEW_SEQUENCE [`Temporary, `secs, 60.0]
     %life = NEW_SEQUENCE [`Temporary, `secs, 360.0]
     //%life = NEW_SEQUENCE [`Keep]
 
@@ -62,12 +63,14 @@
 
     %shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
     %collider_shape = NEW_SEQUENCE [`Cube, x, 1.25, y, 0.025, z, 1.25]
-    //%collider_shape = NEW_SEQUENCE [`Model, "models/tile.glb#Mesh0"]
 
     %new = SYSCALL `bevy_spawn, [
-        `parent, %ent,
-
         `Name, "TILE",
+        `Cube, nil,
+
+        // `parent, %ent,
+        `relative_to, %ent,
+
         `offset, %pos,
         `rotation, %angle,
 
@@ -79,11 +82,9 @@
 
         `mass, 50.0,
 
-        `Cube, nil,
-    ]
+        `despawn_after, %life,
 
-    //%struct = NEW_STRUCT [y: 1.0,]
-    //SYSCALL `bevy_call_func, [%ent, `add_velocity, %struct]
+    ]
 
     // Package ScriptCreationInfo data.
     %async = NEW_SEQUENCE [`Async]
@@ -93,16 +94,8 @@
     ]
     //SYSCALL `bevy_call_func, [%new, `add_script, %sci]
 
-    //SYSCALL `print, [%ent, ' - 1\n']
     SYSCALL `delay, [0.0625]
-    //SYSCALL `print, [%ent, ' - 2\n']
-
-    //SYSCALL `bevy_call_func, [`set_gravity, 0]
-
-    //SYSCALL `delay, [2.5]
-
-    //SYSCALL `bevy_call_func, [`set_gravity, -9.8]
-    //SYSCALL `bevy_call_func, [%ent, `set_gravity, 100.0]
+    //SYSCALL `delay, [0.25]
 
     RETURN nil
 }
@@ -113,7 +106,7 @@
 
     %module = NEW_STRUCT [
         `block_size: 0.375,
-        `side_length: 4,
+        `side_length: 2,
         `on_update: %on_update,
         `boom_mass: 50000.0,
         `block_mass: 50.0,

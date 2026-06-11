@@ -66,10 +66,27 @@ pub struct FirePowerWindup {
 }
 
 impl FirePowerWindup {
-    pub(crate) fn apply_force(&self, dt: Duration, power: f32) -> f32 {
-        let q = (dt.as_secs_f32() * 64.0).min(1.0);
-        let mul = 1.0.lerp(self.accel, q);
-        (power * mul).min(self.max)
+    // pub(crate) fn apply_force(&self, dt: Duration, power: f32) -> f32 {
+    //     let q = (dt.as_secs_f32() * 64.0).min(1.0);
+    //     let mul = 1.0.lerp(self.accel, q);
+    //     (power * mul).min(self.max)
+    // }
+    pub(crate) fn apply_force(&self, elapsed: Duration, power: f32) -> f32 {
+        let duration = 1.0;
+
+        // let now = ((elapsed.as_secs_f32() % (duration + time_margin * 2.0) - time_margin) / duration).clamp(0.0, 1.0);
+        let now = (elapsed.as_secs_f32() / duration).clamp(0.0, 1.0);
+        let f = EasingCurve::new(0.0f32, self.accel, EaseFunction::SmoothStepIn);
+        let q = f.sample(now).unwrap();
+
+        // let q = (power * elapsed.as_secs_f32() * 64.0).min(1.0);
+        // let mul = 1.0.lerp(self.accel, q);
+        // (power * mul).min(self.max)
+        // (q * mul).min(self.max)
+
+        (q + power).min(self.max)
+
+        // elapsed.as_secs_f32()
     }
 }
 
@@ -135,12 +152,12 @@ fn on_firing_start(
 
 #[cfg(feature = "input_bei")]
 fn on_firing_hold(
-    _fire: On<Fire<actions::Firing>>,
+    fire: On<Fire<actions::Firing>>,
     mut fire_power: ResMut<FirePower>,
     fire_power_windup: Res<FirePowerWindup>,
-    time: Res<Time>,
+    // time: Res<Time>,
 ) {
-    **fire_power = fire_power_windup.apply_force(time.delta(), **fire_power);
+    **fire_power = fire_power_windup.apply_force(Duration::from_secs_f32(fire.fired_secs), **fire_power);
 }
 
 #[cfg(feature = "input_bei")]
