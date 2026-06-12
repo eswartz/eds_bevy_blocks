@@ -93,36 +93,45 @@ pub fn assign_extra_actions(
     mut commands: Commands,
     include: impl Bundle + Clone,
 ) {
+    // We need this when mod keys distinguish actions.
+    let consume = ActionSettings {
+        consume_input: true,
+        ..default()
+    };
     commands.spawn((
         include.clone(),
         Action::<game_actions::SetGravityNormal>::new(),
+        consume.clone(),
         bindings![
-            KeyCode::Digit9.with_mod_keys(ModKeys::CONTROL),
-            KeyCode::Numpad9.with_mod_keys(ModKeys::CONTROL),
+            KeyCode::Digit9.with_mod_keys(MOD_CTRL_COMMAND),
+            KeyCode::Numpad9.with_mod_keys(MOD_CTRL_COMMAND),
         ],
     ));
     commands.spawn((
         include.clone(),
         Action::<game_actions::SetGravityOff>::new(),
+        consume.clone(),
         bindings![
-            KeyCode::Digit0.with_mod_keys(ModKeys::CONTROL),
-            KeyCode::Numpad0.with_mod_keys(ModKeys::CONTROL),
+            KeyCode::Digit0.with_mod_keys(MOD_CTRL_COMMAND),
+            KeyCode::Numpad0.with_mod_keys(MOD_CTRL_COMMAND),
             ],
         ));
-    commands.spawn((
+        commands.spawn((
         include.clone(),
         Action::<game_actions::SetGravityHalf>::new(),
+        consume.clone(),
         bindings![
-            KeyCode::Digit5.with_mod_keys(ModKeys::CONTROL),
-            KeyCode::Numpad5.with_mod_keys(ModKeys::CONTROL),
+            KeyCode::Digit5.with_mod_keys(MOD_CTRL_COMMAND),
+            KeyCode::Numpad5.with_mod_keys(MOD_CTRL_COMMAND),
         ],
     ));
     commands.spawn((
         include.clone(),
         Action::<game_actions::SetGravityTiny>::new(),
+        consume.clone(),
         bindings![
-            KeyCode::Digit1.with_mod_keys(ModKeys::CONTROL),
-            KeyCode::Numpad1.with_mod_keys(ModKeys::CONTROL),
+            KeyCode::Digit1.with_mod_keys(MOD_CTRL_COMMAND),
+            KeyCode::Numpad1.with_mod_keys(MOD_CTRL_COMMAND),
         ],
     ));
 
@@ -130,15 +139,25 @@ pub fn assign_extra_actions(
 
     commands.spawn((
         include.clone(),
-        Action::<actions::PausePhysics>::new(),
+        Action::<actions::TogglePhysics>::new(),
         bindings![
             KeyCode::ScrollLock,
+        ],
+    ));
+    commands.spawn((
+        include.clone(),
+        Action::<actions::TogglePhysicsGizmos>::new(),
+        consume.clone(),
+        bindings![
+            KeyCode::ScrollLock.with_mod_keys(MOD_CTRL_COMMAND | ModKeys::ALT),
+            KeyCode::KeyP.with_mod_keys(MOD_CTRL_COMMAND | ModKeys::ALT),
         ],
     ));
 
     commands.spawn((
         include.clone(),
         Action::<actions::ChangeCamera>::new(),
+        consume.clone(),
         bindings![
             KeyCode::KeyV.with_mod_keys(MOD_CTRL_COMMAND),
         ],
