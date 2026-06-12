@@ -532,24 +532,13 @@ pub(crate) fn level_spawn_finished(
     )>>,
     // coll_floor_q: Query<Entity, (With<Mesh3d>, With<Floor>),
     // floor_q: Query<Entity, (With<Floor>, With<RigidBody>),
-    floor_q: Query<Entity, (With<Floor>, Without<ColliderConstructor>)>,
+    // floor_q: Query<Entity, (With<Floor>, Without<ColliderConstructor>)>,
 ) {
     for ent in sensable_q.iter() {
         commands.entity(ent).insert((
             Sensor,
             CollisionEventsEnabled,
             CollidingEntities::default(),
-        ));
-    }
-    for ent in floor_q.iter() {
-        commands.entity(ent).insert(ColliderConstructor::ConvexDecompositionFromMeshWithConfig(
-            VhacdParameters{
-                fill_mode: FillMode::SurfaceOnly,
-                resolution: 256,
-                max_convex_hulls: 256,
-                concavity: 0.125 / 2.0,
-                ..VhacdParameters::default()
-            }
         ));
     }
 
@@ -734,35 +723,38 @@ fn update_current_score(
     mut commands: Commands,
     level_state: Res<State<LevelState>>,
     score: Option<Res<CurrentScore>>,
-    mut score_q: Single<(&mut Text, &mut TextColor), With<ScoreArea>>,
+    gui_area: GuiAreaMarkerLocator,
+    // mut score_q: Single<(&mut Text, &mut TextColor), With<ScoreArea>>,
+    mut score_q: Query<(&mut Text, &mut TextColor)>,
 ) {
-    let (ref mut text, ref mut color) = *score_q;
-    // if let Some(score) = score {
-    if score.is_some() {
-        if *level_state == LevelState::Playing {
-            // let won = score.score >= goal.goal as _;
-            // let lost = score.score <= goal.lose;
+    gui_area.with_first(GuiAreaMarker::ScoreArea, |ent| {
+        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else { return };
+        if score.is_some() {
+            if *level_state == LevelState::Playing {
+                // let won = score.score >= goal.goal as _;
+                // let lost = score.score <= goal.lose;
 
-            let won = false;
-            let lost = false;
-            text.0 = String::new();
-            color.0 = Color::Srgba(if won {
-                tailwind::LIME_300
-            } else if lost {
-                tailwind::RED_700
-            } else {
-                tailwind::GRAY_100
-            });
+                let won = false;
+                let lost = false;
+                text.0 = String::new();
+                color.0 = Color::Srgba(if won {
+                    tailwind::LIME_300
+                } else if lost {
+                    tailwind::RED_700
+                } else {
+                    tailwind::GRAY_100
+                });
 
-            if won {
-                commands.set_state(LevelState::Won);
-            } else if lost {
-                commands.set_state(LevelState::Lost);
+                if won {
+                    commands.set_state(LevelState::Won);
+                } else if lost {
+                    commands.set_state(LevelState::Lost);
+                }
             }
+        } else {
+            text.0.clear();
         }
-    } else {
-        text.0.clear();
-    }
+    });
 }
 
 /// Apply the [NextLevelIndex] value, if set.
@@ -780,23 +772,27 @@ fn check_next_level(
 
 fn won_level(
     mut commands: Commands,
-    mut score_q: Single<(&mut Text, &mut TextColor), With<GameStatusArea>>,
+    gui_area: GuiAreaMarkerLocator,
+    mut score_q: Query<(&mut Text, &mut TextColor)>,
 ) {
-    let (ref mut text, ref mut color) = *score_q;
-    text.0 = "Passed!".to_string();
-    color.0 = Color::Srgba(tailwind::LIME_300);
-
+    gui_area.with_first(GuiAreaMarker::ScoreArea, |ent| {
+        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else { return };
+        text.0 = "Passed!".to_string();
+        color.0 = Color::Srgba(tailwind::LIME_300);
+    });
     commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(END_LEVEL_DELAY_SECS)));
 }
 
 fn lost_level(
     mut commands: Commands,
-    mut score_q: Single<(&mut Text, &mut TextColor), With<GameStatusArea>>,
+    gui_area: GuiAreaMarkerLocator,
+    mut score_q: Query<(&mut Text, &mut TextColor)>,
 ) {
-    let (ref mut text, ref mut color) = *score_q;
-    text.0 = "Failed...\nTry again!".to_string();
-    color.0 = Color::Srgba(tailwind::RED_700);
-
+    gui_area.with_first(GuiAreaMarker::GameStatusArea, |ent| {
+        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else { return };
+        text.0 = "Failed...\nTry again!".to_string();
+        color.0 = Color::Srgba(tailwind::RED_700);
+    });
     commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(END_LEVEL_DELAY_SECS)));
 }
 
@@ -848,69 +844,76 @@ pub struct PowerBarText;
 
 fn show_power_bar(
     mut commands: Commands,
-    hand_q: Single<Entity, With<HandStatusArea>>,
+    gui_area: GuiAreaMarkerLocator,
     assets: Res<CommonGuiAssets>,
 ) {
-    commands.entity(*hand_q)
-        .insert(UiNodeAlpha(0.0))
-        .with_children(|builder| {
-        builder.spawn((
-            Name::new("PowerBar"),
-            PowerBarImage,
-            Visibility::Inherited,
-            UiNodeAlpha(1.0),
-            ImageNode::new(assets.power_bar.clone())
-                .with_color(Color::WHITE),
-            Node {
-                width: Val::Vw(10.),
-                max_width: Val::Vw(10.),
-                min_width: Val::Px(128.),
-                aspect_ratio: Some(4.0),
-                align_content: AlignContent::Stretch,
-                ..default()
-            },
-        ));
-        builder.spawn((
-            Name::new("InHandText"),
-            PowerBarText,
-            Visibility::Inherited,
-            UiNodeAlpha(1.0),
-            Node {
-                ..default()
-            },
-            TextFont {
-                font: assets.std_ui.clone(),
-                font_size: 24.0,
-                weight: FontWeight::BOLD,
-                .. default()
-            },
-            TextColor(Color::Srgba(tailwind::RED_700)),
-            TextShadow {
-                offset: Vec2::splat(1.0),
-                color: Color::WHITE,
-            },
-            Text::new("POWER"),
-        ));
+    gui_area.with_first(GuiAreaMarker::HandStatusArea, |ent| {
+        commands.entity(ent)
+            .insert(UiNodeAlpha(0.0))
+            .with_children(|builder| {
+            builder.spawn((
+                Name::new("PowerBar"),
+                PowerBarImage,
+                Visibility::Inherited,
+                UiNodeAlpha(1.0),
+                ImageNode::new(assets.power_bar.clone())
+                    .with_color(Color::WHITE),
+                Node {
+                    width: Val::Vw(10.),
+                    max_width: Val::Vw(10.),
+                    min_width: Val::Px(128.),
+                    aspect_ratio: Some(4.0),
+                    align_content: AlignContent::Stretch,
+                    ..default()
+                },
+            ));
+            builder.spawn((
+                Name::new("InHandText"),
+                PowerBarText,
+                Visibility::Inherited,
+                UiNodeAlpha(1.0),
+                Node {
+                    ..default()
+                },
+                TextFont {
+                    font: assets.std_ui.clone(),
+                    font_size: 24.0,
+                    weight: FontWeight::BOLD,
+                    .. default()
+                },
+                TextColor(Color::Srgba(tailwind::RED_700)),
+                TextShadow {
+                    offset: Vec2::splat(1.0),
+                    color: Color::WHITE,
+                },
+                Text::new("POWER"),
+            ));
+        });
     });
 }
 
 fn remove_power_bar(
     mut commands: Commands,
+    gui_area: GuiAreaMarkerLocator,
     child_q: Query<&Children>,
-    hand_q: Single<Entity, With<HandStatusArea>>,
 ) {
-    let ent = *hand_q;
-    for kid in child_q.iter_descendants(ent) {
-        commands.entity(kid).try_despawn();
-    }
+    gui_area.with_first(GuiAreaMarker::HandStatusArea, |ent| {
+        for kid in child_q.iter_descendants(ent) {
+            commands.entity(kid).try_despawn();
+        }
+    });
 }
 
 fn update_power_bar(
-    mut alpha_q: Single<&mut UiNodeAlpha, With<HandStatusArea>>,
     fire_power: Res<FirePower>,
+    gui_area: GuiAreaMarkerLocator,
+    mut alpha_q: Query<&mut UiNodeAlpha>,
 ) {
     if fire_power.is_changed() {
-        alpha_q.0 = (**fire_power / 50.0).clamp(0.0, 1.0);
+        gui_area.with_first(GuiAreaMarker::HandStatusArea, |ent| {
+            let Ok(mut alpha) = alpha_q.get_mut(ent) else { return };
+            alpha.0 = (**fire_power / 50.0).clamp(0.0, 1.0);
+        });
     }
 }
 
@@ -986,26 +989,43 @@ pub struct OrigGravityScale{
 }
 
 fn report_raycast(
-    mut info_q: Single<(&mut Text, &mut TextColor, &mut Visibility), With<InfoArea>>,
+    gui_area: GuiAreaMarkerLocator,
+    mut info_q: Query<(&mut Text, &mut TextColor, &mut Visibility)>,
     highlighting_mode: Res<HighlightingMode>,
     crosshair_target: Res<CrosshairTargets>,
     names_q: Query<Option<&Name>>,
     gui_state: Res<GuiState>,
+    mut last_target_desc: Local<(CrosshairTargets, String)>,
 ) {
     if !dev_tools_enabled() {
         return
     }
 
-    let (ref mut text, ref mut color, ref mut visibility) = *info_q;
-    if !highlighting_mode.is_disabled()
-    && gui_state.enabled
-    && let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
-        visibility.set_if_neq(Visibility::Inherited);
-        text.0 = message;
-        color.0 = Color::Srgba(tailwind::GRAY_100);
-    } else {
-        visibility.set_if_neq(Visibility::Hidden);
-    }
+    gui_area.with_first(GuiAreaMarker::InfoArea, |ent| {
+        let Ok((ref mut text, ref mut color, ref mut visibility)) = info_q.get_mut(ent) else { return };
+        if !highlighting_mode.is_disabled()
+        && gui_state.enabled
+        && !crosshair_target.targets.is_empty()
+        && let Some(message) = if last_target_desc.0 == *crosshair_target {
+                // Same as last tick.
+                Some(last_target_desc.1.clone())
+            } else {
+                // Recompute.
+                if let Some(message) = report_crosshair_targets(&crosshair_target, &names_q) {
+                    *last_target_desc = (crosshair_target.clone(), message.clone());
+                    Some(message)
+                } else {
+                    None
+                }
+            }
+        {
+            visibility.set_if_neq(Visibility::Inherited);
+            text.0 = message;
+            color.0 = Color::Srgba(tailwind::GRAY_100);
+        } else {
+            visibility.set_if_neq(Visibility::Hidden);
+        }
+    });
 }
 
 // /// Avian doesn't reliably wake up (or cause [RigidBody]s to move)
