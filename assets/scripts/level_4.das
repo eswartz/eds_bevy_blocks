@@ -68,14 +68,14 @@
     %y: IntF = SUB 0, %grid_units_h
 
 y_loop:
-    %cmp = LESS_SINT %y, %grid_units_h
+    %cmp = LESS_I %y, %grid_units_h
     IF_TRUE %cmp, y_step, exit
 
 y_step:
     %x: IntF = SUB 0, %grid_units_h
 
 x_loop:
-    %cmp = LESS_SINT %x, %grid_units_h
+    %cmp = LESS_I %x, %grid_units_h
     IF_TRUE %cmp, x_step, y_next
 
 x_step:

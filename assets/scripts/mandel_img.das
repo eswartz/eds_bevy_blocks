@@ -28,12 +28,12 @@ work:
     %iters: IntF = LOAD %data, `iters
 
     // < 0 means finished @ -iters
-    %t = LESS_SINT %iters, 0
+    %t = LESS_I %iters, 0
     IF_TRUE %t, skip, check_high
 
 check_high:
     // stop if already past limit
-    %t = LESS_SINT %iters, %max_iters
+    %t = LESS_U %iters, %max_iters
     IF_TRUE %t, enter, skip
 
 enter:
@@ -41,44 +41,40 @@ enter:
     %zi: RealF = LOAD %data, `zi
 
 loop:
-    %t = LESS_UINT %iters, %max_iters
+    %t = LESS_U %iters, %max_iters
     IF_TRUE %t, calc, past_max
 
 calc:
-    %iters: CntF = ADD %iters, 1
-    //%f = AND %iters, 0x3f
-    //%f = EQUAL_UINT %f, 0
-    //IF_TRUE %f, fuel, calc_do
-//fuel:
-
-//calc_do:
+    %iters: CntF = ADDU %iters, 1
     // advance z = z²+c
     // (a+bi) * (c+di) = ac - bd + (ad+bc)i
     // (zr+zi) * (zr+zi) = zr² - zi² + (2*zr*zi)
 
-    %zr2: RealF = MUL %zr, %zr
-    %zi2: RealF = MUL %zi, %zi
-    %zrzi: RealF = MUL %zr, %zi
+    %zr2: RealF = MULR %zr, %zr
+    %zi2: RealF = MULR %zi, %zi
+    %zrzi: RealF = MULR %zr, %zi
 
-    %newzr: RealF = SUB %zr2, %zi2
-    %newzi: RealF = MUL %zrzi, 2.0
-    %zr: RealF = ADD %newzr, %cr
-    %zi: RealF = ADD %newzi, %ci
+    %newzr: RealF = SUBR %zr2, %zi2
+    %newzi: RealF = MULR %zrzi, 2.0
+    %zr: RealF = ADDR %newzr, %cr
+    %zi: RealF = ADDR %newzi, %ci
 
     // check limit (|z| < 2)
-    %magr: RealF = MUL %zr, %zr
-    %magi: RealF = MUL %zi, %zi
-    %mag: RealF = ADD %magr, %magi
-    %t = LESS_REAL %mag, 4.0
+    %magr: RealF = MULR %zr, %zr
+    %magi: RealF = MULR %zi, %zi
+    %mag: RealF = ADDR %magr, %magi
+    %t = LESS_R %mag, 4.0
 
     //SYSCALL `print, [%cr, "+", %ci, "i #", %iters, " = ", %zr, "+", %zi, "i\n"]
     IF_TRUE %t, loop, exit
 
 exit:
     // finally finished here
-    %depth: RealF = DIV %iters, %max_iters
+    %itersr: RealF = CAST %iters, `convert
+    %max_itersr: RealF = CAST %max_iters, `convert
+    %depth: RealF = DIVR %itersr, %max_itersr
 
-    %iters = NEG %iters
+    %iters = NEGI %iters
     JUMP done
 
 past_max:
@@ -92,8 +88,8 @@ done:
 
     //SYSCALL `print, [%px, "x", %py, %iters, " @", %depth, "\n"]
 
-    %c: RealF = MUL %depth, 16.0
-    %c: RealF = MOD %c, 1.0
+    %c: RealF = MULR %depth, 16.0
+    %c: RealF = MODR %c, 1.0
     //%color_enum = NEW_SEQUENCE [`Hsva, `hue, 0, `saturation, 0, `value, %c, `alpha, 1]
     %color_enum = NEW_SEQUENCE [`Srgba, `red, %c, `green, %c, `blue, %c]
 

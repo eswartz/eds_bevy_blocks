@@ -14,7 +14,7 @@
         %ent = ARG 1, false, CntF
         %step: CntF = LOAD %ctx, `tick_count, true
 
-        %seq: Bool = LESS_UINT %step, 600
+        %seq: Bool = LESS_U %step, 600
         IF_TRUE %seq, sleep, skip
 sleep:
         %d3: RealF = MOD %ent, 127
@@ -27,7 +27,7 @@ skip:
 
         %channel: CntF = MOD %ent, 16
         %program: CntF = MOD %ent, 127
-        %teq: Bool = EQUAL_UINT %channel, 9
+        %teq: Bool = EQUAL_U %channel, 9
         IF_TRUE %teq, next, fwd
 next:
         %program: CntF = COPY 0
