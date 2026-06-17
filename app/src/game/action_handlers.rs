@@ -282,10 +282,7 @@ fn do_fire(
         // Fire the item we are holding, if it still exists.
         if rigid_q.contains(grabbed.entity) {
             // commands.queue(WakeBody(grabbed.entity));    // sometimes crashes
-            commands.entity(grabbed.entity).insert((
-                LinearVelocity(vel.adjust_precision()),
-            ));
-            commands.write_message(GrabbingCommand::ReleaseItems);
+            commands.write_message(GrabbingCommand::ReleaseItems(Some(vel)));
             any = true;
         } else {
             commands.write_message(GrabbingCommand::CancelGrabItems);
