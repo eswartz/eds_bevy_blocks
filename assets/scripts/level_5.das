@@ -51,13 +51,13 @@
     %shape = NEW_SEQUENCE [`Plane, x, %gridsz, y, %gridsz]
     //%info =  NEW_SEQUENCE [`subdivisions, %grid_units]
     %info =  NEW_SEQUENCE [`subdivisions, 8]
-    %shape = NEW_STRUCT [`kind, %shape, `info, %info]
+    %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     %y = ADD %gridsz_h, 0.025
     %pos = NEW_STRUCT [x: 0.0, y: %y, z: 5.0]
 
     %rot = NEW_STRUCT [x: -90.0]
-    %rot = NEW_SEQUENCE [`Deg, %rot]
+    %rot: Tuple = NEW_SEQUENCE [`Deg, %rot]
 
     %imgsz = NEW_SEQUENCE [`x, %grid_units, `y, %grid_units]
     %imgp = NEW_SEQUENCE [`filter, `Nearest]
@@ -149,7 +149,7 @@ y_next:
 
 cells_done:
 
-    %i = COPY 0
+    %i: CntF = COPY 0
 
 make_worker_loop:
     %f = LESS_U %i, %num_workers

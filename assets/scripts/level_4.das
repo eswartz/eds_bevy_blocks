@@ -57,7 +57,7 @@
     //%shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
     %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
     %info =  NEW_SEQUENCE [`subdivisions, 2]
-    %shape = NEW_STRUCT [`kind, %shape, `info, %info]
+    %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     // Spawn all the grid points, initializing them with
     // the coordinates to render.
@@ -93,7 +93,7 @@ x_step:
     %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
     %rot = NEW_STRUCT [x: -90.0]
-    %rot = NEW_SEQUENCE [`Deg, %rot]
+    %rot: Tuple = NEW_SEQUENCE [`Deg, %rot]
 
     %prod: CntF = MUL %x, %y
     SET_INDEX %tag, 0, %prod

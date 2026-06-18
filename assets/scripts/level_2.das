@@ -38,7 +38,7 @@
     %rot_x = MOD %step, 45
 
     %angle = NEW_STRUCT [y: %rot_x, x: 0, z: 0]
-    %angle = NEW_SEQUENCE [`Deg, %angle]
+    %angle: Tuple = NEW_SEQUENCE [`Deg, %angle]
 
     // Make a cuboid.
 
@@ -76,7 +76,7 @@
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
-    //SYSCALL `bevy_call_func, [%new, `add_script, %sci]
+    SYSCALL `bevy_call_func, [%new, `add_script, %sci]
 
     SYSCALL `delay, [%delay]
     //SYSCALL `delay, [0.25]

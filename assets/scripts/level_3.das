@@ -34,7 +34,7 @@
 
     %deg = MOD %step, 360
     %rot = NEW_STRUCT [y: %deg]
-    %rot = NEW_SEQUENCE [`Deg, %rot]
+    %rot: Tuple = NEW_SEQUENCE [`Deg, %rot]
 
     // Make a color.
     %rr = ADD %x, %step
@@ -67,7 +67,7 @@
     %collider_scale = ADD %collider_scale, 2.0
     //%collider_scale = COPY 0.5
 
-    %light_img = AND %step, 1
+    %step = AND %step, 1
     IF_ZERO %step, x0f, x1f
 x0f:
     %light_img = COPY "textures/mask_1.webp"

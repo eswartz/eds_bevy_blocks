@@ -25,10 +25,11 @@ work:
     // current count; 0 means not started,
     // > 0 means still going;
     // < 0 means completed at -iters.
-    %iters: IntF = LOAD %data, `iters
+    %iters_s: IntF = LOAD %data, `iters
+    %iters: CntF = CAST %iters_s, `coerce
 
     // < 0 means finished @ -iters
-    %t = LESS_I %iters, 0
+    %t = LESS_I %iters_s, 0
     IF_TRUE %t, skip, check_high
 
 check_high:
@@ -74,7 +75,7 @@ exit:
     %max_itersr: RealF = CAST %max_iters, `convert
     %depth: RealF = DIVR %itersr, %max_itersr
 
-    %iters = NEGI %iters
+    %iters = SUBU 0, %iters
     JUMP done
 
 past_max:
@@ -89,7 +90,7 @@ done:
     //SYSCALL `print, [%px, "x", %py, %iters, " @", %depth, "\n"]
 
     %c: RealF = MULR %depth, 16.0
-    %c: RealF = MODR %c, 1.0
+    %c = MODR %c, 1.0
     //%color_enum = NEW_SEQUENCE [`Hsva, `hue, 0, `saturation, 0, `value, %c, `alpha, 1]
     %color_enum = NEW_SEQUENCE [`Srgba, `red, %c, `green, %c, `blue, %c]
 

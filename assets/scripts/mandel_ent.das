@@ -37,15 +37,16 @@
     // current count; 0 means not started,
     // > 0 means still going;
     // < 0 means completed at -iters.
-    %iters: IntF = LOAD %data, `iters
+    %iters_signed: IntF = LOAD %data, `iters
+    %iters: CntF = CAST %iters_signed, `coerce
 
     // < 0 means finished @ -iters
-    %t = LESS %iters, 0
+    %t = LESS_I %iters_signed, 0
     IF_TRUE %t, skip, check_high
 
 check_high:
     // stop if already past limit
-    %t = LESS %iters, %max_iters
+    %t = LESS_U %iters, %max_iters
     IF_TRUE %t, enter, skip
 
 enter:
@@ -83,9 +84,12 @@ calc:
 
 exit:
     // finally finished here
-    %depth: RealF = DIVR %iters, %max_iters
+    %itersr: RealF = CAST %iters, `convert
+    %max_itersr: RealF = CAST %max_iters, `convert
 
-    %iters = NEGI %iters
+    %depth: RealF = DIVR %itersr, %max_itersr
+
+    %iters = SUBU 0, %iters
     JUMP done
 
 past_max:
