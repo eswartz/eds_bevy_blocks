@@ -71,36 +71,28 @@ fn on_level_loaded(
 
     let center = player_xfrm_q.iter().next()
         .map_or_else(|| Vec3::new(12.0, 1.0, -15.0),
-        |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0);
+        |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0 + Vec3::Y * 2.0);
 
     let mat = materials.add(Color::srgb(0.2, 0.3, 0.9));
     let cube_size = 0.1;
     let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
 
-    let count = if let Some(v) = scripting.get_struct_value(&script_module, "count")
-        && let Some(v) = RtNumber::new(&v) {
-        v.as_uint() as usize
-    } else {
-        1
-    };
-
-    for y in 0..count
-    {
-        let position = Vec3::new(0.0, y as f32, 0.0) * cube_size + center;
-
-        commands.spawn((
-            (
-                ChildOf(world.0),
-                Name::new("CONTROLLER"),
-                CrosshairTargetable,
-                Mesh3d(cube_mesh.clone()),
-                MeshMaterial3d(mat.clone()),
-                Transform::from_translation(position),
-            ),
-
-            (script.clone(),),
-
-        ));
+    let data = script.data();
+    for (k, v) in script_module.map().iter() {
+        data.map_mut().insert(k.clone(), v.clone());
     }
+
+    commands.spawn((
+        ChildOf(world.0),
+        Name::new("CONTROLLER"),
+        CrosshairTargetable,
+        Mesh3d(cube_mesh.clone()),
+        MeshMaterial3d(mat.clone()),
+        Transform::from_translation(center),
+
+        (script.clone(),),
+
+    ));
+
     Ok(())
 }
