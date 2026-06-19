@@ -5,6 +5,7 @@
 
     %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]
     STORE %data, `player, %pent
+    STORE %data, `speed, 8.0
 
     RETURN nil
 }
@@ -34,16 +35,18 @@
     //%vxa = MINR %vxa, 10.0
     //%c = LESSR %vx, 0.0
 
+    %speed: RealF = LOAD %data, `speed
     %vx = ADDR %curvx, %vx
     %vy = ADDR %curvy, %vy
     %vz = ADDR %curvz, %vz
 
-    %vx = MINR %vx, 10.0
-    %vy = MINR %vy, 5.0
-    %vz = MINR %vz, 10.0
-    %vx = MAXR %vx, -10.0
-    %vy = MAXR %vy, -5.0
-    %vz = MAXR %vz, -10.0
+    %vx = MINR %vx, %speed
+    %vy = MINR %vy, %speed
+    %vz = MINR %vz, %speed
+    %rspeed = NEGR %speed
+    %vx = MAXR %vx, %rspeed
+    %vy = MAXR %vy, -1.0
+    %vz = MAXR %vz, %rspeed
 
     %vel = NEW_STRUCT [x: %vx, y: %vy, z: %vz]
 

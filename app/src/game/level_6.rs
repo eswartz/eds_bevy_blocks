@@ -1,6 +1,7 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
+use avian3d::prelude::*;
 use eds_bevy_common::*;
 
 use bevy::prelude::*;
@@ -88,6 +89,9 @@ fn on_level_loaded(
         CrosshairTargetable,
         Mesh3d(cube_mesh.clone()),
         MeshMaterial3d(mat.clone()),
+
+        RigidBody::Kinematic,
+        Collider::cuboid(0.1, 0.1, 0.1),
         Transform::from_translation(center),
 
         (script.clone(),),
