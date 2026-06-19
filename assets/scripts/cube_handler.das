@@ -45,9 +45,6 @@
     %y = DIV %y, 2.0
     %vec = NEW_STRUCT [x: -0.1, y: %y, z: 0.1]
 
-    //%pos = SYSCALL `bevy_call_func, [%ent, `translate, %vec]
-    //SYSCALL `bevy_call_func, [%ent, `add_velocity, %vec]
-
     RETURN nil
 }
 

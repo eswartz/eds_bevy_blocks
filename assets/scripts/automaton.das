@@ -16,19 +16,41 @@
 
     //%vec = NEW_STRUCT [x: -0.1, y: 0.0, z: -0.1]
 
+    %curvel = SYSCALL `bevy_call_func, [%ent, `get_velocity]
+    %curvx: RealF = LOAD %curvel, `x
+    %curvy: RealF = LOAD %curvel, `y
+    %curvz: RealF = LOAD %curvel, `z
+
     %pos = SYSCALL `bevy_call_func, [%ent, `get_position]
     %posx: RealF = LOAD %pos, `x
     %posy: RealF = LOAD %pos, `y
     %posz: RealF = LOAD %pos, `z
-    %posx = DIVR %posx, -4.0
-    %posy = DIVR %posy, -2.0
-    %posz = DIVR %posz, -4.0
-    %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
+    %vx = DIVR %posx, -4.0
+    %vy = DIVR %posy, -2.0
+    %vz = DIVR %posz, -4.0
 
-    //%pos = SYSCALL `bevy_call_func, [%ent, `translate, %vec]
-    SYSCALL `bevy_call_func, [%ent, `add_velocity, %vec]
+    // FIXME copysign/etc.
+    //%vxa = ABSR %vx
+    //%vxa = MINR %vxa, 10.0
+    //%c = LESSR %vx, 0.0
 
-    SYSCALL `delay, [0.01]
+    %vx = ADDR %curvx, %vx
+    %vy = ADDR %curvy, %vy
+    %vz = ADDR %curvz, %vz
+
+    %vx = MINR %vx, 10.0
+    %vy = MINR %vy, 5.0
+    %vz = MINR %vz, 10.0
+    %vx = MAXR %vx, -10.0
+    %vy = MAXR %vy, -5.0
+    %vz = MAXR %vz, -10.0
+
+    %vel = NEW_STRUCT [x: %vx, y: %vy, z: %vz]
+
+    //SYSCALL `print, [%vel, '\n']
+    SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
+
+    SYSCALL `delay, [0.05]
 
     RETURN nil
 }

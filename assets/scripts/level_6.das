@@ -15,16 +15,20 @@
     %unitsz = COPY 1.5
 
     %umul: CntF = MODU %ent, 32
+    %umul = XORU %umul, 0xa
+    %umul = MAXU %umul, 0x4
     %umul: RealF = CAST %umul, `coerce
     %umul: RealF = DIVR %umul, 0.5
     %umul: RealF = ABSR %umul
     %unitsz = MULR %unitsz, %umul
+    %unitsz = MAXR %unitsz, 0.5
+    %unitsz = MINR %unitsz, 5.0
 
     %grid_units: CntF = LOAD %data, `grid_units
 
     // Default computation center
     %cx = COPY 0.0
-    %cy = COPY 1.0
+    %cy = COPY 0.0
     %cz = COPY 0.0
 
 //    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, %unitsz_h]
@@ -51,20 +55,20 @@ x_step:
     %wx = ADD %wx, %gridcx
 
     %wy = MUL %y, %unitsz
-    %wy: RealF = NEG %wy    // top-down
+    // %wy: RealF = NEG %wy    // top-down
     %wy = ADD %wy, %gridcy
 
-    %ccr = MODR %wx, 4.0
-    %ccr = DIVR %ccr, 2.0
-    %ccr = ABSR %ccr
-    %ccg = MODR %wy, 4.0
-    %ccg = DIVR %ccg, 2.0
-    %ccg = ABSR %ccg
+    %ccr = DIVR %wx, 12345.0
+    %ccr = MODR %ccr, 1.0
+    //%ccr = ABSR %ccr
+    %ccg = DIVR %wy, 12345.0
+    %ccg = MODR %ccg, 1.0
+    //%ccg = ABSR %ccg
     %ccb = MULR %ccr, %ccg
     %hue = MULR %ccb, 360.0
     //%color_enum = NEW_SEQUENCE [`Srgba, `red, %ccr, `green, %ccg, `blue, %ccb, `alpha, 0.25]
     %color_enum = NEW_SEQUENCE [`Hsla, `hue, %hue, `saturation, 1, `lightness, 0.5, `alpha, 1.0]
-    //SYS_CALL `print, [%color_enum, "\n"]
+    //SYSCALL `print, [%ccr, "/", %ccg, " "]
 
     %pos = NEW_STRUCT [x: %wx, z: %wy, y: 2.0]
 
@@ -123,9 +127,9 @@ exit:
 
     %module = NEW_STRUCT [
         `on_init: %on_init,
-        //`grid_units: 40,
-        `grid_units: 20,
+        //`grid_units: 8,
+        `grid_units: 40,
         `boom_mass: 10000.0,
-        `block_mass: 25.0,
+        `block_mass: 2.5,
     ]
     RETURN %module
