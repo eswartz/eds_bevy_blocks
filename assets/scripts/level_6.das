@@ -192,6 +192,7 @@ exit:
     %module = NEW_STRUCT [
         `on_init: %on_init,
         `on_update: %on_update,
+        `model: "models/smoodge.glb#Scene0",
         `grid_units: 8,
         //`grid_units: 16,
         `boom_mass: 10000.0,
