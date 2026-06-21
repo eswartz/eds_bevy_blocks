@@ -3,6 +3,30 @@
     %ent: CntF = ARG 1, false, CntF
     %data: Struct = ARG 2, false, Struct
 
+    %entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
+    SYSCALL `print, ["SMOODGE: ", %entstr, '\n']
+
+    %pos = NEW_STRUCT [`x: 0, `y: 2, `z: 0]
+
+    %model = NEW_SEQUENCE [
+        `Model, "models/smoodge.glb#Mesh0",
+    ]
+    %collider_shape = NEW_SEQUENCE [`Cube, x, 1.0, y, 1.0, z, 1.0]
+    %top_ent = SYSCALL `bevy_spawn, [
+        `parent, %ent,
+        `Name, "WATCH",
+
+        `offset, %pos,
+
+        `shape, %model,
+
+        `CrosshairTargetable, nil,
+        `Visibility, `Inherited,
+
+        `rigid_body, `Kinematic,
+        `collider_shape, %collider_shape,
+    ]
+
     // World grid position
     %gridcx = COPY 0.0
     %gridcy = COPY 1.0
@@ -31,7 +55,6 @@
     %cy = COPY 0.0
     %cz = COPY 0.0
 
-//    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, %unitsz_h]
     %shape = NEW_SEQUENCE [`Sphere, %unitsz_h]
     %info =  NEW_SEQUENCE [`subdivisions, 1]
     %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
@@ -103,8 +126,13 @@ x_step:
     ]
 
     // State for cell.
-    %data = NEW_STRUCT [
+    %num = MULI %x, 16
+    %num = ADDI %x, %y
+    %num = ABSI %num
+    %cell_data = NEW_STRUCT [
         `pos: %pos,
+        `parent: %top_ent,
+        `num: %num,
     ]
 
     // Package ScriptCreationInfo data.
@@ -112,7 +140,7 @@ x_step:
         path: `scripts/automaton.das,
         mode: `Async,
     ]
-    SYSCALL `bevy_call_func, [%new, `add_script, %sci, %data]
+    SYSCALL `bevy_call_func, [%new, `add_script, %sci, %cell_data]
 
 x_next:
     %x = ADD %x, 1
@@ -125,6 +153,7 @@ y_next:
 exit:
 
     STORE %data, `tick, 0
+    STORE %data, `smoodge, %top_ent
     RETURN nil
 }
 
@@ -135,54 +164,51 @@ exit:
     %ent: CntF = ARG 1, false, CntF
     %data = ARG 2, false, Struct
 
-//    //%step: CntF = LOAD %ctx, `tick_count, true
-//    %tick: CntF = LOAD %data, `tick, false
-//    %tick: CntF = ADDU %tick, 1
-//    STORE %data, `tick, %tick
-
-//    %f = MODU %tick, 2
-//    //SYSCALL `print, [%f, ' ']
-//    IF_ZERO %f, a, b
-//a:
-//    %vel = NEW_STRUCT [`x: 0.1, `y: -0.5, `z: -0.1]
-//    JUMP c
-//b:
-//    %vel = NEW_STRUCT [`x: -0.1, `y: 0.5, `z: 0.1]
-//    JUMP c
-//c:
-//    SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
-//    SYSCALL `delay, [2]
-
     %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]
     %ppos = SYSCALL `bevy_call_func, [%pent, `get_position, `World]
+
     %pposx: RealF = LOAD %ppos, `x
     %pposy: RealF = LOAD %ppos, `y
+
+    %dpy: CntF = LOAD %ctx, `tick_count, true
+    //%dpy = MODU %dpy, 256
+    //%dpy: IntF = SUBI %dpy, 64
+    %dpy: RealF = CAST %dpy, `coerce
+    %dpy = MULR %dpy, 0.01
+    %dpy = SINR %dpy
+    %dpy = MULR %dpy, 2.0
+    %dpy = ADDR %dpy, 2.0
+
+    %pposy = ADDR %pposy, %dpy
     %pposz: RealF = LOAD %ppos, `z
 
-    %pos = SYSCALL `bevy_call_func, [%ent, `get_position, `World]
+    %top_ent = LOAD %data, `smoodge
+    %pos = SYSCALL `bevy_call_func, [%top_ent, `get_position, `World]
+    //SYSCALL `print, [%ent, " ", %pos, '\n']
+
+    //%entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
+    //SYSCALL `print, ["MAIN: ", %entstr, '\n']
+
     %posx: RealF = LOAD %pos, `x
     %posy: RealF = LOAD %pos, `y
     %posz: RealF = LOAD %pos, `z
 
     %dx = SUBR %pposx, %posx
-    %dx = DIVR %dx, 2
+    %dx = DIVR %dx, 1.5
     %dy = SUBR %pposy, %posy
-    %dy = ADDR %dy, 2.0     //
     %dy = DIVR %dy, 2
-    %dz = SUBR %pposz, %posz
-    %dz = DIVR %dz, 4
 
-    //%pposx = ADDR %posx, %pposx
-    //%pposy = ADDR %posy, %pposy
-    //%pposz = ADDR %posz, %pposz
-    //%pposy = ADDR %posy, %pposy
-    //%ppos = NEW_STRUCT [`x: %pposx, `y: %pposy, `z: %pposz]
-    //SYSCALL `bevy_call_func, [%ent, `set_velocity, %ppos]
+    %dz = SUBR %pposz, %posz
+    %dz = DIVR %dz, 1.25
+
+    %old = SYSCALL `bevy_call_func, [%top_ent, `look_at, %pent, 0.5]
 
     %vel = NEW_STRUCT [`x: %dx, `y: %dy, `z: %dz]
-    SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
+    //SYSCALL `print, [%vel, '\n']
+    SYSCALL `bevy_call_func, [%top_ent, `set_velocity, %vel]
+    //SYSCALL `print, [%old, '\n']
 
-    SYSCALL `delay, [0.5]
+    SYSCALL `delay, [0.05]
 
     RETURN nil
 }
@@ -192,9 +218,9 @@ exit:
     %module = NEW_STRUCT [
         `on_init: %on_init,
         `on_update: %on_update,
-        `model: "models/smoodge.glb#Scene0",
-        `grid_units: 8,
-        //`grid_units: 16,
+        //`model: "models/smoodge.glb#Scene0",
+        //`grid_units: 8,
+        `grid_units: 16,
         `boom_mass: 10000.0,
         `block_mass: 2.5,
     ]

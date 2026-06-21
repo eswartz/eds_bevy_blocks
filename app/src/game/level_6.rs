@@ -2,7 +2,6 @@ use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
 use avian3d::prelude::*;
-use bevy::scene::SceneInstanceReady;
 use eds_bevy_common::*;
 
 use bevy::prelude::*;
@@ -37,8 +36,6 @@ impl Plugin for LevelPlugin {
 fn on_level_loaded(
     mut commands: Commands,
     world: Res<WorldMarkerEntity>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
 
     scripting: Res<ScriptRuntime>,
     script_assets: Res<ScriptAssets>,
@@ -46,7 +43,6 @@ fn on_level_loaded(
     fuel: Res<ScriptFuel<GameScript>>,
 
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
-    assets: ResMut<AssetServer>,
 ) -> Result {
     commands.insert_resource(InstructionText(
         r#"
@@ -76,19 +72,19 @@ fn on_level_loaded(
         .map_or_else(|| Vec3::new(12.0, 1.0, -15.0),
         |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0 + Vec3::Y * 2.0);
 
-    let model = if let Some(p) = scripting.get_struct_value(&script_module, "model")
-        && let Some(p) = RtString::new(&p, &scripting.rt.pool) {
-        Some(p.str().to_string())
-    } else {
-        None
-    };
+    // let model = if let Some(p) = scripting.get_struct_value(&script_module, "model")
+    //     && let Some(p) = RtString::new(&p, &scripting.rt.pool) {
+    //     Some(p.str().to_string())
+    // } else {
+    //     None
+    // };
 
     let data = script.data();
     for (k, v) in script_module.map().iter() {
         data.map_mut().insert(k.clone(), v.clone());
     }
 
-    let root = commands.spawn((
+    commands.spawn((
         ChildOf(world.0),
         Name::new("CONTROLLER"),
         CrosshairTargetable,
@@ -97,36 +93,10 @@ fn on_level_loaded(
         Collider::cuboid(0.1, 0.1, 0.1),
         Transform::from_translation(center).with_scale(Vec3::splat(0.1)),
 
+        Visibility::Inherited,
         (script.clone(),),
 
-    )).id();
-
-    if let Some(model) = model {
-        commands.entity(root).insert((
-            SceneRoot(assets.load::<Scene>(&model)),
-        ))
-        .observe(|ev: On<SceneInstanceReady>,
-            child_q: Query<&Children>,
-            mut xfrm_q: Query<&mut Transform, With<Mesh3d>>,
-        | {
-            for ent in child_q.iter_descendants(ev.entity) {
-                if let Ok(mut xfrm) = xfrm_q.get_mut(ent) {
-                    xfrm.scale = Vec3::splat(0.1);
-                    break;
-                }
-            }
-        });
-
-    } else {
-        let mat = materials.add(Color::srgb(0.2, 0.3, 0.9));
-        let cube_size = 0.1;
-        let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
-        commands.entity(root).insert((
-            Mesh3d(cube_mesh.clone()),
-            MeshMaterial3d(mat.clone()),
-        ));
-    }
-
+    ));
 
     Ok(())
 }
