@@ -99,8 +99,7 @@ x_step:
 
     %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
-    //%mass: RealF = LOAD %data, `block_mass
-    %mass = COPY 0.2
+    %mass: RealF = LOAD %data, `block_mass
 
     %stone = NEW_SEQUENCE [`Model, "models/stone.glb#Scene0"]
     %sphere_shape = NEW_SEQUENCE [`Sphere, 1.0]
@@ -264,6 +263,6 @@ ignore:
         //`grid_units: 4,
         `grid_units: 32,
         `boom_mass: 5000.0,
-        `block_mass: 2.5,
+        `block_mass: 0.5,
     ]
     RETURN %module
