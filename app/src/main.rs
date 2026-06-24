@@ -202,6 +202,8 @@ fn main() -> AppExit {
         //     ..PlayerInputSettings::for_space()
         // })
 
+        .insert_resource(GlobalAmbientLight{ brightness: 25.0,  ..default() })
+
         .configure_loading_state(
             LoadingStateConfig::new(ProgramState::Initializing)
                 .load_collection::<GuiAssets>()

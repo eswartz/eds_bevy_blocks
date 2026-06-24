@@ -4,7 +4,6 @@ use crate::assets::FxAssets;
 use crate::game::*;
 
 use avian3d::math::AdjustPrecision as _;
-use avian3d::math::Scalar;
 use bevy::ecs::system::SystemParam;
 use bevy::math::Affine2;
 use bevy_seedling::sample::PlaybackSettings;
@@ -196,7 +195,7 @@ fn on_firing_release(
     let position = player_gun(&look.rotation, eyes);
 
     // TODO: needs to be outside character collider (i.e. measure it? configure it?).
-    let mut pos = position + look.rotation * Vec3::NEG_Z;
+    let mut pos = position + look.rotation * Vec3::NEG_Z * 1.0;
 
     let ray = Ray3d::new(player_xfrm.translation, look.rotation * Dir3::NEG_Z);
     let mut raycast = mesh_params.p1();
@@ -206,7 +205,7 @@ fn on_firing_release(
     );
     if let Some(hit) = hits.get(0) {
         // Adjust to world (stay in local space).
-        pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.min(0.5));
+        pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.clamp(0.5, 1.5));
     }
 
     let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
@@ -217,11 +216,11 @@ fn on_firing_release(
         let mat = materials.add(StandardMaterial {
             base_color_texture: Some(fx.boom_texture.clone()),
             metallic: 1.0,
-            reflectance: 0.5,
+            reflectance: 0.25,
             emissive,
             perceptual_roughness: 0.25,
             uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
-            specular_transmission: 0.5,
+            specular_transmission: 0.75,
             alpha_mode: AlphaMode::Add,
             normal_map_texture: Some(fx.boom_normal.clone()),
             .. default()
@@ -238,25 +237,6 @@ fn on_firing_release(
     );
 
     **fire_power = 0.;
-}
-
-#[cfg(feature = "input_bei")]
-fn on_flashlight_toggle(
-    _fire: On<Start<actions::ToggleFlashlight>>,
-    camera_q: Query<Entity, With<PlayerCamera>>,
-    child_q: Query<&Children>,
-    mut flashlight_q: Query<&mut Flashlight>,
-) {
-    let Ok(camera) = camera_q.single() else {
-        warn!("no single PlayerCamera");
-        return
-    };
-
-    for ent in child_q.iter_descendants(camera) {
-        if let Ok(mut flashlight) = flashlight_q.get_mut(ent) {
-            flashlight.enabled ^= true;
-        }
-    }
 }
 
 fn do_fire(
@@ -289,11 +269,30 @@ fn do_fire(
         }
     } else {
         // Fire a new item.
-        let size = Vec3::new(2.0, 0.5, 0.5);
+        // let size = Vec3::new(2.0, 0.5, 0.5);
         // let size = Vec3::new(0.5, 2.0, 0.5);
         // let size = Vec3::new(2.0, 1.0, 0.25);
-        let mesh = meshes.add(Cuboid::from_size(size));
-        let collider = Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar);
+
+        // let mesh = meshes.add(Cuboid::from_size(size));
+        // let collider = Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar);
+
+        // let mesh_shape = Extrusion::new(Triangle2d{
+        //     vertices: [
+        //         Vec2::new(0.0, 1.0),
+        //         Vec2::new(-0.5, 0.0),
+        //         Vec2::new(0.5, 0.0),
+        //     ],
+        // }, 1.0);
+        // let mesh = meshes.add(mesh_shape.mesh());
+        // let collider: Collider = Collider::trimesh_from_mesh(&mesh_shape.mesh().build()).unwrap();
+        let radius = 0.75;
+        let depth = 0.375;
+        let mesh_shape = Extrusion::new(Circle{
+            radius,
+        }, depth);
+        let mesh = meshes.add(mesh_shape.mesh().build().rotated_by(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)));
+        let collider: Collider = Collider::cylinder(radius, depth);
+
         // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
         commands.spawn(((
             ChildOf(world.0),
@@ -305,18 +304,21 @@ fn do_fire(
             ActiveCollisionHooks::MODIFY_CONTACTS,
 
             // Dominance(16),
-        ), (
             Spawned,
             Projectile,
             CrosshairTargetable,
+        ),
+        (
             CollisionEventsEnabled,
             LinearVelocity(vel.adjust_precision()),
             Mass(boom_mass.0),
             Friction::new(0.25),
-            Restitution::new(0.25),
+            Restitution::new(0.05),
             SweptCcd::LINEAR,
+
             RigidBody::Dynamic,
             collider,
+            CollisionMargin(0.01),
 
         )));
         any = true;
@@ -331,4 +333,23 @@ fn do_fire(
     }
 
     any
+}
+
+#[cfg(feature = "input_bei")]
+fn on_flashlight_toggle(
+    _fire: On<Start<actions::ToggleFlashlight>>,
+    camera_q: Query<Entity, With<PlayerCamera>>,
+    child_q: Query<&Children>,
+    mut flashlight_q: Query<&mut Flashlight>,
+) {
+    let Ok(camera) = camera_q.single() else {
+        warn!("no single PlayerCamera");
+        return
+    };
+
+    for ent in child_q.iter_descendants(camera) {
+        if let Ok(mut flashlight) = flashlight_q.get_mut(ent) {
+            flashlight.enabled ^= true;
+        }
+    }
 }

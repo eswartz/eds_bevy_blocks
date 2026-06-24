@@ -5,6 +5,7 @@ use eds_bevy_common::*;
 
 use bevy::prelude::*;
 
+use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::*;
 
@@ -38,10 +39,8 @@ fn on_level_loaded(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
-    scripting: Res<ScriptRuntime>,
+    scripting: Scripting::<GameScript>,
     script_assets: Res<ScriptAssets>,
-    modules: Res<Assets<ScriptModule>>,
-    fuel: Res<ScriptFuel<GameScript>>,
 
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
@@ -52,19 +51,12 @@ fn on_level_loaded(
     ));
 
     // Get configuration data.
-    let script: Script<GameScript> = Script::new(
-        &modules,
-        &script_assets.level_4,
-        &fuel.available,
-        &scripting.rt,
-        ExecutionMode::Async,
-    )?;
-
-    fuel.available.fetch_add(50_000_000, std::sync::atomic::Ordering::SeqCst);
+    let script = scripting.new_script(script_assets.level_4.id(), ExecutionMode::Async)?;
+    let runtime = scripting.runtime;
 
     let script_module = script.module();
 
-    let boom_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "boom_mass")
+    let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
@@ -80,7 +72,7 @@ fn on_level_loaded(
     let cube_size = 0.1;
     let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
 
-    let count = if let Some(v) = scripting.get_struct_value(&script_module, "count")
+    let count = if let Some(v) = runtime.get_struct_value(&script_module, "count")
         && let Some(v) = RtNumber::new(&v) {
         v.as_uint() as usize
     } else {

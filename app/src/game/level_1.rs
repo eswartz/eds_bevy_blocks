@@ -11,6 +11,7 @@ use eds_bevy_common::*;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtNumber;
 use fedry_runtime::prelude::RtReal;
@@ -48,11 +49,10 @@ fn on_level_loaded(
     mut materials: ResMut<Assets<StandardMaterial>>,
     gltf_meshes: Res<Assets<GltfMesh>>,
 
-    scripting: Res<ScriptRuntime>,
     model_assets: Res<ModelAssets>,
+
+    scripting: Scripting::<GameScript>,
     script_assets: Res<ScriptAssets>,
-    modules: Res<Assets<ScriptModule>>,
-    fuel: Res<ScriptFuel<GameScript>>,
 ) -> Result {
     commands.insert_resource(InstructionText(
         r#"
@@ -61,24 +61,19 @@ fn on_level_loaded(
         "#.to_string()
     ));
 
-    let script: Script<GameScript> = Script::new(
-        &modules,
-        &script_assets.level_1,
-        &fuel.available,
-        &scripting.rt,
-        ExecutionMode::Async,
-    )?;
+    let script = scripting.new_script(script_assets.level_1.id(), ExecutionMode::Async)?;
+    let runtime = scripting.runtime;
 
     let script_module = script.module();
 
-    let cube_size = if let Some(size) = script_module.map().get(&scripting.rt.pool.for_str("block_size"))
+    let cube_size = if let Some(size) = script_module.map().get(&runtime.rt.pool.for_str("block_size"))
     && let Some(size) = RtReal::new(&size) {
         *size as f32
     } else {
         0.75
     };
 
-    let cube_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "block_mass")
+    let cube_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "block_mass")
     && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
@@ -91,14 +86,14 @@ fn on_level_loaded(
 
     let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
-    let cube_gap = if let Some(v) = scripting.get_struct_value(&script_module, "cube_gap")
+    let cube_gap = if let Some(v) = runtime.get_struct_value(&script_module, "cube_gap")
     && let Some(v) = RtNumber::new(&v) {
         v.as_real() as f32
     } else {
         0.02
     };
 
-    let collision_margin = if let Some(v) = scripting.get_struct_value(&script_module, "collision_margin")
+    let collision_margin = if let Some(v) = runtime.get_struct_value(&script_module, "collision_margin")
     && let Some(v) = RtNumber::new(&v) {
         v.as_real() as f32
     } else {
@@ -113,7 +108,7 @@ fn on_level_loaded(
     // };
     // commands.insert_resource(avian3d::collision::collider::DefaultAabbMargin(enlarge_aabb));
 
-    let half_size = if let Some(v) = scripting.get_struct_value(
+    let half_size = if let Some(v) = runtime.get_struct_value(
         &script_module, "half_side_length")
     && let Some(v) = RtSInt::new(&v) {
         *v as i32
@@ -121,7 +116,7 @@ fn on_level_loaded(
         6
     };
 
-    let rigid_body = if let Some(v) = scripting.get_struct_value(
+    let rigid_body = if let Some(v) = runtime.get_struct_value(
         &script_module, "static")
     && v.as_bool() {
         RigidBody::Static
@@ -129,14 +124,14 @@ fn on_level_loaded(
         RigidBody::Dynamic
     };
 
-    let with_synth = if let Some(v) = scripting.get_struct_value(
+    let with_synth = if let Some(v) = runtime.get_struct_value(
         &script_module, "with_synth") {
         v.as_bool()
     } else {
         true
     };
 
-    let boom_mass = if let Some(mass) = scripting.get_struct_value(
+    let boom_mass = if let Some(mass) = runtime.get_struct_value(
         &script_module, "boom_mass")
     && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32

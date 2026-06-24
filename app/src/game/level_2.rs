@@ -8,6 +8,7 @@ use eds_bevy_common::*;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::*;
 
@@ -41,31 +42,25 @@ fn on_level_loaded(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 
-    scripting: Res<ScriptRuntime>,
+    scripting: Scripting::<GameScript>,
     script_assets: Res<ScriptAssets>,
-    modules: Res<Assets<ScriptModule>>,
-    fuel: Res<ScriptFuel<GameScript>>,
+
 ) -> Result {
     // Get configuration data for the initial arrangement.
     // Later, we attach this to each Cube as well.
-    let script: Script<GameScript> = Script::new(
-        &modules,
-        &script_assets.level_2,
-        &fuel.available,
-        &scripting.rt,
-        ExecutionMode::Async,
-    )?;
+    let script = scripting.new_script(script_assets.level_2.id(), ExecutionMode::Async)?;
+    let runtime = scripting.runtime;
 
     let script_module = script.module();
 
-    let cube_size = if let Some(size) = script_module.map().get(&scripting.rt.pool.for_str("block_size"))
+    let cube_size = if let Some(size) = script_module.map().get(&runtime.rt.pool.for_str("block_size"))
     && let Some(size) = RtReal::new(&size) {
         *size as f32
     } else {
         0.75
     };
 
-    let cube_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "block_mass")
+    let cube_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "block_mass")
     && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
@@ -90,7 +85,7 @@ fn on_level_loaded(
         cube_size as Scalar,
     );
 
-    let size = if let Some(side_length) = scripting.get_struct_value(&script_module,
+    let size = if let Some(side_length) = runtime.get_struct_value(&script_module,
     "side_length")
     && let Some(side_length) = RtSInt::new(&side_length) {
         *side_length as i32
@@ -98,14 +93,14 @@ fn on_level_loaded(
         6
     };
 
-    let rigid_body = if let Some(is_static) = scripting.get_struct_value(&script_module, "static")
+    let rigid_body = if let Some(is_static) = runtime.get_struct_value(&script_module, "static")
     && is_static.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
     };
 
-    let boom_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "boom_mass")
+    let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {
@@ -113,14 +108,14 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let center = if let Some(pos) = scripting.get_struct_value(&script_module, "center_pos")
-        && let Some(pos) = scripting.get_vec3(&pos)  {
+    let center = if let Some(pos) = runtime.get_struct_value(&script_module, "center_pos")
+        && let Some(pos) = runtime.get_vec3(&pos)  {
         pos
     } else {
         Vec3::new(12.0, axis_scale.y / 2.0, -15.0)
     };
 
-    if let Some(data_obj) = scripting.get_struct_value(&script_module, "block_data") {
+    if let Some(data_obj) = runtime.get_struct_value(&script_module, "block_data") {
         if let Some(data) = RtStruct::new(&data_obj) {
             let data = data.map();
             let into = script.data();
@@ -129,7 +124,7 @@ fn on_level_loaded(
                 into.insert(*k, v.clone());
             }
         } else {
-            log::error!("block_data is not a Struct but {}", scripting.rt.display_obj(&data_obj));
+            log::error!("block_data is not a Struct but {}", runtime.rt.display_obj(&data_obj));
         }
     }
 

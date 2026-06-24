@@ -6,6 +6,7 @@ use eds_bevy_common::*;
 
 use bevy::prelude::*;
 
+use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::*;
 
@@ -37,10 +38,8 @@ fn on_level_loaded(
     mut commands: Commands,
     world: Res<WorldMarkerEntity>,
 
-    scripting: Res<ScriptRuntime>,
+    scripting: Scripting::<GameScript>,
     script_assets: Res<ScriptAssets>,
-    modules: Res<Assets<ScriptModule>>,
-    fuel: Res<ScriptFuel<GameScript>>,
 
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
@@ -50,17 +49,12 @@ fn on_level_loaded(
     ));
 
     // Get configuration data.
-    let script: Script<GameScript> = Script::new(
-        &modules,
-        &script_assets.level_6,
-        &fuel.available,
-        &scripting.rt,
-        ExecutionMode::Async,
-    )?;
+    let script = scripting.new_script(script_assets.level_6.id(), ExecutionMode::Async)?;
+    let runtime = scripting.runtime;
 
     let script_module = script.module();
 
-    let boom_mass = if let Some(mass) = scripting.get_struct_value(&script_module, "boom_mass")
+    let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
         mass.as_real() as f32
     } else {

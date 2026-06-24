@@ -101,6 +101,7 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
                 Projection::Perspective(PerspectiveProjection {
                     fov: 75f32.to_radians(),
                     far: 1000.0,
+                    near: 0.01,
                     ..default()
                 }),
 
