@@ -23,20 +23,23 @@
         `CrosshairTargetable, nil,
         `Visibility, `Inherited,
 
-        `rigid_body, `Kinematic,
+        `rigid_body, `Dynamic,
         `collider_shape, %collider_shape,
     ]
 
+    STORE %data, `tick, 0
+    STORE %data, `smoodge, %top_ent
+
     // World grid position
     %gridcx = COPY 0.0
-    %gridcy = COPY 1.0
+    %gridcy = COPY 5.0
     %gridcz = COPY 1.0
 
     // World grid size
-    %gridsz = COPY 16.0
+    %gridsz = COPY 4.0
 
     %unitsz_h = COPY 0.25
-    %unitsz = COPY 1.5
+    %unitsz = COPY 1.0
 
     %umul: CntF = MODU %ent, 32
     %umul = XORU %umul, 0xa
@@ -81,8 +84,8 @@ x_step:
     // %wy: RealF = NEG %wy    // top-down
     %wy = ADD %wy, %gridcy
 
-    %ccr = DIVR %wx, 555555.0
-    %ccg = DIVR %wy, 13333.0
+    %ccr = MULR %wx, 555.555
+    %ccg = MULR %wy, 3333.3333
     %ccb = MULR %ccr, %ccg
     %ccr = MODR %ccr, 1.0
     %ccg = MODR %ccg, 1.0
@@ -97,37 +100,71 @@ x_step:
     %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
     //%mass: RealF = LOAD %data, `block_mass
-    %mass = COPY 50.0
+    %mass = COPY 0.2
 
+    %stone = NEW_SEQUENCE [`Model, "models/stone.glb#Scene0"]
+    %sphere_shape = NEW_SEQUENCE [`Sphere, 1.0]
+    %sphere_collider_shape = NEW_SEQUENCE [`Sphere, 0.6]
+
+    %rx: RealF = CAST %x, `coerce
+    %rx = SINR %rx
+    %rx = MULR %rx, 3.33333
+    %ry: RealF = CAST %y, `coerce
+    %ry = COSR %ry
+    %ry = MULR %ry, 2.22222
+
+    %rot = NEW_SEQUENCE [`Rad, %rx, %ry, 0.0]
+    //SYSCALL `print, [%rot, '\n']
+
+    %sx: RealF = CAST %ccg, `coerce
+    %sx = ADDR %sx, 2.0
+    %sx = MULR %sx, 0.5
+    %sx = MAXR %sx, 0.5
+    %sx = MINR %sx, 1.5
+
+    %sx = MULR %sx, 0.1     // if not parented
+    %scale = NEW_STRUCT [`x, %sx, `y, %sx, `z, %sx]
+    //SYSCALL `print, [%scale, '\n']
+    //SYSCALL `print, [%color_enum, '\n']
+
+    %density = NEW_SEQUENCE [100.0]
     %new = SYSCALL `bevy_spawn, [
-        `parent, %ent,
+      //  `parent, %ent,
         `scriptable, true,
 
         `offset, %pos,
+        `rotation, %rot,
+        `scale, %scale,
 
         `color, %color_enum,
-        //`alpha_mode, `Premultiplied,
-        `alpha_mode, `Add,
-        //`emissive, 1,
+        `color_texture, "textures/bubble.webp",
+        `normal_texture, "textures/bubble_normal.webp",
+        //`alpha_mode, `Add,
+        `emissive, 0.0,
         `roughness, 0.0,
-        `diffuse_transmission, 0.5,
-        `specular_transmission, 0.5,
-        `thickness, 0.5,
+        //`diffuse_transmission, 0.5,
+        //`specular_transmission, 0.5,
+        //`thickness, 0.5,
+        //`cull_face, `None,
 
-        `cull_face, `None,
-
-        `shape, %shape,
+        //`shape, %stone,
+        `shape, %sphere_shape,
+        `collider_shape, %sphere_collider_shape,
         `rigid_body, `Dynamic,
         `mass, %mass,
-        `friction, 0.0,
+        `friction, 1.0,
+        `AngularDamping, 0.5,
+        //`ColliderDensity, %density,
+        //`CollisionMargin, 0.01,
 
-        `CrosshairTargetable, nil,
+        // `CrosshairTargetable, nil,
         `Name, %name,
+        `Visibility, `Inherited,
     ]
 
     // State for cell.
-    %num = MULI %x, 16
-    %num = ADDI %x, %y
+    %num: IntF = CAST %ent, `coerce
+    //%num = ADDI %x, %y
     %num = ABSI %num
     %cell_data = NEW_STRUCT [
         `pos: %pos,
@@ -152,8 +189,6 @@ y_next:
 
 exit:
 
-    STORE %data, `tick, 0
-    STORE %data, `smoodge, %top_ent
     RETURN nil
 }
 
@@ -177,13 +212,16 @@ exit:
     %dpy = MULR %dpy, 0.01
     %dpy = SINR %dpy
     %dpy = MULR %dpy, 2.0
-    %dpy = ADDR %dpy, 2.0
+
+    %dpy = ADDR %dpy, 2.5
 
     %pposy = ADDR %pposy, %dpy
     %pposz: RealF = LOAD %ppos, `z
 
     %top_ent = LOAD %data, `smoodge
     %pos = SYSCALL `bevy_call_func, [%top_ent, `get_position, `World]
+    IF_NIL %pos, ignore, update
+update:
     //SYSCALL `print, [%ent, " ", %pos, '\n']
 
     //%entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
@@ -198,6 +236,8 @@ exit:
     %dy = SUBR %pposy, %posy
     %dy = DIVR %dy, 2
 
+    %dy = ADDR %dy, 0.5     // offset
+
     %dz = SUBR %pposz, %posz
     %dz = DIVR %dz, 1.25
 
@@ -207,8 +247,10 @@ exit:
     //SYSCALL `print, [%vel, '\n']
     SYSCALL `bevy_call_func, [%top_ent, `set_velocity, %vel]
     //SYSCALL `print, [%old, '\n']
+ignore:
 
-    SYSCALL `delay, [0.05]
+    // This is a single entity. No sleep is fine. Look at automaton for all the balls!
+    //SYSCALL `delay, [0.05]
 
     RETURN nil
 }
@@ -219,9 +261,9 @@ exit:
         `on_init: %on_init,
         `on_update: %on_update,
         //`model: "models/smoodge.glb#Scene0",
-        //`grid_units: 8,
-        `grid_units: 16,
-        `boom_mass: 10000.0,
+        //`grid_units: 4,
+        `grid_units: 32,
+        `boom_mass: 5000.0,
         `block_mass: 2.5,
     ]
     RETURN %module

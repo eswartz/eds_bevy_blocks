@@ -66,6 +66,8 @@
 
         `mass, 10.0,
 
+        `CrosshairTargetable, nil,
+
         `despawn_after, %life,
 
     ]
@@ -79,7 +81,6 @@
     SYSCALL `bevy_call_func, [%new, `add_script, %sci]
 
     SYSCALL `delay, [%delay]
-    //SYSCALL `delay, [0.25]
 
     RETURN nil
 }
@@ -94,7 +95,7 @@
 
     %init = NEW_STRUCT [
         `fall_distance: 10.0,
-        `delay: 0.125,
+        `delay: 5.0,
         `lifetime: %life,
     ]
 

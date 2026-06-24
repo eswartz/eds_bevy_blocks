@@ -14,6 +14,7 @@
         %ent = ARG 1, false, CntF
         %step: CntF = LOAD %ctx, `tick_count, true
 
+        // Startup delay
         %seq: Bool = LESS_U %step, 600
         IF_TRUE %seq, sleep, skip
 sleep:
@@ -21,12 +22,12 @@ sleep:
         %d3: RealF = DIV %d3, 1.0
         SYSCALL `delay, [%d3]
 skip:
-        %t = ADD %ent, %step
-        %tn = MOD %t, 0xa00
-        %tnc = ADD %tn, 0x1f200
+        %t: CntF = ADD %ent, %step
+        %tn = COPY %t
+        //%tnc = ADDU %tn, 0x1f200
 
-        %channel: CntF = MOD %ent, 16
-        %program: CntF = MOD %ent, 127
+        %channel: CntF = MOD %tn, 16
+        %program: CntF = MOD %tn, 127
         %teq: Bool = EQUAL_U %channel, 9
         IF_TRUE %teq, next, fwd
 next:

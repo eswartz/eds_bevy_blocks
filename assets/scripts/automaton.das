@@ -26,45 +26,52 @@
     %posz: RealF = LOAD %pos, `z
 
     %pent: CntF = LOAD %data, `parent
-    %ppos = SYSCALL `bevy_call_func, [%pent, `get_position, `World]
-    //SYSCALL `print, ["to ", %ppos, '\n']
-    %pposx: RealF = LOAD %ppos, `x
-    %pposy: RealF = LOAD %ppos, `y
-    %pposz: RealF = LOAD %ppos, `z
+    %goal_pos = SYSCALL `bevy_call_func, [%pent, `get_position, `World]
+    //SYSCALL `print, ["to ", %goal_pos, '\n']
+    %goal_posx: RealF = LOAD %goal_pos, `x
+    %goal_posy: RealF = LOAD %goal_pos, `y
+    %goal_posz: RealF = LOAD %goal_pos, `z
 
-    %vx = SUBR %pposx, %posx
-    %vy = SUBR %pposy, %posy
-    %vz = SUBR %pposz, %posz
+    // Directional distance from our goal.
+    %dx = SUBR %goal_posx, %posx
+    %dy = SUBR %goal_posy, %posy
+    %dz = SUBR %goal_posz, %posz
 
     %hadjust: RealF = LOAD %data, `hadjust
     %vadjust: RealF = LOAD %data, `vadjust
-    %vx = MULR %vx, %hadjust
-    //%vx = ADDR %vx, 2.0
-    %vy = MULR %vy, %vadjust
-    %vz = MULR %vz, %hadjust
-    //%vz = ADDR %vz, -2.0
+    %dx = MULR %dx, %hadjust
+    %dy = MULR %dy, %vadjust
+    %dz = MULR %dz, %hadjust
 
-    // FIXME copysign/etc.
-    //%vxa = ABSR %vx
-    //%vxa = MINR %vxa, 10.0
-    //%c = LESSR %vx, 0.0
+    // FIXME CLAMP? or copysign? or oh utility libraries...
+    //%dxa = ABSR %dx
+    //%dxa = MINR %vda, 10.0
+    //%c = LESSR %dx, 0.0
 
     //%curvel = SYSCALL `bevy_call_func, [%ent, `get_velocity]
     //%curvx: RealF = LOAD %curvel, `x
     //%curvy: RealF = LOAD %curvel, `y
     //%curvz: RealF = LOAD %curvel, `z
 
-    %speed: RealF = LOAD %data, `speed
     //%vx = ADDR %curvx, %vx
     //%vy = ADDR %curvy, %vy
     //%vz = ADDR %curvz, %vz
-    %vx = DIVR %vx, 2
-    %vy = DIVR %vy, 2
-    %vz = DIVR %vz, 2
+    %vx = DIVR %dx, 8
+    %vy = DIVR %dy, 2
+    %vz = DIVR %dz, 8
+
+    // No hurry when far, but zips when close!
+    //%vx = DIVR 2, %dx
+    //%vy = DIVR 2, %dy
+    //%vz = DIVR 2, %dz
+
+    // Clamp to the maximum allowed speed.
+    %speed: RealF = LOAD %data, `speed
 
     %vx = MINR %vx, %speed
     %vy = MINR %vy, %speed
     %vz = MINR %vz, %speed
+    // ... in both directions. Maybe CLAMP...
     %rspeed = NEGR %speed
     %vx = MAXR %vx, %rspeed
     %vy = MAXR %vy, -2.0
@@ -81,14 +88,33 @@
 
     %d: RealF = CAST %d, `coerce
     %d = DIVR %d, 17.0
-    %d = MODR %d, 1.0
+    //%d = MODR %d, 1.0
+    %d = MODR %d, 0.5
+    %d = ADDR %d, 0.05
+
     SYSCALL `delay, [%d]
 
     RETURN nil
 }
 
+%on_update_temp = NEW_BLOCK `on_update, (ctx, ent, data, ...) {
+    %ctx = ARG 0, false, Struct
+    %ent = ARG 1, false, Cnt64
+    %data = ARG 2, false, Struct
+
+    %vel = NEW_STRUCT [x: 0, y: 0.1, z: 0]
+
+    SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
+
+    SYSCALL `delay, [0.05]
+
+    RETURN nil
+}
+
+
 %module = NEW_STRUCT [
     `on_init: %on_init,
     `on_update: %on_update,
+    //`on_update: %on_update_temp,
 ]
 RETURN %module
