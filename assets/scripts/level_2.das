@@ -95,7 +95,7 @@
 
     %init = NEW_STRUCT [
         `fall_distance: 10.0,
-        `delay: 5.0,
+        `delay: 3.0,
         `lifetime: %life,
     ]
 

@@ -164,6 +164,7 @@ fn configure_viewer_camera(mut ent_commands: EntityCommands, use_clustered: bool
 
             Projection::Perspective(PerspectiveProjection {
                 fov: 90f32.to_radians(),
+                near: 0.01,
                 ..default()
             }),
 
