@@ -118,7 +118,7 @@ pub(crate) fn play_player_out_of_bounds(
 
 #[derive(SystemParam)]
 struct ActionParams<'w, 's> {
-    player_q: Query<'w, 's, (Entity, &'static Transform, &'static ColliderAabb), With<Player>>,
+    player_q: Query<'w, 's, (Entity, &'static GlobalTransform, &'static ColliderAabb), With<Player>>,
     player_look_q: Query<'w, 's, &'static PlayerLook>,
 
     rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
@@ -191,13 +191,14 @@ fn on_firing_release(
         return;
     };
 
-    let eyes = player_eyes(player_xfrm, aabb, look);
+    let world_pos = player_xfrm.translation();
+    let eyes = player_eyes(world_pos, aabb, look);
     let position = player_gun(&look.rotation, eyes);
 
     // TODO: needs to be outside character collider (i.e. measure it? configure it?).
     let mut pos = position + look.rotation * Vec3::NEG_Z * 1.0;
 
-    let ray = Ray3d::new(player_xfrm.translation, look.rotation * Dir3::NEG_Z);
+    let ray = Ray3d::new(world_pos, look.rotation * Dir3::NEG_Z);
     let mut raycast = mesh_params.p1();
     let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default()
         .always_early_exit()
