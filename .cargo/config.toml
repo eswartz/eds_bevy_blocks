@@ -42,3 +42,4 @@ codegen-backend = "llvm"
 ## Support webp
 gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
 gilrs = { git = "https://gitlab.com/gilrs-project/gilrs.git", branch = "master" }
+bevy_skein = { git = "https://github.com/eswartz/skein-fork.git", rev = "87149b459b51db3dca58729b7ec2321d28534eb0" }

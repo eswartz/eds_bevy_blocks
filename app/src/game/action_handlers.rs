@@ -164,7 +164,6 @@ fn on_firing_release(
     _fire: On<Complete<actions::Firing>>,
     mut commands: Commands,
     params: ActionParams,
-    fx: Res<FxAssets>,
     mut boom_mat: Local<Handle<StandardMaterial>>,
 ) {
     // Fire something.
@@ -213,23 +212,25 @@ fn on_firing_release(
     let power = **fire_power;
 
     let mat = if *boom_mat == Handle::default() {
-        let emissive = LinearRgba::new(0.5, 0.5, 0.75, 0.5);
+        // let emissive = LinearRgba::new(0.5, 0.5, 0.75, 0.5);
         let mat = materials.add(StandardMaterial {
             base_color: Color::Srgba(Srgba::new(0.75, 0.6, 0.25, 1.0) * 5.0),
-            base_color_texture: Some(fx.boom_texture.clone()),
-            //metallic: 0.5,
+            // base_color_texture: Some(fx.boom_texture.clone()),
+            base_color_texture: Some(fx.puck_diffuse_texture.clone()),
             reflectance: 0.25,
-            emissive,
-            emissive_exposure_weight: 0.75,
+            // emissive,
+            // emissive_exposure_weight: 0.95,
             metallic: 1.0,
             perceptual_roughness: 1.0,
             metallic_roughness_texture: Some(fx.rocky_roughness_texture.clone()),
             ior: 1.77,
-            clearcoat: 0.25,
+            clearcoat: 1.0,
             uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
-            diffuse_transmission: 0.25,
+            diffuse_transmission: 0.75,
+            specular_transmission: 0.75,
             alpha_mode: AlphaMode::Blend,
-            normal_map_texture: Some(fx.boom_normal.clone()),
+            // normal_map_texture: Some(fx.boom_normal.clone()),
+            normal_map_texture: Some(fx.puck_normal_texture.clone()),
             .. default()
         });
         *boom_mat = mat.clone();
@@ -298,7 +299,10 @@ fn do_fire(
         let mesh_shape = Extrusion::new(Circle{
             radius,
         }, depth);
-        let mesh = meshes.add(mesh_shape.mesh().build().rotated_by(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)));
+        let mut mesh = mesh_shape.mesh().build().rotated_by(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2));
+        mesh.generate_tangents().unwrap();
+
+        let mesh = meshes.add(mesh);
         let collider: Collider = Collider::cylinder(radius, depth);
 
         let mut rng = rand::rng();
