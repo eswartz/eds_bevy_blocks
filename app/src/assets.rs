@@ -22,6 +22,8 @@ pub struct FxAssets {
     pub boom_texture: Handle<Image>,
     #[asset(path = "textures/boom_normal.webp")]
     pub boom_normal: Handle<Image>,
+    #[asset(path = "textures/rocky_roughness.webp")]
+    pub rocky_roughness_texture: Handle<Image>,
 }
 
 

@@ -106,7 +106,7 @@ no_notes:
         `block_size: 0.55,
         `half_side_length: 4,
         `on_update: %on_update,
-        `boom_mass: 50000.0,
+        `boom_mass: 10000.0,
         `block_mass: 500.0,
         `static: false,
         `cube_gap: 0.02,

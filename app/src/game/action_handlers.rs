@@ -122,8 +122,8 @@ struct ActionParams<'w, 's> {
     player_look_q: Query<'w, 's, &'static PlayerLook>,
 
     rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
-    common_fx: Res<'w, CommonFxAssets>,
-    fx: Res<'w, FxAssets>,
+    common_fx: If<Res<'w, CommonFxAssets>>,
+    fx: If<Res<'w, FxAssets>>,
     materials: ResMut<'w, Assets<StandardMaterial>>,
 
     mesh_params: ParamSet<'w, 's, (
@@ -131,7 +131,7 @@ struct ActionParams<'w, 's> {
         MeshRayCast<'w, 's>,
     )>,
 
-    world: Res<'w, WorldMarkerEntity>,
+    world: If<Res<'w, WorldMarkerEntity>>,
 
     grabbed_opt: Option<Res<'w, GrabbedItem>>,
 
@@ -164,6 +164,7 @@ fn on_firing_release(
     _fire: On<Complete<actions::Firing>>,
     mut commands: Commands,
     params: ActionParams,
+    fx: Res<FxAssets>,
     mut boom_mat: Local<Handle<StandardMaterial>>,
 ) {
     // Fire something.
@@ -212,16 +213,22 @@ fn on_firing_release(
     let power = **fire_power;
 
     let mat = if *boom_mat == Handle::default() {
-        let emissive = LinearRgba::new(0.25, 0.25, 1.0, 1.0);
+        let emissive = LinearRgba::new(0.5, 0.5, 0.75, 0.5);
         let mat = materials.add(StandardMaterial {
+            base_color: Color::Srgba(Srgba::new(0.75, 0.6, 0.25, 1.0) * 5.0),
             base_color_texture: Some(fx.boom_texture.clone()),
-            metallic: 1.0,
+            //metallic: 0.5,
             reflectance: 0.25,
             emissive,
-            perceptual_roughness: 0.25,
+            emissive_exposure_weight: 0.75,
+            metallic: 1.0,
+            perceptual_roughness: 1.0,
+            metallic_roughness_texture: Some(fx.rocky_roughness_texture.clone()),
+            ior: 1.77,
+            clearcoat: 0.25,
             uv_transform: Affine2::from_scale(Vec2::new(2.0, 0.5)),
-            specular_transmission: 0.75,
-            alpha_mode: AlphaMode::Add,
+            diffuse_transmission: 0.25,
+            alpha_mode: AlphaMode::Blend,
             normal_map_texture: Some(fx.boom_normal.clone()),
             .. default()
         });
@@ -233,7 +240,8 @@ fn on_firing_release(
 
     do_fire(commands.reborrow(), xfrm, power, mat,
         grabbed_opt, rigid_q,
-        common_fx, mesh_params.p0(), world, &boom_mass,
+        &*common_fx, mesh_params.p0(),
+        &*world, &boom_mass,
     );
 
     **fire_power = 0.;
@@ -249,10 +257,10 @@ fn do_fire(
     grabbed_opt: Option<Res<GrabbedItem>>,
 
     rigid_q: Query<Entity, With<RigidBody>>,
-    common_fx: Res<CommonFxAssets>,
+    common_fx: &Res<CommonFxAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
 
-    world: Res<WorldMarkerEntity>,
+    world: &Res<WorldMarkerEntity>,
 
     boom_mass: &BoomMass,
 ) -> bool {
@@ -293,6 +301,9 @@ fn do_fire(
         let mesh = meshes.add(mesh_shape.mesh().build().rotated_by(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)));
         let collider: Collider = Collider::cylinder(radius, depth);
 
+        let mut rng = rand::rng();
+        let xfrm = xfrm * Transform::from_rotation(Quat::from_rotation_y(rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI)));
+
         // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
         commands.spawn(((
             ChildOf(world.0),
@@ -311,8 +322,9 @@ fn do_fire(
         (
             CollisionEventsEnabled,
             LinearVelocity(vel.adjust_precision()),
+            AngularVelocity(Vector::new(0., vel.length() * 0.1 , 0.,)),
             Mass(boom_mass.0),
-            Friction::new(0.25),
+            Friction::new(0.75),
             Restitution::new(0.05),
             SweptCcd::LINEAR,
 
