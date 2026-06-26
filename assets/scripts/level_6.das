@@ -261,7 +261,7 @@ ignore:
         `on_update: %on_update,
         //`model: "models/smoodge.glb#Scene0",
         //`grid_units: 4,
-        `grid_units: 32,
+        `grid_units: 24,
         `boom_mass: 5000.0,
         `block_mass: 0.5,
     ]
