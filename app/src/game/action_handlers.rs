@@ -4,6 +4,7 @@ use crate::assets::FxAssets;
 use crate::game::*;
 
 use avian3d::math::AdjustPrecision as _;
+use bevy::camera::visibility::NoFrustumCulling;
 use bevy::ecs::system::SystemParam;
 use bevy::math::Affine2;
 use bevy_seedling::sample::PlaybackSettings;
@@ -118,7 +119,7 @@ pub(crate) fn play_player_out_of_bounds(
 
 #[derive(SystemParam)]
 struct ActionParams<'w, 's> {
-    player_q: Query<'w, 's, (Entity, &'static GlobalTransform, &'static ColliderAabb), With<Player>>,
+    player_q: Query<'w, 's, (Entity, &'static GlobalTransform, &'static ColliderAabb, Forces), With<Player>>,
     player_look_q: Query<'w, 's, &'static PlayerLook>,
 
     rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
@@ -168,7 +169,7 @@ fn on_firing_release(
 ) {
     // Fire something.
     let ActionParams{
-        player_q,
+        mut player_q,
         player_look_q,
         rigid_q,
         common_fx,
@@ -182,7 +183,7 @@ fn on_firing_release(
     } = params;
 
     // Only one player...
-    let Ok((player, player_xfrm, aabb)) = player_q.single() else {
+    let Ok((player, player_xfrm, aabb, mut forces)) = player_q.single_mut() else {
         log::error!("no single Player");
         return;
     };
@@ -239,6 +240,9 @@ fn on_firing_release(
     } else {
         boom_mat.clone()
     };
+
+    let rev_power = -power;
+    forces.apply_linear_impulse(look.rotation * rev_power * Vec3::Z);
 
     do_fire(commands.reborrow(), xfrm, power, mat,
         grabbed_opt, rigid_q,
@@ -327,17 +331,30 @@ fn do_fire(
         (
             CollisionEventsEnabled,
             LinearVelocity(vel.adjust_precision()),
-            AngularVelocity(Vector::new(0., vel.length() * 0.1 , 0.,)),
+            AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
+            // esp. when cylindrical, try not to wobble forever
+            AngularDamping(0.125),
+            LinearDamping(0.01),
+        ),
+        (
             Mass(boom_mass.0),
             Friction::new(0.75),
-            Restitution::new(0.05),
+            Restitution::new(0.125),
             SweptCcd::LINEAR,
 
             RigidBody::Dynamic,
             collider,
             CollisionMargin(0.01),
 
-        )));
+        ),
+        (
+            PointLight {
+                intensity: 32000.0,
+                ..default()
+            },
+            NoFrustumCulling,
+        ),
+        ));
         any = true;
     }
 
