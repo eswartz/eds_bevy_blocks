@@ -924,7 +924,7 @@ fn setup_skybox(
     mut commands: Commands,
     skybox_q: Query<Entity, (With<SkyboxModel>,)>,
     cam_q: Query<Entity, (With<Camera3d>, With<WorldCamera>)>,
-    skyboxes: Res<CommonSkyboxAssets>,
+    skyboxes: If<Res<CommonSkyboxAssets>>,
 ) {
     let Ok(cam) = cam_q.single() else { return };
 
