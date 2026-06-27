@@ -96,6 +96,12 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
                     ..default()
                 },
 
+                DistanceFog {
+                    color: Color::WHITE,
+                    falloff: FogFalloff::ExponentialSquared { density: 0.001 },
+                    ..default()
+                },
+
                 Hdr,
 
                 Projection::Perspective(PerspectiveProjection {
