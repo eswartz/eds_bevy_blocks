@@ -323,12 +323,9 @@ fn on_enter_escape_menu(
         &history,
     );
     builder
-    // (), SimpleMenuActions::ResumeGame)
     .add_item("Audio", (), SimpleMenuActions::AudioMenu)
     .add_item("Video", (), SimpleMenuActions::VideoMenu)
     .add_item("Controls", (), SimpleMenuActions::ControlsMenu)
-    // .add_item(format!("Restart ({})", current_level.label), (), SimpleMenuActions::RestartGame)
-    // .add_item("Resume", (), SimpleMenuActions::ResumeGame)
     ;
 
     add_level_selector(
