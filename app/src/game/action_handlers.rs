@@ -6,6 +6,7 @@ use crate::game::*;
 use avian3d::math::AdjustPrecision as _;
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::ecs::system::SystemParam;
+use bevy::ecs::system::lifetimeless::Read;
 use bevy::math::Affine2;
 use bevy_seedling::sample::PlaybackSettings;
 use bevy_seedling::prelude::*;
@@ -119,8 +120,8 @@ pub(crate) fn play_player_out_of_bounds(
 
 #[derive(SystemParam)]
 struct ActionParams<'w, 's> {
-    player_q: Query<'w, 's, (Entity, &'static GlobalTransform, &'static ColliderAabb, Forces), With<Player>>,
-    player_look_q: Query<'w, 's, &'static PlayerLook>,
+    player_q: Query<'w, 's, (Entity, Read<GlobalTransform>, Read<ColliderAabb>, Forces), With<Player>>,
+    player_look_q: Query<'w, 's, Read<PlayerLook>>,
 
     rigid_q: Query<'w, 's, Entity, With<RigidBody>>,
     common_fx: If<Res<'w, CommonFxAssets>>,
