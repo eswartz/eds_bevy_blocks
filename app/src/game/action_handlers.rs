@@ -340,7 +340,7 @@ fn do_fire(
             Mass(boom_mass.0),
             Friction::new(0.75),
             Restitution::new(0.125),
-            SweptCcd::LINEAR,
+            SweptCcd::NON_LINEAR,
 
             RigidBody::Dynamic,
             collider,
@@ -350,6 +350,7 @@ fn do_fire(
         (
             PointLight {
                 intensity: 32000.0,
+                color: (Color::hsla(30.0, 0.5, 1.0, 1.0).to_linear() * 10.0).into(),
                 ..default()
             },
             NoFrustumCulling,
