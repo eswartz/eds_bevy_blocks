@@ -1,7 +1,7 @@
-%on_init = NEW_BLOCK `init, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent: CntF = ARG 1, false, CntF
-    %data: Struct = ARG 2, false, Struct
+%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent: CntF = ARG 1
+    %data: Struct = ARG 2
 
     %entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
     SYSCALL `print, ["SMOODGE: ", %entstr, '\n']
@@ -193,10 +193,10 @@ exit:
 
 ///////
 
-%on_update = NEW_BLOCK `update, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent: CntF = ARG 1, false, CntF
-    %data = ARG 2, false, Struct
+%on_update = NEW_BLOCK `update, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent: CntF = ARG 1
+    %data = ARG 2
 
     %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]
     %ppos = SYSCALL `bevy_call_func, [%pent, `get_position, `World]

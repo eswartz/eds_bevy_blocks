@@ -2,16 +2,16 @@
 %make_on_update = NEW_BLOCK `make_on_update, (in_use_synths) {
     LOCAL cnt, false, CntF
 
-    %in_use_synths = ARG 0, false, Bool
+    %in_use_synths = ARG 0
     LOCAL use_synths, false, Bool
 
     // Make it visible to closure.
     %frame = GET_FRAME
     STORE %frame, use_synths, %in_use_synths
 
-    %update_cb = NEW_BLOCK `update_cb, (ctx, ent, ...) {
-        %ctx = ARG 0, false, Struct
-        %ent = ARG 1, false, CntF
+    %update_cb = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, ...) {
+        %ctx = ARG 0
+        %ent = ARG 1
         %step: CntF = LOAD %ctx, `tick_count, true
 
         // Startup delay

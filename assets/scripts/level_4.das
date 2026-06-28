@@ -6,9 +6,9 @@
 // On my system for Bevy 0.18 this keeps 60fps for %grid_units ~= 192.
 // (Yes, it's ridiculously expensive.)
 
-%on_init = NEW_BLOCK `init, (ctx, ent, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, CntF
+%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
     %step: CntF = LOAD %ctx, `tick_count, true
 
     // World grid position

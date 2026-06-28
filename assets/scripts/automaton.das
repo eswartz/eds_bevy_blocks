@@ -1,7 +1,7 @@
-%on_init = NEW_BLOCK `on_init, (ctx, ent, data, ...) {
+%on_init = NEW_BLOCK `on_init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
 
-    %ent = ARG 1, false, Cnt64
-    %data = ARG 2, false, Struct
+    %ent = ARG 1
+    %data = ARG 2
 
     %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]
     STORE %data, `player, %pent
@@ -12,10 +12,10 @@
     RETURN nil
 }
 
-%on_update = NEW_BLOCK `on_update, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, Cnt64
-    %data = ARG 2, false, Struct
+%on_update = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
+    %data = ARG 2
 
     //%vec = NEW_STRUCT [x: -0.1, y: 0.0, z: -0.1]
 
@@ -97,10 +97,10 @@
     RETURN nil
 }
 
-%on_update_temp = NEW_BLOCK `on_update, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, Cnt64
-    %data = ARG 2, false, Struct
+%on_update_temp = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
+    %data = ARG 2
 
     %vel = NEW_STRUCT [x: 0, y: 0.1, z: 0]
 

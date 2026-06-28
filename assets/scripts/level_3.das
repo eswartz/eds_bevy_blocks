@@ -1,6 +1,6 @@
-%on_update = NEW_BLOCK `update_cb, (ctx, ent, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, CntF
+%on_update = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
     %step: CntF = LOAD %ctx, `tick_count, true
 
     %tmp = COPY %step

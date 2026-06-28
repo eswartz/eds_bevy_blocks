@@ -2,10 +2,10 @@
 
 // This script generates worker entities to compute a single pixel
 // of the Mandelbrot set.
-%on_init = NEW_BLOCK `init, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, CntF
-    %data = ARG 2, false, Struct
+%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
+    %data = ARG 2
 
     // number of entities to chug through data.
     //%num_workers = COPY 1024

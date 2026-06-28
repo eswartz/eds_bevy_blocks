@@ -1,9 +1,9 @@
 // This computes a given coordinate in the Mandelbrot set.
 
-%on_init = NEW_BLOCK `on_init, (ctx, ent, data, ...) {
+%on_init = NEW_BLOCK `on_init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
 
-    %ent = ARG 1, false, Cnt64
-    %data = ARG 2, false, Struct
+    %ent = ARG 1
+    %data = ARG 2
     //SYSCALL `delay, [1.0]
     SYSCALL `bevy_call_func, [%ent, `set_palette_material]
     //SYSCALL `print, ["New block: ", %ent, "\n"]
@@ -14,10 +14,10 @@
     RETURN nil
 }
 
-%on_update = NEW_BLOCK `on_update, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, Cnt64
-    %data = ARG 2, false, Struct
+%on_update = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
+    %data = ARG 2
 
     //SYSCALL `print, ["Update: ", %ent, "\n"]
     //    `cr: %x,

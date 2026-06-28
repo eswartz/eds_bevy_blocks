@@ -1,9 +1,9 @@
 %make_on_update = NEW_BLOCK `make_on_update, () {
     LOCAL cnt, false, CntF
 
-    %update_cb = NEW_BLOCK `update_cb, (ctx, ent, ...) {
-        %ctx = ARG 0, false, Struct
-        %ent = ARG 1, false, Cnt64
+    %update_cb = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, ...) {
+        %ctx = ARG 0
+        %ent = ARG 1
         %step: CntF = LOAD %ctx, `tick_count, true
 
 //        SYSCALL `print, ["<", %step]

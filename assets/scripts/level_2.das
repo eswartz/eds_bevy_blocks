@@ -1,7 +1,7 @@
-%on_update = NEW_BLOCK `update_cb, (ctx, ent, data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, CntF
-    %data = ARG 2, false, Struct
+%on_update = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
+    %data = ARG 2
     %step: CntF = LOAD %ctx, `tick_count, true
 
     %dist: RealF = LOAD %data, `fall_distance, true

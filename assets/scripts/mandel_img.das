@@ -1,10 +1,10 @@
 // This computes a given coordinate in the Mandelbrot set
 // by taking an available entry from a `worklist.
 
-%on_update = NEW_BLOCK `on_update, (ctx, ent, ent_data, ...) {
-    %ctx = ARG 0, false, Struct
-    %ent = ARG 1, false, Cnt64
-    %ent_data = ARG 2, false, Struct
+%on_update = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, ent_data, ...) {
+    %ctx = ARG 0
+    %ent = ARG 1
+    %ent_data = ARG 2
 
     // see if we have any work
     %work = LOAD %ent_data, `worklist
