@@ -348,14 +348,20 @@ fn do_fire(
             CollisionMargin(0.01),
 
         ),
-        (
-            PointLight {
-                intensity: 32000.0,
-                color: (Color::hsla(30.0, 0.5, 1.0, 1.0).to_linear() * 10.0).into(),
-                ..default()
-            },
-            NoFrustumCulling,
-        ),
+
+        // Add a light for fun.
+        // We use NoFrustumCulling to avoid bad light clipping,
+        // and a child because MeshRayCast ignores ones with this component.
+        children![
+            (
+                PointLight {
+                    intensity: 3200.0,
+                    color: (Color::hsla(30.0, 0.5, 1.0, 1.0).to_linear() * 10.0).into(),
+                    ..default()
+                },
+                NoFrustumCulling,
+            )
+        ]
         ));
         any = true;
     }
