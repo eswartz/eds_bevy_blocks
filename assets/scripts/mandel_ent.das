@@ -1,7 +1,6 @@
 // This computes a given coordinate in the Mandelbrot set.
 
 %on_init = NEW_BLOCK `on_init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
-
     %ent = ARG 1
     %data = ARG 2
 
@@ -131,9 +130,14 @@ done:
     STORE %data, `zi, %zi
 
     // Give some time before watching user.
-    // SYSCALL `delay, [1.0]
-    //JUMP skip
+    %look_at = LOAD %data, look_at_player
+    IF_TRUE %look_at, delay_before_look_at, unload
 
+delay_before_look_at:
+    SYSCALL `delay, [1.0]
+    JUMP skip
+
+unload:
     // Unload!
     %type = LOAD %ctx, `type_id, false
     SYSCALL `bevy_call_func, [%ent, `remove_script, %type]

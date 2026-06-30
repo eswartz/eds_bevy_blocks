@@ -17,6 +17,7 @@
     %range_min: CntF = LOAD %data, `range_min, true
     %range_size: CntF = LOAD %data, `range_size, true
     %depth_size: RealF = LOAD %data, `depth_size, true
+    %look_at_player: Bool = LOAD %data, `look_at_player, true
 
     // World grid position
     %gridcx = COPY 0.0
@@ -103,8 +104,10 @@ x_step:
         //`rigid_body, `Static,
 
         //`CrosshairTargetable, nil,    // avoid unwanted crosshair activity
+        //`NotShadowCaster, nil,    // cut down on shadow recalc overhead
         `Name, %name,
 
+        // This is used to color the block after it's computed.
         `MeshTag, %tag,
     ]
 
@@ -127,6 +130,7 @@ x_step:
         `range_size: %range_size,
         `depth_size: %depth_size,
         `depth: 8.0,
+        `look_at_player: %look_at_player,
 
         `pos: %pos,
     ]
@@ -159,24 +163,26 @@ exit:
         `range_size: 3000,
         `depth_size: 4.0,
 
-        //`cx: 0.390018071300935778312029,
-        //`cy: 0.138320184041392651089585,
-        //`sz: 0.0000005,
+        `cx: 0.390018071300935778312029,
+        `cy: 0.138320184041392651089585,
+        `sz: 0.0000005,
 
         // `cx: -0.74364643,
         // `cy: 0.1318054051,
         // `sz: 0.00000005,
 
-        `cx: -0.743_643_900_055,
-        `cy: 0.131_828_895_901,
-        `sz: 0.0000001,
+        // `cx: -0.743_643_900_055,
+        // `cy: 0.131_828_895_901,
+        // `sz: 0.0000001,
 
         //`grid_units: 32,
-        //`grid_units: 64,
+        `grid_units: 64,
         //`grid_units: 128,
         `grid_units: 192,
-        //`grid_units: 256,
+        //`grid_units: 256,   // too many, but manageable
         //`grid_units: 512, // too too many
+
+        `look_at_player: true,
     ]
 
     %module = NEW_STRUCT [
