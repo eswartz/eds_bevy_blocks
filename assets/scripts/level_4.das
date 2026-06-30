@@ -3,7 +3,6 @@
 // Each square has a script to handle its own computation,
 // and that square is moved and recolored once an answer is reached.
 //
-// On my system for Bevy 0.18 this keeps 60fps for %grid_units ~= 192.
 // (Yes, it's ridiculously expensive.)
 
 %on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, data: Struct) {
@@ -103,7 +102,7 @@ x_step:
         //`rotation, %rot,
         //`rigid_body, `Static,
 
-        //`CrosshairTargetable, nil,
+        //`CrosshairTargetable, nil,    // avoid unwanted crosshair activity
         `Name, %name,
 
         `MeshTag, %tag,
@@ -164,13 +163,13 @@ exit:
         //`cy: 0.138320184041392651089585,
         //`sz: 0.0000005,
 
-        `cx: -0.74364643,
-        `cy: 0.1318054051,
-        `sz: 0.00000005,
+        // `cx: -0.74364643,
+        // `cy: 0.1318054051,
+        // `sz: 0.00000005,
 
-        //`cx: -0.743_643_900_055,
-        //`cy: 0.131_828_895_901,
-        //`sz: 0.0000001,
+        `cx: -0.743_643_900_055,
+        `cy: 0.131_828_895_901,
+        `sz: 0.0000001,
 
         //`grid_units: 32,
         //`grid_units: 64,

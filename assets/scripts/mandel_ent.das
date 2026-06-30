@@ -130,7 +130,9 @@ done:
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
 
-//    JUMP skip
+    // Give some time before watching user.
+    // SYSCALL `delay, [1.0]
+    //JUMP skip
 
     // Unload!
     %type = LOAD %ctx, `type_id, false
