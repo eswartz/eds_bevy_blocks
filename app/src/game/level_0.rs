@@ -59,7 +59,7 @@ fn on_level_loaded(
         "#.to_string()
     ));
 
-    let script = scripting.new_script(script_assets.level_0.id(), ExecutionMode::Async)?;
+    let script = scripting.new_script_from_module_id(script_assets.level_0.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();

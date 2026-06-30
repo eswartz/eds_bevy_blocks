@@ -51,7 +51,7 @@ fn on_level_loaded(
     ));
 
     // Get configuration data.
-    let script = scripting.new_script(script_assets.level_5.id(), ExecutionMode::Async)?;
+    let script = scripting.new_script_from_module_id(script_assets.level_5.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();

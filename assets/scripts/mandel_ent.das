@@ -4,6 +4,13 @@
 
     %ent = ARG 1
     %data = ARG 2
+
+    // // HACK: try to avoid having them all pile up at start
+    //%v = MODU %ent, 100
+    //%v: RealF = CAST %v, `coerce
+    //%v = DIVR %v, 10.0
+    //SYSCALL `delay, [%v]
+
     //SYSCALL `delay, [1.0]
     SYSCALL `bevy_call_func, [%ent, `set_palette_material]
     //SYSCALL `print, ["New block: ", %ent, "\n"]
@@ -33,6 +40,8 @@
 
     // stop limit
     %max_iters: CntF = LOAD %data, `max_iters
+    %range_min: CntF = LOAD %data, `range_min, true
+    %range_size: CntF = LOAD %data, `range_size, true
 
     // current count; 0 means not started,
     // > 0 means still going;
@@ -84,17 +93,23 @@ calc:
 
 exit:
     // finally finished here
-    %itersr: RealF = CAST %iters, `convert
-    %max_itersr: RealF = CAST %max_iters, `convert
+    %iters_base: RealF = SUB %iters, %range_min
+    %depth: RealF = DIV %iters, %range_size
 
-    %depth: RealF = DIVR %itersr, %max_itersr
+    %depth_size: RealF = LOAD %data, depth
+    %depth: RealF = MULR %depth, %depth_size
 
+    // signed -> unsigned
     %iters = SUBU 0, %iters
     JUMP done
 
 past_max:
     // too many iters
-    %depth = COPY 1.0
+    %iters_base: RealF = SUB %max_iters, %range_min
+    %depth: RealF = DIV %iters, %range_size
+
+    %depth_size: RealF = LOAD %data, depth
+    %depth: RealF = MULR %depth, %depth_size
 
 done:
     //SYSCALL `delay, [0.05]
@@ -107,16 +122,20 @@ done:
     %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
     SYSCALL `bevy_call_func, [%ent, `set_position, %vec]
 
-    //SYSCALL `print, [%cr, "+", %ci, "i out at ", %iters, "\n"]
+    //%piters = SUBI 0, %iters
+    //SYSCALL `print, [%cr, "+", %ci, "i out at ", %piters, "\n"]
     SYSCALL `bevy_call_func, [%ent, `set_mesh_tag, %iters]
 
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
 
-    // // Unload!
-    //%type = LOAD %ctx, `type_id, false
-    //SYSCALL `bevy_call_func, [%ent, `remove_script, %type]
+//    JUMP skip
+
+    // Unload!
+    %type = LOAD %ctx, `type_id, false
+    SYSCALL `bevy_call_func, [%ent, `remove_script, %type]
+//    SYSCALL `print, [%ent, "👋"]
 
 skip:
     // Always face the viewer.
@@ -129,13 +148,20 @@ skip:
 //    //SYSCALL `bevy_call_func, [%ent, `set_rotation, %plook]
 
     %la = SYSCALL `bevy_call_func, [%ent, `look_at, %pent, 0.5]
+
+    SYSCALL `delay, [0.05]
 //    //SYSCALL `print, [%pent, " @", %ppos, "=", %la, "\n"]
 
     RETURN nil
 }
 
+%init_data = NEW_STRUCT [
+
+]
+
 %module = NEW_STRUCT [
     `on_init: %on_init,
     `on_update: %on_update,
+    `init_data: %init_data,
 ]
 RETURN %module

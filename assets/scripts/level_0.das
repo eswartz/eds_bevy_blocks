@@ -8,7 +8,7 @@
 
 //        SYSCALL `print, ["<", %step]
 
-        %t: CntF = COPY %ent
+        %t: CntF = CAST %ent, `coerce
         //%tns: CntF = LSHR %t, 32
         //%tns2: CntF = ADD %t, %tns
         //%tn: CntF = MOD %tns2, 0xa00

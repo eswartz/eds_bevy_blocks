@@ -256,13 +256,16 @@ ignore:
 
 ///////
 
+    %init_data = NEW_STRUCT [
+        //`model: "models/smoodge.glb#Scene0",
+        //`grid_units: 4,
+        `grid_units: 20,
+        `boom_mass: 5000.0,
+        `block_mass: 0.5,
+    ]
     %module = NEW_STRUCT [
         `on_init: %on_init,
         `on_update: %on_update,
-        //`model: "models/smoodge.glb#Scene0",
-        //`grid_units: 4,
-        `grid_units: 24,
-        `boom_mass: 5000.0,
-        `block_mass: 0.5,
+        `init_data: %init_data,
     ]
     RETURN %module

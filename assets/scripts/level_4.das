@@ -6,10 +6,18 @@
 // On my system for Bevy 0.18 this keeps 60fps for %grid_units ~= 192.
 // (Yes, it's ridiculously expensive.)
 
-%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, ...) {
+%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, data: Struct) {
     %ctx = ARG 0
     %ent = ARG 1
+    %data = ARG 2
+
     %step: CntF = LOAD %ctx, `tick_count, true
+
+    %grid_units: CntF = LOAD %data, `grid_units, true
+    %max_iters: CntF = LOAD %data, `max_iters, true
+    %range_min: CntF = LOAD %data, `range_min, true
+    %range_size: CntF = LOAD %data, `range_size, true
+    %depth_size: RealF = LOAD %data, `depth_size, true
 
     // World grid position
     %gridcx = COPY 0.0
@@ -17,38 +25,18 @@
     // World grid size
     %gridsz = COPY 16.0
 
-    // World grid unit count;
-    // this squared is # of new entities!
-    %grid_units = COPY 128
-    //%grid_units = COPY 96
-    //%grid_units = COPY 64
-    //%grid_units = COPY 16
-    //%grid_units = COPY 2
-    //%grid_units = COPY 256  // noooo, ~45 fps and stuttery in 0.18
-    //%grid_units = COPY 192  // barely 4x power supported
-    //%grid_units = COPY 160
-
     %unitsz: RealF = DIV %gridsz, %grid_units
     %unitsz_h: RealF = DIV %unitsz, 2.0
 
     // Default computation center
-    %cx = COPY 0.0
-    %cy = COPY 0.0
-    %sz = DIV 4.0, 1.0
+    //%cx = COPY 0.0
+    //%cy = COPY 0.0
+    //%sz = DIV 4.0, 1.0
 
     // Zoom to specific spot
-    %cx = COPY 0.390018071300935778312029
-    %cy = COPY 0.138320184041392651089585
-    %sz = DIV 1.0, 1024.0
-    //%sz = DIV 1.0, 128.0
-    //%sz = DIV %sz, 1048576.0
-    %sz = DIV %sz, 1024.0
-    %sz = DIV %sz, 1024.0
-    %sz = DIV %sz, 64.0
-    //%sz = DIV 1.0, 2.0
-    //%sz = DIV %sz, 2048.0
-
-    %max_iters = COPY 2500
+    %cx = LOAD %data, `cx
+    %cy = LOAD %data, `cy
+    %sz = LOAD %data, `sz
 
     %cellsz = DIV %sz, %grid_units
 
@@ -56,7 +44,8 @@
     %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 1]
     //%shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
     %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
-    %info =  NEW_SEQUENCE [`subdivisions, 2]
+    //%info =  NEW_SEQUENCE [`subdivisions, 2]
+    %info =  NEW_SEQUENCE []
     %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     // Spawn all the grid points, initializing them with
@@ -114,7 +103,7 @@ x_step:
         //`rotation, %rot,
         //`rigid_body, `Static,
 
-        `CrosshairTargetable, nil,
+        //`CrosshairTargetable, nil,
         `Name, %name,
 
         `MeshTag, %tag,
@@ -133,8 +122,12 @@ x_step:
         `ci: %ci,
         `zr: 0.0,
         `zi: 0.0,
-        `max_iters: %max_iters,
         `iters: 0,
+        `max_iters: %max_iters,
+        `range_min: %range_min,
+        `range_size: %range_size,
+        `depth_size: %depth_size,
+        `depth: 8.0,
 
         `pos: %pos,
     ]
@@ -161,7 +154,34 @@ exit:
 
 ///////
 
+    %init_data = NEW_STRUCT [
+        `max_iters: 4000,
+        `range_min: 0,
+        `range_size: 3000,
+        `depth_size: 4.0,
+
+        //`cx: 0.390018071300935778312029,
+        //`cy: 0.138320184041392651089585,
+        //`sz: 0.0000005,
+
+        `cx: -0.74364643,
+        `cy: 0.1318054051,
+        `sz: 0.00000005,
+
+        //`cx: -0.743_643_900_055,
+        //`cy: 0.131_828_895_901,
+        //`sz: 0.0000001,
+
+        //`grid_units: 32,
+        //`grid_units: 64,
+        //`grid_units: 128,
+        `grid_units: 192,
+        //`grid_units: 256,
+        //`grid_units: 512, // too too many
+    ]
+
     %module = NEW_STRUCT [
         `on_init: %on_init,
+        `init_data: %init_data,
     ]
     RETURN %module

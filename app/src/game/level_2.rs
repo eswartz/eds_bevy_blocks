@@ -48,7 +48,7 @@ fn on_level_loaded(
 ) -> Result {
     // Get configuration data for the initial arrangement.
     // Later, we attach this to each Cube as well.
-    let script = scripting.new_script(script_assets.level_2.id(), ExecutionMode::Async)?;
+    let script = scripting.new_script_from_module_id(script_assets.level_2.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();

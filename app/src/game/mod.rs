@@ -21,7 +21,7 @@ use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
-use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptMarkerKind, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
+use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptTypeBase, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
 pub use action_handlers::*;
 use fedry_runtime::prelude::RuntimeError;
 use strum::{EnumIter, VariantArray};
@@ -346,7 +346,7 @@ impl std::ops::Deref for BoomMass {
 #[type_path = "fedry"]
 pub(crate) struct GameScript;
 
-impl ScriptMarkerKind for GameScript {}
+impl ScriptTypeBase for GameScript {}
 
 /// Difficulty rating.
 #[derive(

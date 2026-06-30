@@ -48,5 +48,5 @@ pub(crate) fn set_palette_material(In((entity, rt, args)): In<(Entity, Arc<Runti
 
     commands.entity(entity).insert(SpawnPaletteMaterial);
 
-    Ok(ExecState::Result(ObjectPtr::for_nil()))
+    Ok(default())
 }

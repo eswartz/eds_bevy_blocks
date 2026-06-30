@@ -51,7 +51,7 @@ fn on_level_loaded(
     ));
 
     // Get configuration data.
-    let script = scripting.new_script(script_assets.level_4.id(), ExecutionMode::Async)?;
+    let script = scripting.new_script_from_module_id(script_assets.level_4.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();
@@ -65,7 +65,7 @@ fn on_level_loaded(
     commands.insert_resource(BoomMass(boom_mass));
 
     let center = player_xfrm_q.iter().next()
-        .map_or_else(|| Vec3::new(12.0, 1.0, -15.0),
+        .map_or_else(|| Vec3::new(12.0, 0.25, -15.0),
         |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0);
 
     let mat = materials.add(Color::srgb(0.2, 0.3, 0.9));
@@ -83,6 +83,8 @@ fn on_level_loaded(
     {
         let position = Vec3::new(0.0, y as f32, 0.0) * cube_size + center;
 
+        let child_xfrm = Transform::from_translation(position);
+        // child_xfrm.rotate_y(std::f32::consts::FRAC_PI_2);
         commands.spawn((
             (
                 ChildOf(world.0),
@@ -90,7 +92,7 @@ fn on_level_loaded(
                 CrosshairTargetable,
                 Mesh3d(cube_mesh.clone()),
                 MeshMaterial3d(mat.clone()),
-                Transform::from_translation(position),
+                child_xfrm,
             ),
 
             (script.clone(),),

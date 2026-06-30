@@ -46,7 +46,7 @@ fn on_level_loaded(
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
     // Get configuration data for the initial arrangement.
-    let script = scripting.new_script(script_assets.level_3.id(), ExecutionMode::Async)?;
+    let script = scripting.new_script_from_module_id(script_assets.level_3.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();

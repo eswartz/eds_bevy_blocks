@@ -49,10 +49,16 @@ fn on_level_loaded(
     ));
 
     // Get configuration data.
-    let script = scripting.new_script(script_assets.level_6.id(), ExecutionMode::Async)?;
+    let script = scripting.new_script_from_module_id(script_assets.level_6.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();
+
+    // // Copy
+    // let data = script.data();
+    // for (k, v) in script_module.map().iter() {
+    //     data.map_mut().insert(k.clone(), v.clone());
+    // }
 
     let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
         && let Some(mass) = RtNumber::new(&mass) {
@@ -72,11 +78,6 @@ fn on_level_loaded(
     // } else {
     //     None
     // };
-
-    let data = script.data();
-    for (k, v) in script_module.map().iter() {
-        data.map_mut().insert(k.clone(), v.clone());
-    }
 
     commands.spawn((
         ChildOf(world.0),

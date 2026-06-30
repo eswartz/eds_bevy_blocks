@@ -108,19 +108,23 @@ fn fragment(
     //out.color = vec4<f32>(f32(tag) / 256.0, 1.0, 1.0, 1.0);
 */
 
+    var pbr_input = pbr_input_from_standard_material(in, is_front);
 #ifdef PREPASS_PIPELINE
     // In deferred mode we can't modify anything after that, as lighting is run in a separate fullscreen shader.
-    var pbr_input = pbr_input_from_standard_material(in, is_front);
     let out = deferred_output(in, pbr_input);
 #else
     var out: FragmentOutput;
+
+    out.color = apply_pbr_lighting(pbr_input);
 
     //let tex_dim = textureDimensions(base_color_texture);
     //let texel_coord = vec2<u32>(tag % tex_dim.x, tag / tex_dim.x);
     //out.color = textureLoad(base_color_texture, texel_coord, 0);
 
     let c = f32(tag & 0xff ^ ((tag & 0x2) >> 1)) / 256.0;
-    out.color = vec4<f32>(c, c, c, 1.0);
+    let palette_color = vec4<f32>(c, c, c, 1.0);
+
+    out.color *= palette_color;
 #endif
     return out;
 
