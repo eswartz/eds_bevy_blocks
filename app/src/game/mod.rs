@@ -994,8 +994,8 @@ pub struct OrigGravityScale{
 fn report_raycast(
     gui_area: GuiAreaMarkerLocator,
     mut info_q: Query<(&mut Text, &mut TextColor, &mut Visibility)>,
-    highlighting_mode: Res<HighlightingMode>,
-    crosshair_target: Res<CrosshairTargets>,
+    highlighting_mode: Option<Res<HighlightingMode>>,
+    crosshair_target: If<Res<CrosshairTargets>>,
     names_q: Query<Option<&Name>>,
     gui_state: Res<GuiState>,
     mut last_target_desc: Local<(CrosshairTargets, String)>,
@@ -1006,10 +1006,10 @@ fn report_raycast(
 
     gui_area.with_first(GuiAreaMarker::InfoArea, |ent| {
         let Ok((ref mut text, ref mut color, ref mut visibility)) = info_q.get_mut(ent) else { return };
-        if !highlighting_mode.is_disabled()
+        if highlighting_mode.as_ref().is_none_or(|highlighting_mode| !highlighting_mode.is_disabled())
         && gui_state.enabled
         && !crosshair_target.targets.is_empty()
-        && let Some(message) = if last_target_desc.0 == *crosshair_target {
+        && let Some(message) = if last_target_desc.0 == **crosshair_target {
                 // Same as last tick.
                 Some(last_target_desc.1.clone())
             } else {
