@@ -16,6 +16,7 @@ use avian3d::math::*;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
 use bevy::gltf::GltfMesh;
+use bevy::gltf::GltfMaterial;
 use bevy::mesh::*;
 use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::platform::collections::HashMap;
@@ -40,9 +41,8 @@ use bevy::ecs::world::CommandQueue;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy::{
-    scene::SceneInstanceReady,
-};
+use bevy::world_serialization::WorldInstanceReady;
+
 
 use eds_bevy_common::midi_synth::prelude::*;
 
@@ -425,7 +425,7 @@ pub(crate) struct BaseEntity(pub Entity, pub Transform);
 pub(crate) struct InHand;
 
 fn on_scene_ready(
-    ready: On<SceneInstanceReady>,
+    ready: On<WorldInstanceReady>,
     children_q: Query<&Children>,
     meshes_q: Query<&Mesh3d, Without<CollisionLayers>>,
     mut commands: Commands,
@@ -688,10 +688,10 @@ pub(crate) fn spawn_level(
     commands
         .spawn((
             DespawnOnExit(GameplayState::Playing),
-            SceneRoot(level.scene.clone()),
+            WorldAssetRoot(level.scene.clone()),
             ChildOf(world.0),
         ))
-        .observe(|_event: On<SceneInstanceReady>, mut commands: Commands,| {
+        .observe(|_event: On<WorldInstanceReady>, mut commands: Commands,| {
             commands.set_state(GameplayState::Playing);
         })
     ;
@@ -879,8 +879,8 @@ fn show_power_bar(
                     ..default()
                 },
                 TextFont {
-                    font: assets.std_ui.clone(),
-                    font_size: 24.0,
+                    font: assets.std_ui.clone().into(),
+                    font_size: FontSize::Px(24.0),
                     weight: FontWeight::BOLD,
                     .. default()
                 },
@@ -1060,6 +1060,7 @@ fn wake_up_spawned(
 pub fn load_cube_model(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     gltf_meshes: &Res<Assets<GltfMesh>>,
+    gltf_mats: &Res<Assets<GltfMaterial>>,
     model_assets: &Res<ModelAssets>,
 ) -> Result<(Handle<Mesh>, Handle<StandardMaterial>)> {
     // Spawn cube stacks
@@ -1067,8 +1068,9 @@ pub fn load_cube_model(
 
     let prim = &gmesh.primitives[0];
     let cube_mesh = prim.mesh.clone();
-    let std_mat = if let Some(mat) = &prim.material {
-        materials.get(mat).ok_or(format!("could not load cube material"))?.clone()
+    let std_mat = if let Some(mat) = &prim.material
+        && let Some(mat) = gltf_mats.get(mat) {
+        standard_material_from_gltf_material(mat)
     } else {
         Into::<StandardMaterial>::into(Color::WHITE)
     };

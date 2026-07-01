@@ -34,19 +34,19 @@ pub struct FxAssets {
 #[derive(Resource, AssetCollection)]
 pub struct MapAssets {
     #[asset(path = "maps/level_0.glb#Scene0")]
-    pub level_0: Handle<Scene>,
+    pub level_0: Handle<WorldAsset>,
     #[asset(path = "maps/level_1.glb#Scene0")]
-    pub level_1: Handle<Scene>,
+    pub level_1: Handle<WorldAsset>,
     #[asset(path = "maps/level_2.glb#Scene0")]
-    pub level_2: Handle<Scene>,
+    pub level_2: Handle<WorldAsset>,
     #[asset(path = "maps/level_3.glb#Scene0")]
-    pub level_3: Handle<Scene>,
+    pub level_3: Handle<WorldAsset>,
     #[asset(path = "maps/level_4.glb#Scene0")]
-    pub level_4: Handle<Scene>,
+    pub level_4: Handle<WorldAsset>,
     #[asset(path = "maps/level_5.glb#Scene0")]
-    pub level_5: Handle<Scene>,
+    pub level_5: Handle<WorldAsset>,
     #[asset(path = "maps/level_6.glb#Scene0")]
-    pub level_6: Handle<Scene>,
+    pub level_6: Handle<WorldAsset>,
 }
 
 #[derive(Resource, AssetCollection)]

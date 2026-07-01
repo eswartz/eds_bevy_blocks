@@ -3,6 +3,7 @@ use crate::game::BoomMass;
 use crate::game::Cube;
 use crate::game::GameScript;
 use crate::game::load_cube_model;
+use bevy::gltf::GltfMaterial;
 use bevy::gltf::GltfMesh;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
@@ -49,6 +50,7 @@ fn on_level_loaded(
     script_assets: Res<ScriptAssets>,
 
     gltf_meshes: Res<Assets<GltfMesh>>,
+    gltf_mats: Res<Assets<GltfMaterial>>,
     model_assets: Res<ModelAssets>,
 ) -> Result {
 
@@ -114,7 +116,7 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &model_assets)?;
+    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &gltf_mats, &model_assets)?;
     let std_mat = materials.get(&mat).ok_or(format!("failed to load material"))?.clone();
 
     let mut rng = rand::rng();

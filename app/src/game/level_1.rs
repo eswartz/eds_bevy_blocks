@@ -4,6 +4,7 @@ use crate::game::Cube;
 use crate::game::OurMidiSynth;
 use crate::game::GameScript;
 use crate::game::load_cube_model;
+use bevy::gltf::GltfMaterial;
 use bevy::gltf::GltfMesh;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
@@ -48,6 +49,7 @@ fn on_level_loaded(
     world: Res<WorldMarkerEntity>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     gltf_meshes: Res<Assets<GltfMesh>>,
+    gltf_mats: Res<Assets<GltfMaterial>>,
 
     model_assets: Res<ModelAssets>,
 
@@ -81,7 +83,7 @@ fn on_level_loaded(
     };
 
     // Spawn cube stacks
-    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &model_assets)?;
+    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &gltf_mats, &model_assets)?;
     let std_mat = materials.get(&mat).ok_or(format!("failed to load material"))?.clone();
 
     let collider = Collider::cuboid(1.0, 1.0, 1.0);

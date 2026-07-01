@@ -1,17 +1,18 @@
 
 #[cfg(feature = "solari")]
 use bevy::camera::CameraMainTextureUsages;
-use bevy::render::experimental::occlusion_culling::OcclusionCulling;
+#[cfg(not(target_arch = "wasm32"))]
+use bevy::core_pipeline::oit::OrderIndependentTransparencySettings;
+use bevy::render::occlusion_culling::OcclusionCulling;
 use bevy_seedling::prelude::*;
 
 use bevy::camera::Exposure;
 use bevy::camera::visibility::RenderLayers;
-use bevy::core_pipeline::oit::OrderIndependentTransparencySettings;
 use bevy::core_pipeline::prepass::DepthPrepass;
 use bevy::prelude::*;
 use bevy::render::renderer::RenderAdapter;
 use bevy::render::renderer::RenderDevice;
-use bevy::render::view::Hdr;
+use bevy::camera::Hdr;
 
 use eds_bevy_common::*;
 
