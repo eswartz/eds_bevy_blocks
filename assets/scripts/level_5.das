@@ -64,7 +64,7 @@
     %img_data = NEW_SEQUENCE [`size, %imgsz, `format, `Rgba8Unorm, `params, %imgp]
     %img = SYSCALL `bevy_call_func, [`new_image, %img_data]
 
-    //%color = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1,  `blue, 1]
+    %color = NEW_SEQUENCE [`Srgba, `red, 2, `green, 2,  `blue, 2]
 
     // Spawn the billboard showing the image of the render.
     %img_ent = SYSCALL `bevy_spawn, [
@@ -75,10 +75,11 @@
 
         `offset, %pos,
 
-        `unlit, true,
+        //`unlit, true,
+        //`emissive, 0.05,
         //`double_sided, true,
         `cull_face, `None,
-        //`color, %color,
+        `color, %color,
 
         `shape, %shape,
         `rotation, %rot,

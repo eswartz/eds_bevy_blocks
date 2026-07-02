@@ -80,6 +80,9 @@ bevy = { version = "0.19", default-features = false, features = [
     "default_app", "default_platform", "common_api", "scene",
 
     # Plus...
+    "x11",
+    "wayland",
+
     "bevy_dev_tools",
     "jpeg",
     "webp",
@@ -88,11 +91,8 @@ bevy = { version = "0.19", default-features = false, features = [
 
     "track_location",
     "asset_processor",
+
     "experimental_pbr_pcss",
-
-    "x11",
-    "wayland",
-
     "pbr_light_textures",
 ] }
 
