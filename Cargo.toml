@@ -88,6 +88,10 @@ bevy = { version = "0.18.0", default-features = false, features = [
 
     "ui",
 
+    # Plus...
+    "x11",
+    "wayland",
+
     "bevy_dev_tools",
     "jpeg",
     "webp",
@@ -96,11 +100,8 @@ bevy = { version = "0.18.0", default-features = false, features = [
 
     "track_location",
     "asset_processor",
+
     "experimental_pbr_pcss",
-
-    "x11",
-    "wayland",
-
     "pbr_light_textures",
     # "trace_tracy",        # from dev_native profile
 ] }
