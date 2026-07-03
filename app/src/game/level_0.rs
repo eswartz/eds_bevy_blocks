@@ -2,8 +2,6 @@ use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::Cube;
 use crate::game::GameScript;
-use crate::game::load_cube_model;
-use bevy::gltf::GltfMesh;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
 
@@ -47,8 +45,6 @@ fn on_level_loaded(
 
     scripting: Scripting::<GameScript>,
     script_assets: Res<ScriptAssets>,
-
-    gltf_meshes: Res<Assets<GltfMesh>>,
     model_assets: Res<ModelAssets>,
 ) -> Result {
 
@@ -114,10 +110,9 @@ fn on_level_loaded(
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &model_assets)?;
-    let std_mat = materials.get(&mat).ok_or(format!("failed to load material"))?.clone();
-
     let mut rng = rand::rng();
+
+    let std_mat = materials.get(&model_assets.cube_material).unwrap().clone();
 
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
     for x in -half_size..half_size {
@@ -145,8 +140,8 @@ fn on_level_loaded(
                         Cube,
                         Spawned,
                         CrosshairTargetable,
-                        Mesh3d(mesh.clone()),
-                        MeshMaterial3d(mat.clone()),
+                        Mesh3d(model_assets.cube.clone()),
+                        MeshMaterial3d(mat),
                         Transform::from_translation(position).with_scale(Vec3::splat(cube_size)),
                     ),
                     (

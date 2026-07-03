@@ -15,10 +15,8 @@ mod level_6;
 use avian3d::math::*;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
-use bevy::gltf::GltfMesh;
 use bevy::mesh::*;
 use bevy::pbr::{ExtendedMaterial, MaterialExtension};
-use bevy::pbr::gltf::standard_material_from_gltf_material;
 use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
@@ -29,7 +27,6 @@ use strum::{EnumIter, VariantArray};
 
 use std::time::Duration;
 
-use crate::assets::ModelAssets;
 use crate::game::bevy_funcs::register_funcs;
 use crate::game::gravity_sleep::GravitySleepPlugin;
 use crate::game::script_debug::ScriptDebugPlugin;
@@ -1055,27 +1052,6 @@ fn wake_up_spawned(
     for ent in sleep_q.iter() {
         commands.entity(ent).remove::<Sleeping>();
     }
-}
-
-
-pub fn load_cube_model(
-    materials: &mut ResMut<Assets<StandardMaterial>>,
-    gltf_meshes: &Res<Assets<GltfMesh>>,
-    model_assets: &Res<ModelAssets>,
-) -> Result<(Handle<Mesh>, Handle<StandardMaterial>)> {
-    // Spawn cube stacks
-    let gmesh = gltf_meshes.get(&model_assets.cube).ok_or(format!("could not load cube"))?;
-
-    let prim = &gmesh.primitives[0];
-    let cube_mesh = prim.mesh.clone();
-    let std_mat = if let Some(mat) = &prim.material {
-        materials.get(mat).ok_or(format!("could not load cube material"))?.clone()
-    } else {
-        Into::<StandardMaterial>::into(Color::WHITE)
-    };
-    let mat = materials.add(std_mat);
-
-    Ok((cube_mesh, mat))
 }
 
 fn cleanup_palette_materials(

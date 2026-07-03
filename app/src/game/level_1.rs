@@ -3,8 +3,6 @@ use crate::game::BoomMass;
 use crate::game::Cube;
 use crate::game::OurMidiSynth;
 use crate::game::GameScript;
-use crate::game::load_cube_model;
-use bevy::gltf::GltfMesh;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
 
@@ -47,10 +45,7 @@ fn on_level_loaded(
     mut commands: Commands,
     world: Res<WorldMarkerEntity>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    gltf_meshes: Res<Assets<GltfMesh>>,
-
     model_assets: Res<ModelAssets>,
-
     scripting: Scripting::<GameScript>,
     script_assets: Res<ScriptAssets>,
 ) -> Result {
@@ -81,9 +76,6 @@ fn on_level_loaded(
     };
 
     // Spawn cube stacks
-    let (mesh, mat) = load_cube_model(&mut materials, &gltf_meshes, &model_assets)?;
-    let std_mat = materials.get(&mat).ok_or(format!("failed to load material"))?.clone();
-
     let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
     let cube_gap = if let Some(v) = runtime.get_struct_value(&script_module, "cube_gap")
@@ -143,6 +135,8 @@ fn on_level_loaded(
     let axis_scale = Vec3::new(cube_size + cube_gap, cube_size + cube_gap, cube_size + cube_gap);
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
 
+    let std_mat = materials.get(&model_assets.cube_material).unwrap().clone();
+
     let mut rng = rand::rng();
     for x in -half_size..half_size {
         for y in 0..half_size * 2 {
@@ -165,8 +159,8 @@ fn on_level_loaded(
                         Cube,
                         Spawned,
                         CrosshairTargetable,
-                        Mesh3d(mesh.clone()),
-                        MeshMaterial3d(mat.clone()),
+                        Mesh3d(model_assets.cube.clone()),
+                        MeshMaterial3d(mat),
                         Transform::from_translation(position).with_scale(Vec3::splat(cube_size)),
                     ),
                     (
