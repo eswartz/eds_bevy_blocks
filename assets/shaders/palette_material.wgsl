@@ -117,12 +117,11 @@ fn fragment(
 
     out.color = apply_pbr_lighting(pbr_input);
 
-    //let tex_dim = textureDimensions(base_color_texture);
-    //let texel_coord = vec2<u32>(tag % tex_dim.x, tag / tex_dim.x);
-    //out.color = textureLoad(base_color_texture, texel_coord, 0);
-
-    let c = f32(tag & 0xff ^ ((tag & 0x2) >> 1)) / 256.0;
+    let c = f32((tag & 0xff) ^ ((tag & 0x2) >> 1)) / 256.0;
     let palette_color = vec4<f32>(c, c, c, 1.0);
+
+    // // Turn off PBR?
+    //out.color = vec4(1.0);
 
     out.color *= palette_color;
 #endif

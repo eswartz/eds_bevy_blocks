@@ -1,4 +1,3 @@
-use bevy::gltf::GltfMesh;
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
 use fedry_bevy_plugin::asset::ScriptModule;
@@ -51,10 +50,10 @@ pub struct MapAssets {
 
 #[derive(Resource, AssetCollection)]
 pub struct ModelAssets {
-    #[asset(path = "models/cube.glb#Mesh0")]
-    pub cube: Handle<GltfMesh>,
-    // #[asset(path = "models/tile.glb#Mesh0")]
-    // pub tile: Handle<GltfMesh>,
+    #[asset(path = "models/cube.glb#Mesh0/Primitive0")]
+    pub cube: Handle<Mesh>,
+    #[asset(path = "models/cube.glb#Material0/std")]
+    pub cube_material: Handle<StandardMaterial>,
 }
 
 #[derive(Resource, AssetCollection)]

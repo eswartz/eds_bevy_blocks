@@ -43,8 +43,8 @@
 
     // Note: don't try to use alpha here, else we really slow down from OIT sorting!
     %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 1]
-    //%shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
-    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
+    %shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
+    //%shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
     //%info =  NEW_SEQUENCE [`subdivisions, 2]
     %info =  NEW_SEQUENCE []
     %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
@@ -94,11 +94,7 @@ x_step:
 
         `offset, %pos,
 
-        //`color, %color_enum,
-        `unlit, true,
-        //`double_sided, true,
         `cull_face, `None,
-        //`color_texture, "textures/palette.png",
 
         `shape, %shape,
         //`rotation, %rot,
@@ -176,7 +172,7 @@ exit:
         //`grid_units: 256,   // too many, but manageable
         //`grid_units: 512, // too too many
 
-        `look_at_player: true,
+        `look_at_player: false,
         `look_at_player_delay_secs: 1.0,
     ]
 
