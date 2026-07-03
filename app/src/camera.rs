@@ -1,9 +1,8 @@
 
 #[cfg(feature = "solari")]
 use bevy::camera::CameraMainTextureUsages;
-#[cfg(not(target_arch = "wasm32"))]
-use bevy::core_pipeline::oit::OrderIndependentTransparencySettings;
 use bevy::render::occlusion_culling::OcclusionCulling;
+use bevy::render::view::ColorGrading;
 use bevy_seedling::prelude::*;
 
 use bevy::camera::Exposure;
@@ -112,8 +111,7 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
                     ..default()
                 }),
 
-                #[cfg(not(target_arch = "wasm32"))]
-                OrderIndependentTransparencySettings::default(),
+                // [video::VideoSettings] updates this later.
                 Msaa::Off,
 
                 DepthPrepass,
@@ -175,8 +173,10 @@ fn configure_viewer_camera(mut ent_commands: EntityCommands, use_clustered: bool
                 ..default()
             }),
 
+            // must match WorldCamera
             Hdr,
-            Msaa::Off,  // must match WorldCamera
+            // [video::VideoSettings] updates this later.
+            Msaa::Off,
         ),
     ));
 
@@ -191,6 +191,7 @@ fn configure_viewer_camera(mut ent_commands: EntityCommands, use_clustered: bool
 
     if !use_clustered {
         // ent_commands.insert(DepthPrepass);
+            ent_commands.insert(ColorGrading::default());
     }
 }
 

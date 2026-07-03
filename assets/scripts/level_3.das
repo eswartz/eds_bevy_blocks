@@ -116,7 +116,7 @@ x2f:
     %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
     %grav_scale = NEW_SEQUENCE [0.125]
 
-    %new = SYSCALL `bevy_spawn, [
+    %pt_ent = SYSCALL `bevy_spawn, [
         `parent, %ent,
 
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
@@ -125,6 +125,34 @@ x2f:
         `scale, %size,
         // Rotation is mapped to bevy_transform::components::transform::Transform.rotation
         `rotation, %rot,
+
+        `rigid_body, `Dynamic,
+        //`rigid_body, `Kinematic,
+        `collider_shape, %collider_shape,
+        `collider_scale, %collider_scale,
+
+        `mass, %mass,
+        `friction, %friction,
+        `Restitution, %rest,
+        `GravityScale, %grav_scale,
+
+        `collider_shape, %shape,
+
+        // Why not!
+        //'bevy_light::spot_light::SpotLight', %spot_light,
+        'SpotLight', %spot_light,
+        'SpotLightTexture', %spot_light_tex,
+        //'bevy_light::point_light::PointLight', %point_light,
+        //'DirectionalLight', %dir_light,
+        //'DirectionalLightTexture', %dir_light_tex,
+        //'PointLight', %point_light,
+        //'PointLightTexture', %pt_light_tex,
+
+        `Name, `LIGHT!,
+    ]
+
+    %new = SYSCALL `bevy_spawn, [
+        `parent, %pt_ent,
 
         `color, %color_enum,
         //`normal_map, `textures/detail_normal.webp,
@@ -136,40 +164,14 @@ x2f:
         `alpha_mode, `Blend,
         `clearcoat, 0.5,
 
-        `rigid_body, `Dynamic,
-        //`rigid_body, `Kinematic,
-
         `shape, %shape,
-        `collider_shape, %collider_shape,
-        `collider_scale, %collider_scale,
-
-        `mass, %mass,
-        `friction, %friction,
 
         //`CrosshairTargetable, nil,
 
         // needed to avoid losing lights at camera edges
         //`NoFrustumCulling, nil,
 
-        `Restitution, %rest,
-
-        `GravityScale, %grav_scale,
-
         `Name, "BALL!",
-    ]
-
-    %pt_ent = SYSCALL `bevy_spawn, [
-        `parent, %new,
-
-        // Why not!
-        //'bevy_light::spot_light::SpotLight', %spot_light,
-        'SpotLight', %spot_light,
-        'SpotLightTexture', %spot_light_tex,
-        //'bevy_light::point_light::PointLight', %point_light,
-        //'DirectionalLight', %dir_light,
-        //'DirectionalLightTexture', %dir_light_tex,
-        //'PointLight', %point_light,
-        //'PointLightTexture', %pt_light_tex,
     ]
 
     //SYSCALL `delay, [0.125]
