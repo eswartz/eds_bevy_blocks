@@ -101,7 +101,7 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "track_location",
     "asset_processor",
 
-    "experimental_pbr_pcss",
+    # "experimental_pbr_pcss",
     "pbr_light_textures",
     # "trace_tracy",        # from dev_native profile
 ] }

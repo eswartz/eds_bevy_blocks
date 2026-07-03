@@ -18,6 +18,7 @@
     %range_size: CntF = LOAD %data, `range_size, true
     %depth_size: RealF = LOAD %data, `depth_size, true
     %look_at_player: Bool = LOAD %data, `look_at_player, true
+    %look_at_player_delay_secs: RealF = LOAD %data, `look_at_player_delay_secs, true
 
     // World grid position
     %gridcx = COPY 0.0
@@ -119,21 +120,14 @@ x_step:
     %ci: RealF = MUL %y, %cellsz
     %ci: RealF = ADD %ci, %cy
 
-    %data = NEW_STRUCT [
-        `cr: %cr,
-        `ci: %ci,
-        `zr: 0.0,
-        `zi: 0.0,
-        `iters: 0,
-        `max_iters: %max_iters,
-        `range_min: %range_min,
-        `range_size: %range_size,
-        `depth_size: %depth_size,
-        `depth: 8.0,
-        `look_at_player: %look_at_player,
-
-        `pos: %pos,
-    ]
+    %data = SYS_CALL `clone, [%data]
+    STORE %data, `cr, %cr
+    STORE %data, `ci, %ci
+    STORE %data, `zr, 0.0
+    STORE %data, `zi, 0.0
+    STORE %data, `iters, 0
+    STORE %data, `depth, 8.0
+    STORE %data, `pos, %pos
     //SYSCALL `print, [%data, "\n"]
 
     // Package ScriptCreationInfo data.
@@ -176,13 +170,14 @@ exit:
         // `sz: 0.0000001,
 
         //`grid_units: 32,
-        `grid_units: 64,
+        //`grid_units: 64,
         `grid_units: 128,
         //`grid_units: 192,
         //`grid_units: 256,   // too many, but manageable
         //`grid_units: 512, // too too many
 
         `look_at_player: true,
+        `look_at_player_delay_secs: 1.0,
     ]
 
     %module = NEW_STRUCT [
