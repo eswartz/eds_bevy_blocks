@@ -21,10 +21,10 @@
     %gridsz_h = DIV %gridsz, 2.0
 
     // Pixel grid unit count
-    //%grid_units = COPY 256
+    %grid_units = COPY 256
     //%grid_units = COPY 192
     //%grid_units = COPY 64
-    %grid_units = COPY 512
+    //%grid_units = COPY 512
     //%grid_units = COPY 1024
     //%grid_units = COPY 128
 
