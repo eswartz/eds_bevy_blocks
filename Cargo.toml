@@ -78,6 +78,7 @@ game = { path = "game" }
 
 bevy = { version = "0.19", default-features = false, features = [
     "default_app", "default_platform", "common_api", "scene",
+    "system_font_discovery",
 
     # Plus...
     "x11",
