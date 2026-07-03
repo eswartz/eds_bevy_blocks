@@ -63,9 +63,10 @@ fn main() -> AppExit {
     let mut app = App::new();
     app
         .insert_resource(WinitSettings {
-            focused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f32(
-                1.0 / 120.0,
-            )),
+            focused_mode: bevy::winit::UpdateMode::Continuous,
+            // focused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f32(
+            //     1.0 / 120.0,
+            // )),
             unfocused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f32(
                 1.0 / 15.0,
             )),
