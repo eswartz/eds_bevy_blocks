@@ -7,11 +7,6 @@
     %ent = ARG 1
     %data = ARG 2
 
-    // number of entities to chug through data.
-    //%num_workers = COPY 1024
-    //%num_workers = COPY 128
-    %num_workers = COPY 256
-
     // World grid position
     %gridcx = COPY 0.0
     %gridcy = COPY 4.0
@@ -20,30 +15,15 @@
 
     %gridsz_h = DIV %gridsz, 2.0
 
+    %num_workers: CntF = LOAD %data, `num_workers
+
     // Pixel grid unit count
-    %grid_units = COPY 256
-    //%grid_units = COPY 192
-    //%grid_units = COPY 64
-    //%grid_units = COPY 512
-    //%grid_units = COPY 1024
-    //%grid_units = COPY 128
+    %grid_units: CntF = LOAD %data, `grid_units
 
-    // Default computation center
-    %cx = COPY 0.0
-    %cy = COPY 0.0
-    %sz = DIV 4.0, 1.0
-
-    // Zoom to specific spot
-    %cx = COPY 0.390018071300935778312029
-    %cx = COPY 0.390014071300505778312029
-    %cy = COPY 0.138320184041392651089585
-    %sz = DIV 1.0, 1024.0
-    //%sz = COPY 1.0
-    %sz = DIV %sz, 1024.0
-    %sz = DIV %sz, 1048576.0
-    //%sz = DIV 1.0, 2.0
-
-    %max_iters = COPY 1500
+    %cx: RealF = LOAD %data, `cx
+    %cy: RealF = LOAD %data, `cy
+    %sz: RealF = LOAD %data, `sz
+    %max_iters: CntF = LOAD %data, `max_iters
 
     %cell_sz = DIV %sz, %grid_units
 
@@ -182,9 +162,37 @@ exit:
 
 ///////
 
-    %module = NEW_STRUCT [
-        `on_init: %on_init,
+%sz = DIV 1.0, 1024.0
+%sz = DIV %sz, 1048576.0
+%sz = DIV %sz, 1024.0
 
-        `boom_mass: 100.0,
-    ]
-    RETURN %module
+%init_data = NEW_STRUCT [
+    // number of entities to chug through data.
+    //`num_workers: 1024,
+    //`num_workers: 128,
+    `num_workers: 256,
+
+    // Pixel grid unit count
+    `grid_units: 64,
+    //`grid_units: 256,
+    //`grid_units: 192,
+    //`grid_units: 128,
+
+    `cx: 0.390018071300935778312029,
+    `cy: 0.138320184041392651089585,
+    //`cx: -0.743_643_900_055,
+    //`cy: 0.131_828_895_901,
+
+    `sz: %sz,
+
+    `max_iters: 2500,
+]
+
+%module = NEW_STRUCT [
+    `on_init: %on_init,
+
+    `boom_mass: 100.0,
+
+    `init_data: %init_data,
+]
+RETURN %module
