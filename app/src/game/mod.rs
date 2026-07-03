@@ -19,6 +19,7 @@ use bevy::gltf::GltfMesh;
 use bevy::gltf::GltfMaterial;
 use bevy::mesh::*;
 use bevy::pbr::{ExtendedMaterial, MaterialExtension};
+use bevy::pbr::gltf::standard_material_from_gltf_material;
 use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;

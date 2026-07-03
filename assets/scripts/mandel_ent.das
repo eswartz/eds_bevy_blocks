@@ -155,7 +155,8 @@ skip:
 
     %la = SYSCALL `bevy_call_func, [%ent, `look_at, %pent, 0.5]
 
-    SYSCALL `delay, [0.05]
+    %delay: RealF = LOAD %data, `look_at_player_delay_secs, true
+    SYSCALL `delay, [%delay]
 //    //SYSCALL `print, [%pent, " @", %ppos, "=", %la, "\n"]
 
     RETURN nil

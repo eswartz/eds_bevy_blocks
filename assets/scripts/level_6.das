@@ -8,8 +8,13 @@
 
     %pos = NEW_STRUCT [`x: 0, `y: 2, `z: 0]
 
+    %mesh_mat = NEW_STRUCT [
+        `mesh: "models/smoodge.glb#Mesh0/Primitive0",
+        `material: "models/smoodge.glb#Material0/std",
+    ]
     %model = NEW_SEQUENCE [
-        `Model, "models/smoodge.glb#Mesh0",
+        `MeshMaterial, %mesh_mat,
+        //`Model, "models/smoodge.glb#Scene0",
     ]
     %collider_shape = NEW_SEQUENCE [`Cube, x, 1.0, y, 1.0, z, 1.0]
     %top_ent = SYSCALL `bevy_spawn, [
@@ -260,6 +265,7 @@ ignore:
         //`model: "models/smoodge.glb#Scene0",
         //`grid_units: 4,
         `grid_units: 20,
+        //`grid_units: 1,
         `boom_mass: 5000.0,
         `block_mass: 0.5,
     ]

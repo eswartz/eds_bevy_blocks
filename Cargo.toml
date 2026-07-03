@@ -93,7 +93,7 @@ bevy = { version = "0.19", default-features = false, features = [
     "track_location",
     "asset_processor",
 
-    "experimental_pbr_pcss",
+    # "experimental_pbr_pcss",
     "pbr_light_textures",
 ] }
 
