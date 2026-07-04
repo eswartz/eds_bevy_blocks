@@ -280,6 +280,7 @@ pub struct SpawnPaletteMaterial;
 
 pub(crate) fn handle_palette(
     mut commands: Commands,
+    // assets: Res<AssetServer>,
     mut pal_mats: ResMut<Assets<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>>,
     mut pal_mat_cache: ResMut<PaletteMaterialHandles>,
 

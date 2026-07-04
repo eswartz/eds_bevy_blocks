@@ -11,7 +11,7 @@
     //SYSCALL `delay, [%v]
 
     //SYSCALL `delay, [1.0]
-    SYSCALL `bevy_call_func, [%ent, `set_palette_material]
+    //SYSCALL `bevy_call_func, [%ent, `set_palette_material]
     //SYSCALL `print, ["New block: ", %ent, "\n"]
 
     %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]

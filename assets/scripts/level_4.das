@@ -90,7 +90,7 @@ x_step:
 
     %new = SYSCALL `bevy_spawn, [
         `parent, %ent,
-        `scriptable, true,
+        //`scriptable, true,
 
         `offset, %pos,
 
@@ -106,6 +106,8 @@ x_step:
 
         // This is used to color the block after it's computed.
         `MeshTag, %tag,
+
+        `SpawnPaletteMaterial, nil,
     ]
 
     //SYSCALL `print, ["making ", %name, " -> ", %new, "\n"]
