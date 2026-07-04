@@ -281,6 +281,7 @@ pub struct SpawnPaletteMaterial;
 
 pub(crate) fn handle_palette(
     mut commands: Commands,
+    // assets: Res<AssetServer>,
     mut pal_mats: ResMut<Assets<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>>,
     mut pal_mat_cache: ResMut<PaletteMaterialHandles>,
 
@@ -309,8 +310,11 @@ pub(crate) fn handle_palette(
                 })
             });
 
-        ent_commands.remove::<SpawnPaletteMaterial>();
-        ent_commands.remove::<MeshMaterial3d<StandardMaterial>>();
+        ent_commands.remove::<(
+            SpawnPaletteMaterial,
+            MeshMaterial3d<StandardMaterial>,
+        )>();
+
         ent_commands.insert(MeshMaterial3d(pal_mat.clone()));
     }
 
