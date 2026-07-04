@@ -174,7 +174,7 @@ exit:
 
     // Pixel grid unit count
     `grid_units: 64,
-    //`grid_units: 256,
+    `grid_units: 256,
     //`grid_units: 192,
     //`grid_units: 128,
 

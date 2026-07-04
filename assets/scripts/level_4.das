@@ -169,8 +169,8 @@ exit:
 
         //`grid_units: 32,
         //`grid_units: 64,
-        `grid_units: 128,
-        //`grid_units: 192,
+        //`grid_units: 128,
+        `grid_units: 192,
         //`grid_units: 256,   // too many, but manageable
         //`grid_units: 512, // too too many
 

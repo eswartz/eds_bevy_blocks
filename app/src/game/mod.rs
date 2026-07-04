@@ -309,11 +309,8 @@ pub(crate) fn handle_palette(
                 })
             });
 
-        ent_commands.remove::<(
-            SpawnPaletteMaterial,
-            MeshMaterial3d<StandardMaterial>,
-        )>();
-
+        ent_commands.remove::<SpawnPaletteMaterial>();
+        ent_commands.remove::<MeshMaterial3d<StandardMaterial>>();
         ent_commands.insert(MeshMaterial3d(pal_mat.clone()));
     }
 
