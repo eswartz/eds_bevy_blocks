@@ -124,8 +124,8 @@ fn on_enter_main_menu(
         DespawnOnReset(OverlayState::MainMenu),
         Text2d::new(&product_name.0),
         TextFont {
-            font_size: 128.0,
-            font: gui_assets.std_ui.clone(),
+            font_size: FontSize::Px(128.0),
+            font: gui_assets.std_ui.clone().into(),
             ..default()
         },
         Text2dShadow {

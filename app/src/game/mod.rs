@@ -38,9 +38,8 @@ use bevy::ecs::world::CommandQueue;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy::{
-    scene::SceneInstanceReady,
-};
+use bevy::world_serialization::WorldInstanceReady;
+
 
 use eds_bevy_common::midi_synth::prelude::*;
 
@@ -310,11 +309,8 @@ pub(crate) fn handle_palette(
                 })
             });
 
-        ent_commands.remove::<(
-            SpawnPaletteMaterial,
-            MeshMaterial3d<StandardMaterial>,
-        )>();
-
+        ent_commands.remove::<SpawnPaletteMaterial>();
+        ent_commands.remove::<MeshMaterial3d<StandardMaterial>>();
         ent_commands.insert(MeshMaterial3d(pal_mat.clone()));
     }
 
@@ -424,7 +420,7 @@ pub(crate) struct BaseEntity(pub Entity, pub Transform);
 pub(crate) struct InHand;
 
 fn on_scene_ready(
-    ready: On<SceneInstanceReady>,
+    ready: On<WorldInstanceReady>,
     children_q: Query<&Children>,
     meshes_q: Query<&Mesh3d, Without<CollisionLayers>>,
     mut commands: Commands,
@@ -578,7 +574,7 @@ fn add_raytracing_to_meshes(
                 .insert(RaytracingMesh3d(mesh_handle.clone()));
 
             // Ensure meshes are Solari compatible
-            let mesh = meshes.get_mut(mesh_handle).unwrap();
+            let mut mesh = meshes.get_mut(mesh_handle).unwrap();
             if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
                 let vertex_count = mesh.count_vertices();
                 mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
@@ -687,10 +683,10 @@ pub(crate) fn spawn_level(
     commands
         .spawn((
             DespawnOnExit(GameplayState::Playing),
-            SceneRoot(level.scene.clone()),
+            WorldAssetRoot(level.scene.clone()),
             ChildOf(world.0),
         ))
-        .observe(|_event: On<SceneInstanceReady>, mut commands: Commands,| {
+        .observe(|_event: On<WorldInstanceReady>, mut commands: Commands,| {
             commands.set_state(GameplayState::Playing);
         })
     ;
@@ -878,8 +874,8 @@ fn show_power_bar(
                     ..default()
                 },
                 TextFont {
-                    font: assets.std_ui.clone(),
-                    font_size: 24.0,
+                    font: assets.std_ui.clone().into(),
+                    font_size: FontSize::Px(24.0),
                     weight: FontWeight::BOLD,
                     .. default()
                 },

@@ -117,7 +117,7 @@ fn main() -> AppExit {
         ))
 
         .add_plugins(PhysicsPlugins::default()
-            // .with_collision_hooks::<GeometryCollisionHooks>()
+            .with_collision_hooks::<GeometryCollisionHooks>()
             .build()
             // .disable::<IslandPlugin>()
             // .disable::<IslandSleepingPlugin>()
@@ -346,8 +346,8 @@ pub(crate) fn setup_game_over_screen(
                 "You Won!",
             ),
             TextFont {
-                font: font.clone(),
-                font_size: 32.0,
+                font: font.clone().into(),
+                font_size: FontSize::Px(32.0),
                 .. default()
             },
             TextColor(Color::WHITE.with_alpha(0.5)),
@@ -357,8 +357,8 @@ pub(crate) fn setup_game_over_screen(
                 "\u{a0}",
             ),
             TextFont {
-                font: font.clone(),
-                font_size: 32.0,
+                font: font.clone().into(),
+                font_size: FontSize::Px(32.0),
                 .. default()
             },
             TextColor(Color::WHITE.with_alpha(0.5)),
@@ -368,8 +368,8 @@ pub(crate) fn setup_game_over_screen(
                 "Thanks for playing!",
             ),
             TextFont {
-                font: font.clone(),
-                font_size: 32.0,
+                font: font.clone().into(),
+                font_size: FontSize::Px(32.0),
                 .. default()
             },
             TextColor(Color::WHITE.with_alpha(0.5)),

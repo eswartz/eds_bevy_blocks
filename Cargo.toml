@@ -76,17 +76,13 @@ fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git", features =
 
 game = { path = "game" }
 
-bevy = { version = "0.18.0", default-features = false, features = [
-    # 3d without sound.
-    "default_app",
-    "default_platform",
-    "3d_api",
-    "3d_bevy_render",
-    "scene",
-    # "audio",
-    "picking",
+bevy = { version = "0.19", default-features = false, features = [
+    "default_app", "default_platform", "common_api", "scene",
+    "system_font_discovery",
 
-    "ui",
+    # Plus...
+    "x11",
+    "wayland",
 
     # Plus...
     "x11",
@@ -103,18 +99,20 @@ bevy = { version = "0.18.0", default-features = false, features = [
 
     # "experimental_pbr_pcss",
     "pbr_light_textures",
-    # "trace_tracy",        # from dev_native profile
 ] }
 
 # Make a reference so we can override it via patch.crates-io in dependent crates.
 gltf = { version = "*" }
 gilrs = { version = "*" }
 
+wgpu = "29"
+rand = { version = "0.10.0" }
 
-bevy_skein = "0.5.0"
+bevy-inspector-egui = { version = "0.37", default-features = false, features = ["bevy", "bevy_gizmos", "egui_clipboard" ] } #, "documentation"] } #"highlight_changes"] }
+bevy_egui = { version = "0.40", features = ["render", "serde"] }
+egui = { version = "0.34", features = ["bytemuck"] }
 
-# avian3d = { version = "0.6.0", default-features = false, features = [
-avian3d = { git = "https://github.com/Jondolf/avian.git", rev = "442af791512dfc369b41bd8718878df7e0ab26dd", default-features = false, features = [
+avian3d = { version = "0.7.0", default-features = false, features = [
 	"3d",
     "default-collider",
 	"collider-from-mesh",
@@ -129,14 +127,11 @@ avian3d = { git = "https://github.com/Jondolf/avian.git", rev = "442af791512dfc3
     "serialize",
     # "enhanced-determinism",
 ] }
+bevy_enhanced_input = { version = "0.26", features = ["reflect", "state", "serialize"] }
 
-bevy_egui = { version = "0.39", features = ["render", "serde"] }
-bevy-inspector-egui = { version = "0.36", default-features = false, features = ["bevy", "bevy_gizmos", "egui_clipboard" ] } #, "documentation"] } #"highlight_changes"] }
-egui = { version = "0.33", features = ["bytemuck"] }
+firewheel = { git = "https://github.com/CorvusPrudens/Firewheel", branch = "main" }
 
-firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "b8164f85" }
-
-bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", optional = false, default-features = false, features = [
+bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", branch = "symphonia-update", default-features = false, features = [
     "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
     "cpal",
@@ -152,28 +147,23 @@ bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", op
     "effects",
 ] }
 
-# Latest version that works with bevy_seedling
-#wasm-bindgen = { version = "0.2.120" }
-# web-thread = { version = "0.2" }
-# wasm_thread = { version = "0.3" }
+bevy_skein = { version = "0.6.0" }
 
-bevy_enhanced_input = { version = "0.25", features = ["reflect", "state", "serialize"] }
-
-bevy_asset_loader = { version = "0.25.0", features = [
+bevy_asset_loader = { version = "0.27.0", features = [
     "2d",
     "3d",
     # "progress_tracking",
 ] }
 
-bevy_mod_outline = { version = "0.12" }
-bevy_tweening = "0.15.0"
+#bevy_mod_outline = { version = "0.13", optional = true }
+bevy_mod_outline = { git = "https://github.com/eswartz/bevy_mod_outline-fork.git" }
+
+bevy_tweening = "0.16.0"
 
 serde = { version = "1.0", features = ["alloc", "derive", "serde_derive"] }
-rand = { version = "0.10.0" }
 
 getrandom = { version = "0.4.1", features = ["wasm_js"]}
 image = { version = "0.25", default-features = false }
-wgpu = "27.0.1"
 bytemuck = "1.25.0"
 anyhow = "1.0.101"
 

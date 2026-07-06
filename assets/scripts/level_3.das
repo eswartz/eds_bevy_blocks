@@ -83,7 +83,7 @@ x2f:
         radius: 5.0,
         //outer_angle: 1.0,
         //inner_angle: 0.25,
-        shadows_enabled: false,
+        shadow_maps_enabled: false,
     ]
     %spot_light_tex = NEW_STRUCT [
         image: %light_img,
@@ -95,7 +95,7 @@ x2f:
         intensity: %intense,
         range: 50.0,
         radius: 100.0,
-        shadows_enabled: false,
+        shadow_maps_enabled: false,
     ]
     %pt_light_tex = NEW_STRUCT [
         image: %light_img,
@@ -106,7 +106,7 @@ x2f:
     %intense = ADD %intense, 100
     %dir_light = NEW_STRUCT [
         illuminance: %intense,
-        shadows_enabled: false,
+        shadow_maps_enabled: false,
     ]
     %dir_light_tex = NEW_STRUCT [
         image: "textures/spiral_1.webp",
@@ -168,17 +168,8 @@ x2f:
 
         //`CrosshairTargetable, nil,
 
-        // Why not!
-        //'bevy_light::spot_light::SpotLight', %spot_light,
-        //'SpotLightTexture', %spot_light_tex,
-        //'bevy_light::point_light::PointLight', %point_light,
-        //'DirectionalLight', %dir_light,
-        //'DirectionalLightTexture', %dir_light_tex,
-        'PointLight', %point_light,
-        'PointLightTexture', %pt_light_tex,
-
-        // needed to avoid losing lights at camera edges
-        `NoFrustumCulling, nil,
+        // // needed to avoid losing lights at camera edges
+        // `NoFrustumCulling, nil,
 
         `Name, "BALL!",
     ]

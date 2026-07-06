@@ -10,7 +10,7 @@
 
     %mesh_mat = NEW_STRUCT [
         `mesh: "models/smoodge.glb#Mesh0/Primitive0",
-        `material: "models/smoodge.glb#Material0",
+        `material: "models/smoodge.glb#Material0/std",
     ]
     %model = NEW_SEQUENCE [
         `MeshMaterial, %mesh_mat,

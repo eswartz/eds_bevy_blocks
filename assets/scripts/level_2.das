@@ -41,8 +41,7 @@
     %angle: Tuple = NEW_SEQUENCE [`Deg, %angle]
 
     // Make a cuboid.
-
-    %mesh_mat = NEW_STRUCT [mesh: "models/tile.glb#Mesh0/Primitive0", material: "models/tile.glb#Material0"]
+    %mesh_mat = NEW_STRUCT [mesh: "models/tile.glb#Mesh0/Primitive0", material: "models/tile.glb#Material0/std"]
     %shape = NEW_SEQUENCE [`MeshMaterial, %mesh_mat]
     %collider_shape = NEW_SEQUENCE [`Cube, x, 1.0, y, 0.025, z, 1.0]
 
