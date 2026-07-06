@@ -134,7 +134,7 @@ done:
     IF_TRUE %look_at, delay_before_look_at, unload
 
 delay_before_look_at:
-    SYSCALL `delay, [1.0]
+    SYSCALL `delay, [5.0]
     JUMP skip
 
 unload:

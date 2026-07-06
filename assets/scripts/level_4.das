@@ -73,9 +73,8 @@ x_step:
     %wx = MUL %x, %unitsz_h
     %wx = ADD %wx, %gridcx
 
-    //%wy = DIV %y, %gridsy
     %wy = MUL %y, %unitsz_h
-    %wy: RealF = NEG %wy    // top-down
+    //%wy: RealF = NEG %wy    // top-down
     %wy = ADD %wy, %gridcy
 
     %pos = NEW_STRUCT [x: %wx, y: %wy, z: 1.0]
@@ -149,6 +148,10 @@ exit:
 
 ///////
 
+%sz = DIV 1.0, 1024.0
+%sz = DIV %sz, 1048576.0
+%sz = DIV %sz, 1024.0
+
     %init_data = NEW_STRUCT [
         `max_iters: 4000,
         `range_min: 0,
@@ -157,7 +160,8 @@ exit:
 
         `cx: 0.390018071300935778312029,
         `cy: 0.138320184041392651089585,
-        `sz: 0.0000005,
+//        `sz: 0.0000005,
+        `sz: %sz,
 
         // `cx: -0.74364643,
         // `cy: 0.1318054051,
@@ -166,12 +170,14 @@ exit:
         // `cx: -0.743_643_900_055,
         // `cy: 0.131_828_895_901,
         // `sz: 0.0000001,
+    `cx: 0.390018071300935778312029,
+    `cy: 0.138320184041392651089585,
 
         //`grid_units: 32,
         //`grid_units: 64,
         //`grid_units: 128,
-        `grid_units: 192,
-        //`grid_units: 256,   // too many, but manageable
+        //`grid_units: 192,
+        `grid_units: 256,   // too many, but manageable
         //`grid_units: 512, // too too many
 
         `look_at_player: false,
