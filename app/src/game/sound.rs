@@ -15,6 +15,7 @@ impl Plugin for SoundPlugin {
             .add_systems(Update,
                 (
                     spawn_noise_on_collision::<Cube>,
+                    spawn_noise_on_collision::<Projectile>,
                     // spawn_noise_on_collision::<Spawned>,
                 )
                     .run_if(not(is_paused))
@@ -103,19 +104,19 @@ fn spawn_noise_on_collision<T>(
                 .clone()
             } else if thing_thing {
                 (*[
-                    &fx.wood1a,
-                    &fx.wood1b,
-                    &fx.wood1c,
-                    &fx.wood1d,
+                    // &fx.wood1a,
+                    // &fx.wood1b,
+                    // &fx.wood1c,
+                    // &fx.wood1d,
 
-                    &fx.snap1b,
-                    &fx.snap1c,
-                    &fx.snap1d,
-                    &fx.snap1e,
-                    &fx.snap1f,
-                    &fx.snap1g,
-                    &fx.snap1h,
-                    &fx.snap1i,
+                    // &fx.snap1b,
+                    // &fx.snap1c,
+                    // &fx.snap1d,
+                    // &fx.snap1e,
+                    // &fx.snap1f,
+                    // &fx.snap1g,
+                    // &fx.snap1h,
+                    // &fx.snap1i,
                     &fx.snap1j,
                     &fx.snap1k,
                     &fx.snap1l,
@@ -125,6 +126,16 @@ fn spawn_noise_on_collision<T>(
                     &fx.snap1p,
                     &fx.snap1q,
                     &fx.snap1r,
+
+                    &fx.glass_scrape1a,
+                    &fx.glass_scrape1b,
+                    &fx.glass_scrape1c,
+                    &fx.glass_scrape1d,
+                    &fx.glass_scrape1e,
+                    &fx.glass_scrape1f,
+                    &fx.glass_scrape1g,
+                    &fx.glass_scrape1h,
+                    &fx.glass_scrape1i,
 
                     ]
                     .choose(&mut rng)
@@ -136,7 +147,17 @@ fn spawn_noise_on_collision<T>(
                     .unwrap())
                     .clone()
             } else {
-                (*[&fx.bump2, &fx.bump3]
+                (*[&fx.bump2, &fx.bump3,
+                    &fx.glass_scrape1a,
+                    &fx.glass_scrape1b,
+                    &fx.glass_scrape1c,
+                    &fx.glass_scrape1d,
+                    &fx.glass_scrape1e,
+                    &fx.glass_scrape1f,
+                    &fx.glass_scrape1g,
+                    &fx.glass_scrape1h,
+                    &fx.glass_scrape1i,
+                    ]
                     .choose(&mut rng)
                     .unwrap())
                     .clone()
