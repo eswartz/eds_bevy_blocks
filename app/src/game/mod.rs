@@ -397,12 +397,6 @@ impl AutoEndLevelTimer {
 #[type_path = "game"]
 pub(crate) struct Cube;
 
-/// A floor.
-#[derive(Component, Debug, Reflect, Default, Clone)]
-#[reflect(Component, Clone, Default)]
-#[type_path = "game"]
-pub(crate) struct Floor;
-
 // World state
 
 /// Our "base" object and its initial transform.

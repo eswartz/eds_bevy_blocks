@@ -14,3 +14,5 @@ TODO
 
 
 -- are there Bevy crates for creating tests from current states?
+
+-- Why doesn't edit of e.g. `mandel_ent.das` trigger asset events?

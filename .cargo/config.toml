@@ -39,8 +39,14 @@ codegen-backend = "cranelift"
 codegen-backend = "llvm"
 
 [patch.crates-io]
+# Project-level overrides for eds_bevy_common exposed dependencies.
 ## Support webp
 gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
 gilrs = { git = "https://gitlab.com/gilrs-project/gilrs.git", branch = "master" }
+
+# Overrides where the upstream hasn't accepted patches or released new versions.
 bevy_skein = { git = "https://github.com/eswartz/skein-fork.git", branch = "add-fallback-for-serde-unit-structs-bevy-0.19" }
+
 # bevy_enhanced_input = { git = "https://github.com/simgine/bevy_enhanced_input.git", rev = "e965c051839b541ad306b17f704f86ff73859ad5" }
+# bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", branch = "symphonia-update" }
+# firewheel = { git = "https://github.com/BillyDM/Firewheel", rev = "68f59e07c5d37ab066342b2bed9afe343b87604f", optional = true }

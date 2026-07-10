@@ -1,5 +1,5 @@
 [workspace]
-resolver = "3"
+resolver = "2"
 
 members = [
     "app",
@@ -50,6 +50,8 @@ opt-level = 2
 # [profile.dev.package.xsynth-core]
 # opt-level = 3
 
+[profile.dev.package.timestretch]
+opt-level = 3
 [profile.dev.package.bevy_mikktspace]
 opt-level = 3
 
@@ -129,9 +131,10 @@ avian3d = { version = "0.7.0", default-features = false, features = [
 ] }
 bevy_enhanced_input = { version = "0.26", features = ["reflect", "state", "serialize"] }
 
-firewheel = { git = "https://github.com/CorvusPrudens/Firewheel", branch = "main" }
+firewheel = { version = "0.10" }
 
-bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", branch = "symphonia-update", default-features = false, features = [
+# We must mention it and reference the repo because there's no published crate of 0.8 to patch.
+bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", branch = "master", default-features = false, features = [
     "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
     "cpal",

@@ -28,10 +28,11 @@
     %cell_sz = DIV %sz, %grid_units
 
     // Create an entity to display the image.
-    %shape = NEW_SEQUENCE [`Plane, x, %gridsz, y, %gridsz]
-    //%info =  NEW_SEQUENCE [`subdivisions, %grid_units]
-    %info =  NEW_SEQUENCE [`subdivisions, 8]
-    %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
+    %shape = NEW_SEQUENCE [`Cube, x, %gridsz, z, %gridsz, y, 0.01]
+    %info =  NEW_SEQUENCE []
+    //%shape = NEW_SEQUENCE [`Plane, x, %gridsz, y, %gridsz]
+    //%info =  NEW_SEQUENCE [`subdivisions, 8]
+    //%shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     %y = ADD %gridsz_h, 0.025
     %pos = NEW_STRUCT [x: 0.0, y: %y, z: 5.0]

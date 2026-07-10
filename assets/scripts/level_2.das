@@ -68,6 +68,10 @@
 
         `CrosshairTargetable, nil,
 
+        `SurfaceMaterial, `Metal,
+        `Projectile, nil,
+        //`CollisionEventsEnabled, nil,
+
         `despawn_after, %life,
 
     ]
@@ -95,13 +99,13 @@
 
     %init = NEW_STRUCT [
         `fall_distance: 10.0,
-        `delay: 3.0,
+        `delay: 5.0,
         `lifetime: %life,
     ]
 
     %module = NEW_STRUCT [
         `block_size: 0.375,
-        `side_length: 2,
+        `side_length: 3,
         `on_update: %on_update,
         `boom_mass: 50000.0,
         `block_mass: 50.0,

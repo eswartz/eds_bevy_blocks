@@ -322,25 +322,32 @@ fn do_fire(
             MeshMaterial3d(boom_mat),
             xfrm,
 
-            ActiveCollisionHooks::MODIFY_CONTACTS,
+            // ActiveCollisionHooks::MODIFY_CONTACTS,
 
             // Dominance(16),
             Spawned,
             Projectile,
             CrosshairTargetable,
+            SurfaceMaterial::Stone,
         ),
         (
             CollisionEventsEnabled,
             LinearVelocity(vel.adjust_precision()),
             AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
             // esp. when cylindrical, try not to wobble forever
-            AngularDamping(0.125),
-            LinearDamping(0.01),
+
+            AngularDamping(boom_mass.0.max(0.1).ln() / 10.0),
+            LinearDamping(0.05),
+            SleepThreshold {
+                linear: 0.125,
+                angular: 0.125,
+            },
+
         ),
         (
             Mass(boom_mass.0),
             Friction::new(0.75),
-            Restitution::new(0.125),
+            Restitution::new(0.25),
             SweptCcd::NON_LINEAR,
 
             RigidBody::Dynamic,

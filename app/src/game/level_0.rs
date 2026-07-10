@@ -1,6 +1,5 @@
 use crate::assets::*;
 use crate::game::BoomMass;
-use crate::game::Cube;
 use crate::game::GameScript;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
@@ -137,7 +136,6 @@ fn on_level_loaded(
                     (
                         ChildOf(world.0),
                         Name::new("CUBE"),
-                        Cube,
                         Spawned,
                         CrosshairTargetable,
                         Mesh3d(model_assets.cube.clone()),
@@ -159,7 +157,10 @@ fn on_level_loaded(
                         CollisionMargin(CUBE_GAP / 4.0),
                     ),
 
-                    (script.clone(),),
+                    (
+                        script.clone(),
+                        SurfaceMaterial::Wood,
+                    ),
                 ));
             }
         }

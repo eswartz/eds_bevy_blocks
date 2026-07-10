@@ -164,6 +164,9 @@ x_step:
         // `CrosshairTargetable, nil,
         `Name, %name,
         `Visibility, `Inherited,
+
+        `SurfaceMaterial, `Stone,
+        `Projectile, nil,
     ]
 
     // State for cell.

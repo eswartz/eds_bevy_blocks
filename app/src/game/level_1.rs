@@ -178,7 +178,10 @@ fn on_level_loaded(
                         CollisionMargin(collision_margin),
                     ),
 
-                    (script.clone(),),
+                    (
+                        script.clone(),
+                        SurfaceMaterial::Wood,
+                    ),
                 ))
                 .insert_if(OurMidiSynth, || with_synth);
             }

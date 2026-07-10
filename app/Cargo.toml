@@ -29,17 +29,12 @@ web = [
 ]
 
 dev = [
-    # Improve compile times for dev builds by linking Bevy as a dynamic library.
-    "bevy/dynamic_linking",
     "bevy/bevy_dev_tools",
     "bevy/bevy_ui_debug",
 
     # Improve error messages coming from Bevy
     "bevy/track_location",
-    # "dep:bevy-inspector-egui",
     "avian3d/diagnostic_ui",
-    # "bevy_rerecast/debug_plugin",
-    # "bevy_rerecast/editor_integration",
 ]
 dev_native = [
     "dev",

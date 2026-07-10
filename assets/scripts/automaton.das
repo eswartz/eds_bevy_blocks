@@ -56,9 +56,9 @@
     //%vx = ADDR %curvx, %vx
     //%vy = ADDR %curvy, %vy
     //%vz = ADDR %curvz, %vz
-    %vx = DIVR %dx, 8
-    %vy = DIVR %dy, 2
-    %vz = DIVR %dz, 8
+    %vx = DIVR %dx, 4
+    %vy = DIVR %dy, 2   // fight gravity and dip!
+    %vz = DIVR %dz, 4
 
     // No hurry when far, but zips when close!
     //%vx = DIVR 2, %dx

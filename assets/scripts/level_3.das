@@ -148,6 +148,9 @@ x2f:
         //'PointLight', %point_light,
         //'PointLightTexture', %pt_light_tex,
 
+        `SurfaceMaterial, `Metal,
+        `CollisionEventsEnabled, true,
+
         `Name, `LIGHT!,
     ]
 
@@ -189,7 +192,7 @@ x2f:
 
     %module = NEW_STRUCT [
         `on_update: %on_update,
-        `boom_mass: 50000.0,
+        `boom_mass: 500.0,
         `count: 1,
     ]
     RETURN %module

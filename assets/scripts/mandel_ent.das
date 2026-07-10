@@ -40,7 +40,8 @@
     // stop limit
     %max_iters: CntF = LOAD %data, `max_iters
     %range_min: CntF = LOAD %data, `range_min, true
-    %range_size: CntF = LOAD %data, `range_size, true
+
+    %depth_size: RealF = LOAD %data, depth_size
 
     // current count; 0 means not started,
     // > 0 means still going;
@@ -50,12 +51,12 @@
 
     // < 0 means finished @ -iters
     %t = LESS_I %iters_signed, 0
-    IF_TRUE %t, skip, check_high
+    IF_TRUE %t, face_player, check_high
 
 check_high:
     // stop if already past limit
     %t = LESS_U %iters, %max_iters
-    IF_TRUE %t, enter, skip
+    IF_TRUE %t, enter, face_player
 
 enter:
     %zr: RealF = LOAD %data, `zr
@@ -67,7 +68,13 @@ loop:
 
 calc:
     %iters: CntF = ADDU %iters, 1
+//    %off = MODU %iters, 256
+//    IF_ZERO %off, wait_a_bit, do_calc
+//
+//wait_a_bit:
+//`    SYSCALL `delay, [0.0]
 
+do_calc:
     // advance z = z²+c
     // (a+bi) * (c+di) = ac - bd + (ad+bc)i
     // (zr+zi) * (zr+zi) = zr² - zi² + (2*zr*zi)
@@ -92,25 +99,23 @@ calc:
 
 exit:
     // finally finished here
-    %iters_base: RealF = SUB %iters, %range_min
-    %depth: RealF = DIV %iters, %range_size
+    %done = COPY true
 
-    %depth_size: RealF = LOAD %data, depth
-    %depth: RealF = MULR %depth, %depth_size
-
-    // signed -> unsigned
-    %iters = SUBU 0, %iters
     JUMP done
 
 past_max:
     // too many iters
-    %iters_base: RealF = SUB %max_iters, %range_min
-    %depth: RealF = DIV %iters, %range_size
-
-    %depth_size: RealF = LOAD %data, depth
-    %depth: RealF = MULR %depth, %depth_size
+    %done = COPY false
 
 done:
+    %iters_base: RealF = SUB %iters, %range_min
+    %iters_size = SUB %max_iters, %range_min
+
+    %iters_pos: RealF = DIV %iters, %iters_size
+    %depth: RealF = DIV %iters, %iters_size
+
+    %depth: RealF = MULR %depth, %depth_size
+
     //SYSCALL `delay, [0.05]
 
     %pos = LOAD %data, `pos
@@ -119,12 +124,20 @@ done:
     %posz = LOAD %pos, `z
     %posz = ADD %posz, %depth
     %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
+    //%parent = LOAD %data, `parent
+    //%coord = NEW_SEQUENCE [`RelativeTo, %parent]
+    //SYSCALL `bevy_call_func, [%ent, `set_position, %vec, %coord]
     SYSCALL `bevy_call_func, [%ent, `set_position, %vec]
 
-    //%piters = SUBI 0, %iters
     //SYSCALL `print, [%cr, "+", %ci, "i out at ", %piters, "\n"]
     SYSCALL `bevy_call_func, [%ent, `set_mesh_tag, %iters]
 
+    IF_TRUE %done, negate_iters, store_iters
+negate_iters:
+    // signed -> unsigned
+    %iters = SUBU 0, %iters
+
+store_iters:
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
@@ -134,29 +147,26 @@ done:
     IF_TRUE %look_at, delay_before_look_at, unload
 
 delay_before_look_at:
-    SYSCALL `delay, [5.0]
-    JUMP skip
+    %delay: RealF = LOAD %data, `delay_before_look_at, true
+    SYSCALL `delay, [%delay]
+    JUMP face_player
 
 unload:
-    // Unload!
     %type = LOAD %ctx, `type_id, false
     SYSCALL `bevy_call_func, [%ent, `remove_script, %type]
 //    SYSCALL `print, [%ent, "👋"]
 
-skip:
+    // STOP
+
+face_player:
     // Always face the viewer.
     %pent = LOAD %data, `player
 
-//    %ppos = SYSCALL `bevy_call_func, [%pent, `get_position]
-//    //SYSCALL `print, [%ppos, "\n"]
-
-//    //%plook = SYSCALL `bevy_call_func, [%ent, `get_player_look]
-//    //SYSCALL `bevy_call_func, [%ent, `set_rotation, %plook]
-
-    %la = SYSCALL `bevy_call_func, [%ent, `look_at, %pent, 0.5]
-
     %delay: RealF = LOAD %data, `look_at_player_delay_secs, true
     SYSCALL `delay, [%delay]
+
+    %la = SYSCALL `bevy_call_func, [%ent, `look_at, %pent, 1.0]
+
 //    //SYSCALL `print, [%pent, " @", %ppos, "=", %la, "\n"]
 
     RETURN nil
