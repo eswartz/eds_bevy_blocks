@@ -1,4 +1,4 @@
-use avian3d::{dynamics::rigid_body::AngularVelocity, prelude::{Collisions, LinearVelocity}};
+use avian3d::{dynamics::rigid_body::{AngularVelocity, mass_properties::components::Mass}, prelude::{Collisions, LinearVelocity}};
 use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, RandomPitch, SamplePlayer}};
 use eds_bevy_common::*;
 use bevy::prelude::*;
@@ -27,7 +27,7 @@ fn spawn_noise_on_collision(
 
     collisions: Collisions,
     fx: Res<CommonFxAssets>,
-    xfrm_vel_ang_q: Query<(&GlobalTransform, &LinearVelocity, &AngularVelocity)>,
+    phys_info_q: Query<(&GlobalTransform, &LinearVelocity, &AngularVelocity, &Mass)>,
     listener_q: Query<&GlobalTransform, With<SpatialListener3D>>,
     player_q: Query<&Player>,
     parent_q: Query<&ChildOf>,
@@ -80,13 +80,13 @@ fn spawn_noise_on_collision(
             }
         ;
 
-        if let Ok((xfrm, vel, ang_vel)) = xfrm_vel_ang_q.get(target)
+        if let Ok((xfrm, vel, ang_vel, mass)) = phys_info_q.get(target)
         {
-            let (src_vel, src_ang_vel) = xfrm_vel_ang_q
+            let (src_vel, src_ang_vel) = phys_info_q
                 .get(src)
                 .map_or_else(
                     |_| (&Vec3::ZERO, &Vec3::ZERO),
-                    |(_, src_vel, src_ang)| (&*src_vel, &*src_ang));
+                    |(_, src_vel, src_ang, _)| (&*src_vel, &*src_ang));
 
             let rel_vel = *src_vel - vel.0;
             let vel_length = rel_vel.length();
@@ -163,17 +163,17 @@ fn spawn_noise_on_collision(
                 };
 
                 target_entity = ent;
-                let vol_mid = ((vel_length + ang_length) / 10.0).min(0.95);
+                let vol_mid = ((vel_length + ang_length) / 5.0).min(0.95);
                 if vol_mid < 0.01 {
                     continue
                 }
 
                 let selection = if sliding && ang_length < vel_length /*m */ {
-                    let speed_mid = ang_length / 3.0;
+                    let speed_mid = ang_length / mass.0 * 100.0 / 3.0;
                     speed_range = speed_mid * 0.75 .. speed_mid * 2.0;
                     fx.select_sound_for_surface_slide(phys_mat)
                 } else if vel_length > 0.1 {
-                    let speed_mid = ang_length / 3.0;
+                    let speed_mid = ang_length / mass.0 * 100.0 / 3.0;
                     speed_range = speed_mid * 0.75 .. speed_mid * 2.0;
                     fx.select_sound_for_surface_impact(phys_mat)
                 } else {
