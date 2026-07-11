@@ -170,13 +170,15 @@ pub(crate) enum SampleSelectorType {
     FootstepSlide,
 }
 
+use eds_bevy_common::assets::surfaces;
+
 impl SampleSelector {
     pub(crate) fn new(fx: &CommonFxAssets) -> Self {
         Self {
-            impact_samples: CommonFxAssets::sounds_for_surface_impact(fx),
-            slide_samples: CommonFxAssets::sounds_for_surface_slide(fx),
-            foot_impact_samples: CommonFxAssets::sounds_for_footsteps_impact(fx),
-            foot_slide_samples: CommonFxAssets::sounds_for_footsteps_slide(fx),
+            impact_samples: surfaces::sounds_for_surface_impact(fx),
+            slide_samples: surfaces::sounds_for_surface_slide(fx),
+            foot_impact_samples: surfaces::sounds_for_footsteps_impact(fx),
+            foot_slide_samples: surfaces::sounds_for_footsteps_slide(fx),
 
             lru: default(),
         }
