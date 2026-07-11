@@ -126,5 +126,8 @@ bevy_mod_outline.workspace = true
 fedry_runtime.workspace = true
 fedry_bevy_plugin.workspace = true
 
+lru = "0.18.1"
+timestretch = "0.5.0"
+
 [dev-dependencies]
 test-log.workspace = true

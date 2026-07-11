@@ -1,15 +1,22 @@
-use avian3d::{dynamics::rigid_body::{AngularVelocity, mass_properties::components::Mass}, prelude::{Collisions, LinearVelocity}};
-use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, RandomPitch, SamplePlayer}};
-use eds_bevy_common::*;
-use bevy::prelude::*;
+use std::{num::NonZeroUsize, sync::Mutex};
 
+use avian3d::{dynamics::rigid_body::{AngularVelocity, mass_properties::components::Mass}, prelude::{Collisions, LinearVelocity}};
+use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
+use eds_bevy_common::*;
+use bevy::{math::FloatOrd, prelude::*};
+use rustc_hash::FxHashMap;
+
+use lru::LruCache;
 use rand::{RngExt as _, seq::IndexedRandom as _};
+use timestretch::{EdmPreset, StreamProcessor, StretchParams};
 
 pub(crate) struct SoundPlugin;
 
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
+            .insert_resource(RetimedSamples::new(256))
+            .add_systems(OnEnter(ProgramState::LaunchMenu), init_samples)
             .add_systems(Update,
                 (
                     spawn_noise_on_collision,
@@ -22,16 +29,202 @@ impl Plugin for SoundPlugin {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct PowerOfTwo(FloatOrd);
+
+impl PowerOfTwo {
+    pub(crate) fn rounded_to_pow2(v: f32) -> Option<Self> {
+        if v <= 0.0 { return None };
+        let v_l2 = v.log2();
+        Some(Self(FloatOrd(v_l2.round().exp2())))
+    }
+
+    pub(crate) fn as_f32(&self) -> f32 {
+        self.0.0
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub(crate) struct RetimedSampleKey {
+    pub(crate) scale_factor: PowerOfTwo,
+    pub(crate) orig: Handle<AudioSample>,
+}
+impl RetimedSampleKey {
+    fn new(source: Handle<AudioSample>, scale_factor: PowerOfTwo) -> Self {
+        Self { scale_factor, orig: source }
+    }
+}
+
+#[derive(Resource)]
+pub(crate) struct RetimedSamples {
+    cache: LruCache<RetimedSampleKey, Handle<AudioSample>>,
+}
+
+impl RetimedSamples {
+    pub(crate) fn new(cap: usize) -> Self {
+        Self {
+            cache: LruCache::new(NonZeroUsize::new(cap.max(1)).unwrap()),
+        }
+    }
+
+    pub(crate) fn fetch(&mut self, mut assets: Mut<Assets<AudioSample>>, source: Handle<AudioSample>, scale_factor: PowerOfTwo) -> Option<Handle<AudioSample>> {
+        if scale_factor.as_f32() == 1.0 {
+            return Some(source)
+        }
+
+        let key = RetimedSampleKey::new(source, scale_factor);
+        let ret: Handle<AudioSample>;
+        if let Some(target) = self.cache.get(&key) {
+            ret = target.clone();
+        } else {
+            info!("retiming {} to {:.3}", key.orig.id(), key.scale_factor.as_f32());
+            let Some(source) = assets.get(key.orig.id()) else {
+                warn!("no {}", key.orig.id());
+                return None
+            };
+            let Some(new) = Self::retime(source, key.scale_factor.as_f32()) else {
+                return None
+            };
+            ret = assets.add(new);
+            self.cache.put(key, ret.clone());
+        }
+        Some(ret)
+    }
+
+    pub(crate) fn retime(source: &AudioSample, time_multiplier: f32) -> Option<AudioSample> {
+        let source = &*source.get();
+        let nch = source.num_channels().get();
+        if nch != 1 {
+            warn!("unsupported # channels {nch}");
+            return None
+        }
+        let Some(sample_rate) = source.sample_rate() else {
+            warn!("unknown sample rate");
+            return None
+        };
+
+        let src_frames = source.len_frames() as usize;
+
+        let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
+        let mut target_samples = Vec::<f32>::with_capacity(target_frames);
+
+        // Process the file in chunks.
+        const BUF_SIZE: usize = 4096;
+        let mut src_buf = [0.0f32; BUF_SIZE];
+        let mut start_frame = 0;
+
+        let params = StretchParams::new(time_multiplier as _)
+            .with_preset(EdmPreset::Ambient)
+            .with_sample_rate(sample_rate.get() as _)
+            .with_channels(1);
+
+        let mut stretcher = StreamProcessor::new(params);
+
+        while start_frame < src_frames {
+            let cnt = source.fill_buffers(&mut [&mut src_buf], 0 .. BUF_SIZE, start_frame as u64);
+            start_frame += cnt;
+            if cnt == 0 {
+                break
+            }
+
+            if let Err(e) = stretcher.process_into(&src_buf[0..cnt], &mut target_samples) {
+                error!("failed to retime: {e}");
+                return None
+            }
+        }
+
+        match stretcher.flush() {
+            Ok(mut vec) => {
+                target_samples.append(&mut vec);
+            }
+            Err(e) => {
+                error!("failed to retime: {e}");
+                return None
+            }
+        }
+
+        let resource: Vec<Vec<f32>> = vec![target_samples].into();
+        let target = AudioSample::new(resource, sample_rate);
+        Some(target)
+    }
+
+}
+
+
+type SurfaceSampleMap = FxHashMap<SurfaceMaterial, Vec<Handle<AudioSample>>>;
+
+#[derive(Resource)]
+pub(crate) struct SampleSelector {
+    pub(crate) impact_samples: SurfaceSampleMap,
+    pub(crate) slide_samples: SurfaceSampleMap,
+    pub(crate) foot_impact_samples: SurfaceSampleMap,
+    pub(crate) foot_slide_samples: SurfaceSampleMap,
+    pub(crate) lru: Mutex<Vec<(SampleSelectorType, Handle<AudioSample>)>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) enum SampleSelectorType {
+    SurfaceImpact,
+    SurfaceSlide,
+    FootstepImpact,
+    FootstepSlide,
+}
+
+impl SampleSelector {
+    pub(crate) fn new(fx: &CommonFxAssets) -> Self {
+        Self {
+            impact_samples: CommonFxAssets::sounds_for_surface_impact(fx),
+            slide_samples: CommonFxAssets::sounds_for_surface_slide(fx),
+            foot_impact_samples: CommonFxAssets::sounds_for_footsteps_impact(fx),
+            foot_slide_samples: CommonFxAssets::sounds_for_footsteps_slide(fx),
+
+            lru: default(),
+        }
+    }
+
+    pub(crate) fn pick_sample(&self, ty: SampleSelectorType, phys_mat: SurfaceMaterial) -> Option<Handle<AudioSample>> {
+        let sample_set = match ty {
+            SampleSelectorType::SurfaceImpact => &self.impact_samples,
+            SampleSelectorType::SurfaceSlide => &self.slide_samples,
+            SampleSelectorType::FootstepImpact => &self.foot_impact_samples,
+            SampleSelectorType::FootstepSlide => &self.foot_slide_samples,
+        };
+
+        let samples = sample_set.get(&phys_mat)?;
+
+        let mut lru = self.lru.lock().ok()?;
+        loop {
+            let sample = samples.choose(&mut rand::rng()).cloned()?;
+            let key = (ty, sample.clone());
+            let lru_len = lru.len();
+            let _ = lru.drain(0 .. lru_len.max(4) - 4);
+            if lru.last() != Some(&key) {
+                lru.push(key);
+                return Some(sample)
+            }
+        }
+    }
+}
+
+fn init_samples(mut commands: Commands, fx: Res<CommonFxAssets>) {
+    let selector = SampleSelector::new(&fx);
+    commands.insert_resource(selector);
+}
+
 fn spawn_noise_on_collision(
     surf_mat_q: Query<&SurfaceMaterial>,
 
     collisions: Collisions,
-    fx: Res<CommonFxAssets>,
     phys_info_q: Query<(&GlobalTransform, &LinearVelocity, &AngularVelocity, &Mass)>,
     listener_q: Query<&GlobalTransform, With<SpatialListener3D>>,
     player_q: Query<&Player>,
     parent_q: Query<&ChildOf>,
     paused: Res<PhysicsPaused>,
+
+    selector: Res<SampleSelector>,
+
+    mut samples: ResMut<Assets<AudioSample>>,
+    mut retimed_samples: ResMut<RetimedSamples>,
 
     mut footstep_dist: Local<f32>,
     time: Res<Time>,
@@ -118,10 +311,14 @@ fn spawn_noise_on_collision(
             };
 
             let target_entity: Entity;
-            let sample: Handle<AudioSample>;
             let vol_range: core::ops::Range<f32>;
             let speed_range: core::ops::Range<f32>;
+            let sample_ty: SampleSelectorType;
+            let phys_mat: SurfaceMaterial;
+
             if one_is_player {
+                // Player footsteps
+
                 const FOOTFALL_TIMES_SAMPLE_DIST: f32 = 3.0;
                 let dist = vel_length * time.delta_secs();
                 *footstep_dist += dist;
@@ -130,76 +327,85 @@ fn spawn_noise_on_collision(
                 }
 
                 *footstep_dist -= FOOTFALL_TIMES_SAMPLE_DIST;
+
+                // Footsteps follow the player.
+                (target_entity, phys_mat) = if player_a {
+                    (event.collider1, phys_mat_b)
+                } else {
+                    (event.collider1, phys_mat_a)
+                };
+
                 if !sliding {
-                    let (ent, phys_mat) = if player_a { (event.collider2, phys_mat_b) } else { (event.collider1, phys_mat_a) };
-                    target_entity = ent;
-                    let selection = fx.select_sound_for_footstep(phys_mat);
-                    sample = if let Some(sample) = selection { sample } else { continue };
-                    vol_range = (dist / 1.0).clamp(0.25, 1.5) .. 1.5;
+                    sample_ty = SampleSelectorType::FootstepImpact;
+                    vol_range = (dist / 1.0).clamp(0.25, 1.5) .. 1.51;
                     speed_range = 0.75 .. 1.25;
                 } else if vel_length + ang_length > 0.1 {
-                    sample = if let Some(&sample) = [
-                        &fx.brush1a,
-                        &fx.brush1b,
-                        &fx.brush1c,
-                        &fx.brush1d,
-                        &fx.brush1e,
-                        &fx.brush1f,
-                    ]
-                    .choose(&mut rng) { sample.clone() } else { continue };
-
-                    target_entity = event.collider1;
-                    vol_range = (dist / 1.0).clamp(0.25, 1.0) .. 1.0;
-                    speed_range = 1.0 .. 1.0;
+                    sample_ty = SampleSelectorType::FootstepSlide;
+                    vol_range = (dist / 1.0).clamp(0.25, 1.25) .. 1.26;
+                    speed_range = 0.75 .. 1.25;
                 } else {
                     continue
                 }
 
             } else if one_has_mat {
-                let (ent, phys_mat) = if rng.random_bool(0.5) {
+                // Object-object interaction.
+
+                (target_entity, phys_mat) = if rng.random_bool(0.5) {
                     (event.collider1, phys_mat_a)
                 } else {
                     (event.collider2, phys_mat_b)
                 };
 
-                target_entity = ent;
                 let vol_mid = ((vel_length + ang_length) / 5.0).min(0.95);
                 if vol_mid < 0.01 {
                     continue
                 }
 
-                let selection = if sliding && ang_length < vel_length /*m */ {
-                    let speed_mid = ang_length / mass.0 * 100.0 / 3.0;
-                    speed_range = speed_mid * 0.75 .. speed_mid * 2.0;
-                    fx.select_sound_for_surface_slide(phys_mat)
+                let speed_mid = ang_length / mass.0 * 200.0 / 3.0;
+                speed_range = speed_mid * 0.75 .. speed_mid * 2.0;
+
+                if sliding && ang_length < vel_length /*m */ {
+                    sample_ty = SampleSelectorType::SurfaceImpact;
                 } else if vel_length > 0.1 {
-                    let speed_mid = ang_length / mass.0 * 100.0 / 3.0;
-                    speed_range = speed_mid * 0.75 .. speed_mid * 2.0;
-                    fx.select_sound_for_surface_impact(phys_mat)
+                    sample_ty = SampleSelectorType::SurfaceSlide;
                 } else {
                     continue
                 };
 
-                let Some(sound) = selection else { continue };
-                sample = sound;
                 vol_range = vol_mid * 0.5 .. vol_mid * 1.25;
-
             } else {
                 continue
             };
 
-            let vol_sel = if vol_range.is_empty() { vol_range.start } else {  rng.random_range(vol_range) };
+            let Some(sample) = (*selector).pick_sample(sample_ty, phys_mat) else { continue };
+
+            let vol_sel = if vol_range.is_empty() {
+                vol_range.start
+            } else {
+                rng.random_range(vol_range)
+            };
             let vol = (impulse_log * vol_sel).clamp(0.1, 1.25);
 
-            let speed_range = speed_range.start.max(0.25) as f64 .. speed_range.end.clamp(0.751, 3.0) as f64;
+            let speed_range = speed_range.start.clamp(0.25, 0.75) .. speed_range.end.clamp(0.751, 2.0);
+
+            let rate = rng.random_range(speed_range);
+            let Some(rate_pow2) = PowerOfTwo::rounded_to_pow2(rate) else { continue };
+            let rate_fract = rate / rate_pow2.as_f32();
+
+            let retimed_sample = retimed_samples.fetch(
+                samples.reborrow(),
+                sample.clone(),
+                rate_pow2)
+            .unwrap_or_else(|| sample);
+
             commands.spawn((
                 ChildOf(target_entity),
                 Sfx,
-                SamplePlayer::new(sample).with_volume(Volume::Linear(vol)),
+                SamplePlayer::new(retimed_sample).with_volume(Volume::Linear(vol)),
                 sample_effects![
                     SpatialBasicNode { offset: (xfrm.translation() - listener_xfrm.translation()).into(), ..default() },
                 ],
-                RandomPitch(speed_range),
+                RandomPitch::new(rate_fract as f64),
 
                 xfrm.clone(),
             ));
