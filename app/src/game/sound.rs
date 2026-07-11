@@ -199,7 +199,7 @@ impl SampleSelector {
             let sample = samples.choose(&mut rand::rng()).cloned()?;
             let key = (ty, sample.clone());
             let lru_len = lru.len();
-            let _ = lru.drain(0 .. lru_len.max(4) - 4);
+            let _ = lru.drain(0 .. lru_len.max(8) - 8);
             if lru.last() != Some(&key) {
                 lru.push(key);
                 return Some(sample)
@@ -364,7 +364,7 @@ fn spawn_noise_on_collision(
                 }
 
                 let speed_mid = ang_length / mass.0 * 200.0 / 3.0;
-                speed_range = speed_mid * 0.75 .. speed_mid * 2.0;
+                speed_range = (speed_mid * 0.75).max(0.5) .. (speed_mid * 2.0).min(2.0);
 
                 if sliding && ang_length < vel_length /*m */ {
                     sample_ty = SampleSelectorType::SurfaceImpact;
@@ -388,9 +388,10 @@ fn spawn_noise_on_collision(
             };
             let vol = (impulse_log * vol_sel).clamp(0.1, 1.25);
 
-            let speed_range = speed_range.start.clamp(0.25, 0.75) .. speed_range.end.clamp(0.751, 2.0);
+            let speed_range = speed_range.start.clamp(0.25, 0.75)
+                .. speed_range.end.clamp(0.751, 1.25);
 
-            let rate = rng.random_range(speed_range);
+            let rate = 1.0 / rng.random_range(speed_range);
             let Some(rate_pow2) = PowerOfTwo::rounded_to_pow2(rate) else { continue };
             let rate_fract = rate / rate_pow2.as_f32();
 
@@ -398,16 +399,18 @@ fn spawn_noise_on_collision(
                 samples.reborrow(),
                 sample.clone(),
                 rate_pow2)
-            .unwrap_or_else(|| sample);
+                .unwrap_or_else(|| sample);
 
             commands.spawn((
                 ChildOf(target_entity),
                 Sfx,
-                SamplePlayer::new(retimed_sample).with_volume(Volume::Linear(vol)),
+                SamplePlayer::new(retimed_sample)
+                    .with_volume(Volume::Linear(vol))
+                ,
                 sample_effects![
                     SpatialBasicNode { offset: (xfrm.translation() - listener_xfrm.translation()).into(), ..default() },
                 ],
-                RandomPitch::new(rate_fract as f64),
+                RandomPitch((rate_fract - 0.01) as f64 .. (rate_fract + 0.01) as f64),
 
                 xfrm.clone(),
             ));
