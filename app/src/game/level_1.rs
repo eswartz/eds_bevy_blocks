@@ -133,7 +133,7 @@ fn on_level_loaded(
     commands.insert_resource(BoomMass(boom_mass));
 
     let axis_scale = Vec3::new(cube_size + cube_gap, cube_size + cube_gap, cube_size + cube_gap);
-    let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
+    let center = Vec3::new(-5.0, axis_scale.y, 5.0);
 
     let std_mat = materials.get(&model_assets.cube_material).unwrap().clone();
 
