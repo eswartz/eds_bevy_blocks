@@ -69,7 +69,9 @@ impl RetimedSamples {
         }
     }
 
-    pub(crate) fn fetch(&mut self, mut assets: Mut<Assets<AudioSample>>, source: Handle<AudioSample>, scale_factor: PowerOfTwo) -> Option<Handle<AudioSample>> {
+    /// Return a version of the [AudioSample] scaled in length (but not pitch)
+    /// by [`scale_factor`].
+    pub(crate) fn fetch_retimed(&mut self, mut assets: Mut<Assets<AudioSample>>, source: Handle<AudioSample>, scale_factor: PowerOfTwo) -> Option<Handle<AudioSample>> {
         if scale_factor.as_f32() == 1.0 {
             return Some(source)
         }
@@ -452,7 +454,7 @@ fn spawn_noise_on_collision(
             let Some(rate_pow2) = PowerOfTwo::rounded_to_pow2(rate) else { continue };
             let rate_fract = rate / rate_pow2.as_f32();
 
-            let retimed_sample = retimed_samples.fetch(
+            let retimed_sample = retimed_samples.fetch_retimed(
                 samples.reborrow(),
                 sample.clone(),
                 rate_pow2)
