@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
 use fedry_bevy_plugin::asset::ScriptModule;
+use bevy_seedling::prelude::AudioSample;
 
 #[derive(Resource, AssetCollection)]
 pub struct GuiAssets {
@@ -9,6 +10,8 @@ pub struct GuiAssets {
 #[derive(Resource, AssetCollection)]
 #[allow(unused)]
 pub struct MusicAssets {
+    #[asset(path = "music/sp29e.ogg")]
+    pub song_1: Handle<AudioSample>,
 }
 
 impl MusicAssets {

@@ -8,14 +8,14 @@ use rustc_hash::FxHashMap;
 
 use lru::LruCache;
 use rand::{RngExt as _, seq::IndexedRandom as _};
-use timestretch::{EdmPreset, StreamProcessor, StretchParams};
+use timestretch::{EdmPreset, QualityMode, StreamProcessor, StretchParams};
 
 pub(crate) struct SoundPlugin;
 
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(RetimedSamples::new(256))
+            .insert_resource(RetimedSamples::new(128))
             .add_systems(OnEnter(ProgramState::LaunchMenu), init_samples)
             .add_systems(Update,
                 (
@@ -75,9 +75,8 @@ impl RetimedSamples {
         let key = RetimedSampleKey::new(source, scale_factor);
         let ret: Handle<AudioSample>;
         if let Some(target) = self.cache.get(&key) {
-            ret = target.clone();
+            ret = (*target).clone();
         } else {
-            info!("retiming {} to {:.3}", key.orig.id(), key.scale_factor.as_f32());
             let Some(source) = assets.get(key.orig.id()) else {
                 warn!("no {}", key.orig.id());
                 return None
@@ -86,6 +85,7 @@ impl RetimedSamples {
                 return None
             };
             ret = assets.add(new);
+            info!("retiming {} to {:.3} => {}", key.orig.id(), key.scale_factor.as_f32(), ret.id());
             self.cache.put(key, ret.clone());
         }
         Some(ret)
@@ -108,23 +108,30 @@ impl RetimedSamples {
         let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
         let mut target_samples = Vec::<f32>::with_capacity(target_frames);
 
-        // Process the file in chunks.
-        const BUF_SIZE: usize = 4096;
-        let mut src_buf = [0.0f32; BUF_SIZE];
-        let mut start_frame = 0;
-
         let params = StretchParams::new(time_multiplier as _)
-            .with_preset(EdmPreset::Ambient)
+            .with_preset(EdmPreset::Halftime)
             .with_sample_rate(sample_rate.get() as _)
+            .with_quality_mode(QualityMode::MaxQuality)
             .with_channels(1);
 
         let mut stretcher = StreamProcessor::new(params);
 
+        // Process the file in chunks.
+        const BUF_SIZE: usize = 4096;
+        let mut src_buf = [0.0f32; BUF_SIZE];
+
+        let mut src_power: f32 = 0.0;
+        let mut start_frame = 0;
+
         while start_frame < src_frames {
             let cnt = source.fill_buffers(&mut [&mut src_buf], 0 .. BUF_SIZE, start_frame as u64);
-            start_frame += cnt;
             if cnt == 0 {
                 break
+            }
+            start_frame += cnt;
+
+            for s in &mut src_buf[0..cnt] {
+                src_power += *s * *s;
             }
 
             if let Err(e) = stretcher.process_into(&src_buf[0..cnt], &mut target_samples) {
@@ -133,14 +140,23 @@ impl RetimedSamples {
             }
         }
 
-        match stretcher.flush() {
-            Ok(mut vec) => {
-                target_samples.append(&mut vec);
-            }
-            Err(e) => {
-                error!("failed to retime: {e}");
-                return None
-            }
+        let src_rms = (src_power / (1 + start_frame) as f32).sqrt();
+
+        if let Err(e) = stretcher.flush_into(&mut target_samples) {
+            error!("failed to retime: {e}");
+            return None
+        }
+
+        let mut target_power: f32 = 0.0;
+        for s in &mut target_samples {
+            target_power += *s * *s;
+        }
+        let target_rms = (target_power / (1 + target_samples.len()) as f32).sqrt();
+        // dbg!(target_samples.len(), src_rms, target_rms);
+
+        let ratio = src_rms / target_rms;
+        for s in &mut target_samples {
+            *s *= ratio;
         }
 
         let resource: Vec<Vec<f32>> = vec![target_samples].into();
@@ -195,21 +211,25 @@ impl SampleSelector {
         let samples = sample_set.get(&phys_mat)?;
 
         let mut lru = self.lru.lock().ok()?;
+        let mut max_iters = 8;
         loop {
             let sample = samples.choose(&mut rand::rng()).cloned()?;
             let key = (ty, sample.clone());
             let lru_len = lru.len();
-            let _ = lru.drain(0 .. lru_len.max(8) - 8);
-            if lru.last() != Some(&key) {
+            if lru_len >= samples.len() {
+                let _ = lru.drain(0 .. samples.len() - 1);
+            }
+            if max_iters == 0 || lru.last() != Some(&key) {
                 lru.push(key);
                 return Some(sample)
             }
+            max_iters -= 1;
         }
     }
 }
 
 fn init_samples(mut commands: Commands, fx: Res<CommonFxAssets>) {
-    let selector = SampleSelector::new(&fx);
+    let selector = SampleSelector::new(&*fx);
     commands.insert_resource(selector);
 }
 
