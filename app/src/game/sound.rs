@@ -3,7 +3,7 @@ use std::{any::Any, num::NonZeroUsize, sync::Mutex};
 use avian3d::{dynamics::rigid_body::{AngularVelocity, mass_properties::components::Mass}, prelude::{Collisions, LinearVelocity}};
 use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
 use eds_bevy_common::*;
-use bevy::{asset::AssetPath, math::FloatOrd, prelude::*};
+use bevy::{math::FloatOrd, prelude::*};
 use rustc_hash::FxHashMap;
 
 use lru::LruCache;
@@ -11,6 +11,8 @@ use rand::{RngExt as _, seq::IndexedRandom as _};
 use timestretch::{EdmPreset, QualityMode, StreamProcessor, StretchParams};
 
 pub(crate) struct SoundPlugin;
+
+const SAVE_STRETCHED_FILES: bool = false;
 
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
@@ -125,6 +127,8 @@ impl RetimedSamples {
 
         let mut start_frame = 0;
 
+        let mut src_sum_sqr: f32 = 0.0;
+
         while start_frame < src_frames {
             let cnt = source.fill_buffers(&mut [&mut src_buf], 0 .. BUF_SIZE, start_frame as u64);
             if cnt == 0 {
@@ -132,11 +136,15 @@ impl RetimedSamples {
             }
             start_frame += cnt;
 
+            src_sum_sqr += src_buf[0..cnt].iter().map(|s| *s * s).sum::<f32>();
+
             if let Err(e) = stretcher.process_into(&src_buf[0..cnt], &mut target_samples) {
                 error!("failed to retime: {e}");
                 return None
             }
         }
+
+        let src_rms = (src_sum_sqr / (1 + start_frame) as f32).sqrt();
 
         if time_multiplier > 1.0 {
             // Ensure the sample is completed to avoid unwanted high-pitched tail.
@@ -157,7 +165,19 @@ impl RetimedSamples {
             let _ = target_samples.drain(target_samples.len() - tail_frames ..);
         }
 
-        if false {
+        let target_rms = {
+            let sum: f32 = target_samples.iter().map(|s| *s * s).sum();
+            (sum / (1 + target_samples.len()) as f32).sqrt()
+        };
+
+        if target_rms > 0.0 && (src_rms - target_rms).abs() > 0.1 {
+            let scale = src_rms / target_rms;
+            for t in &mut target_samples {
+                *t *= scale;
+            }
+        }
+
+        if SAVE_STRETCHED_FILES {
             use bwavfile::*;
 
             let src_name = src.path().map_or_else(
