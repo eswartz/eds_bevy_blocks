@@ -1,9 +1,9 @@
-use std::{num::NonZeroUsize, sync::Mutex};
+use std::{any::Any, num::NonZeroUsize, sync::Mutex};
 
 use avian3d::{dynamics::rigid_body::{AngularVelocity, mass_properties::components::Mass}, prelude::{Collisions, LinearVelocity}};
 use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
 use eds_bevy_common::*;
-use bevy::{math::FloatOrd, prelude::*};
+use bevy::{asset::AssetPath, math::FloatOrd, prelude::*};
 use rustc_hash::FxHashMap;
 
 use lru::LruCache;
@@ -77,21 +77,21 @@ impl RetimedSamples {
         if let Some(target) = self.cache.get(&key) {
             ret = (*target).clone();
         } else {
+            info!("retiming {} to {:.3}", key.orig.id(), key.scale_factor.as_f32());
             let Some(source) = assets.get(key.orig.id()) else {
                 warn!("no {}", key.orig.id());
                 return None
             };
-            let Some(new) = Self::retime(source, key.scale_factor.as_f32()) else {
+            let Some(new) = Self::retime(&key.orig, source, key.scale_factor.as_f32()) else {
                 return None
             };
             ret = assets.add(new);
-            info!("retiming {} to {:.3} => {}", key.orig.id(), key.scale_factor.as_f32(), ret.id());
             self.cache.put(key, ret.clone());
         }
         Some(ret)
     }
 
-    pub(crate) fn retime(source: &AudioSample, time_multiplier: f32) -> Option<AudioSample> {
+    pub(crate) fn retime(src: &Handle<AudioSample>, source: &AudioSample, time_multiplier: f32) -> Option<AudioSample> {
         let source = &*source.get();
         let nch = source.num_channels().get();
         if nch != 1 {
@@ -105,8 +105,11 @@ impl RetimedSamples {
 
         let src_frames = source.len_frames() as usize;
 
+        const TAIL: usize = 4096;
+
+        let tail_frames = (time_multiplier.max(1.0) as f32 * TAIL as f32).ceil() as usize;
         let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
-        let mut target_samples = Vec::<f32>::with_capacity(target_frames);
+        let mut target_samples = Vec::<f32>::with_capacity(target_frames + tail_frames);
 
         let params = StretchParams::new(time_multiplier as _)
             .with_preset(EdmPreset::Halftime)
@@ -120,7 +123,6 @@ impl RetimedSamples {
         const BUF_SIZE: usize = 4096;
         let mut src_buf = [0.0f32; BUF_SIZE];
 
-        let mut src_power: f32 = 0.0;
         let mut start_frame = 0;
 
         while start_frame < src_frames {
@@ -130,33 +132,48 @@ impl RetimedSamples {
             }
             start_frame += cnt;
 
-            for s in &mut src_buf[0..cnt] {
-                src_power += *s * *s;
-            }
-
             if let Err(e) = stretcher.process_into(&src_buf[0..cnt], &mut target_samples) {
                 error!("failed to retime: {e}");
                 return None
             }
         }
 
-        let src_rms = (src_power / (1 + start_frame) as f32).sqrt();
+        if time_multiplier > 1.0 {
+            // Ensure the sample is completed to avoid unwanted high-pitched tail.
+            let zeroes = [0.0f32; TAIL];
+            if let Err(e) = stretcher.process_into(&zeroes[..], &mut target_samples) {
+                error!("failed to retime: {e}");
+                return None
+            }
+        }
 
         if let Err(e) = stretcher.flush_into(&mut target_samples) {
             error!("failed to retime: {e}");
             return None
         }
 
-        let mut target_power: f32 = 0.0;
-        for s in &mut target_samples {
-            target_power += *s * *s;
+        if time_multiplier > 1.0 {
+            // Clip tail.
+            let _ = target_samples.drain(target_samples.len() - tail_frames ..);
         }
-        let target_rms = (target_power / (1 + target_samples.len()) as f32).sqrt();
-        // dbg!(target_samples.len(), src_rms, target_rms);
 
-        let ratio = src_rms / target_rms;
-        for s in &mut target_samples {
-            *s *= ratio;
+        if false {
+            use bwavfile::*;
+
+            let src_name = src.path().map_or_else(
+                || format!("{:?}", src.type_id()),
+                |path| {
+                    let path_str = path.to_string();
+                    path_str[path_str.rfind('/').unwrap() + 1 ..].to_string()
+                });
+
+            let temp_path = std::env::temp_dir().join(format!("{src_name}-{time_multiplier}.wav"));
+            info!("writing {temp_path:?}");
+            let mut file = std::fs::File::create(temp_path).unwrap();
+            let format = WaveFmt::new_pcm_mono(sample_rate.get() as _, 32);
+            let w = WaveWriter::new(&mut file, format).unwrap();
+            let mut frame_writer = w.audio_frame_writer().unwrap();
+            frame_writer.write_frames(&target_samples[..]).unwrap();
         }
 
         let resource: Vec<Vec<f32>> = vec![target_samples].into();
@@ -411,7 +428,7 @@ fn spawn_noise_on_collision(
             let speed_range = speed_range.start.clamp(0.25, 0.75)
                 .. speed_range.end.clamp(0.751, 1.25);
 
-            let rate = 1.0 / rng.random_range(speed_range);
+            let rate = rng.random_range(speed_range);
             let Some(rate_pow2) = PowerOfTwo::rounded_to_pow2(rate) else { continue };
             let rate_fract = rate / rate_pow2.as_f32();
 
