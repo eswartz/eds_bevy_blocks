@@ -106,6 +106,29 @@ done:
         %color_enum,
     ]
 
+    %sound_asset = NEW_SEQUENCE [
+        `Asset, "common://sounds/340915__passairmangrace__metalclang1_loud_bip-03.ogg",
+    ]
+    %sound_vol = NEW_SEQUENCE [
+        `Linear, 0.1,
+    ]
+
+    %pitch_scale: RealF = ADD %depth, 1.0
+    //%pitch_scale = DIV %pitch_scale, %max_iters
+    %pitch_scale = DIV 1.0, %pitch_scale
+    //SYSCALL `print, [%iters, " -> ", %pitch_scale, ' ']
+    %pitch_scale = MAXR %pitch_scale, 0.2
+    %pitch_scale = MINR %pitch_scale, 5.0
+
+    %sound_cue = NEW_SEQUENCE [
+        `source, %sound_asset,
+        `volume, %sound_vol,
+        `pitch_scale, %pitch_scale,
+        //`is_static, true,
+    ]
+    SYSCALL `bevy_call_func, [%ent, `play_sound, %sound_cue]
+
+    // Remember what we did!
     STORE %data, `iters, %iters
     STORE %data, `zr, %zr
     STORE %data, `zi, %zi
