@@ -1,5 +1,4 @@
 #![feature(iter_array_chunks)]
-#![feature(vec_from_fn)]
 
 mod menus;
 mod assets;

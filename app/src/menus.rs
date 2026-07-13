@@ -2,7 +2,6 @@ use bevy::camera::visibility::RenderLayers;
 use bevy::ecs::world::CommandQueue;
 use bevy::prelude::*;
 use bevy::sprite::Text2dShadow;
-use bevy_seedling::pool::SamplerPool;
 use bevy_seedling::prelude::MainBus;
 use bevy_seedling::prelude::Volume;
 use fedry_bevy_plugin::prelude::ScriptControl;
