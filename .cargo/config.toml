@@ -42,7 +42,6 @@ codegen-backend = "llvm"
 # Project-level overrides for eds_bevy_common exposed dependencies.
 ## Support webp
 gltf = { git = "https://github.com/gltf-rs/gltf.git", branch = "main" }
-gilrs = { git = "https://gitlab.com/gilrs-project/gilrs.git", branch = "master" }
 
 # Overrides where the upstream hasn't accepted patches or released new versions.
 bevy_skein = { git = "https://github.com/eswartz/skein-fork.git", branch = "add-fallback-for-serde-unit-structs-bevy-0.19" }

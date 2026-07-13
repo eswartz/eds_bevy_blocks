@@ -105,7 +105,6 @@ bevy = { version = "0.19", default-features = false, features = [
 
 # Make a reference so we can override it via patch.crates-io in dependent crates.
 gltf = { version = "*" }
-gilrs = { version = "*" }
 
 wgpu = "29"
 rand = { version = "0.10.0" }
@@ -158,8 +157,8 @@ bevy_asset_loader = { version = "0.27.0", features = [
     # "progress_tracking",
 ] }
 
-#bevy_mod_outline = { version = "0.13", optional = true }
-bevy_mod_outline = { git = "https://github.com/eswartz/bevy_mod_outline-fork.git" }
+bevy_mod_outline = { version = "0.13" }
+# bevy_mod_outline = { git = "https://github.com/eswartz/bevy_mod_outline-fork.git" }
 
 bevy_tweening = "0.16.0"
 
