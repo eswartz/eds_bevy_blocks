@@ -41,7 +41,6 @@ dev_native = [
     "native",
 
     "bevy/bevy_remote",
-    "bevy/basis-universal",
 
     # Enable asset hot reloading for native dev builds.
     "bevy/file_watcher",
