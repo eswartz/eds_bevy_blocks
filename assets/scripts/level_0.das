@@ -50,8 +50,8 @@
         `block_size: 0.5,
         `half_side_length: 4,
         `on_update: %on_update,
-        `boom_mass: 250000.0,
-        `block_mass: 1000.0,
+        `boom_mass: 250.0,
+        `block_mass: 100.0,
         `static: false,
     ]
     RETURN %module

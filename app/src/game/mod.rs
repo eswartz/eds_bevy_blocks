@@ -84,7 +84,7 @@ impl Plugin for GamePlugin {
             )
 
             .insert_resource(GrabbingBehavior {
-                ignore_mass: true,
+                ignore_mass: false,
                 .. default()
             })
 

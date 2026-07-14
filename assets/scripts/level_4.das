@@ -192,5 +192,6 @@ exit:
     %module = NEW_STRUCT [
         `on_init: %on_init,
         `init_data: %init_data,
+        `boom_mass: 100.0,
     ]
     RETURN %module

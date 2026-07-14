@@ -107,7 +107,7 @@
         `block_size: 0.375,
         `side_length: 3,
         `on_update: %on_update,
-        `boom_mass: 50000.0,
+        `boom_mass: 50.0,
         `block_mass: 50.0,
         `static: false,
 

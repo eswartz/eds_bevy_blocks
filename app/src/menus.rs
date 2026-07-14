@@ -364,7 +364,7 @@ pub(crate) enum EnumMenuActions {
     MeshQualityEnum,
     ShadowQualityEnum,
     TextureQualityEnum,
-    // GlassQualityEnum,
+    GlassQualityEnum,
 }
 
 impl MenuItemHandler for EnumMenuActions {
@@ -713,7 +713,7 @@ fn on_enter_video_menu(
     }
 
     make_res_enum_getter_setter!(get_shadow set_shadow => ShadowQuality VideoSettings shadow_quality);
-    // make_res_enum_getter_setter!(get_glass set_glass => GlassQuality VideoSettings glass_quality);
+    make_res_enum_getter_setter!(get_glass set_glass => GlassQuality VideoSettings glass_quality);
     make_res_enum_getter_setter!(get_anti set_anti => Antialiasing VideoSettings antialiasing);
     make_res_enum_getter_setter!(get_mesh_qual set_mesh_qual => MeshQuality VideoSettings mesh_quality);
     make_res_enum_getter_setter!(get_tex_qual set_tex_qual => TextureQuality VideoSettings texture_quality);
@@ -739,16 +739,18 @@ fn on_enter_video_menu(
         ),
         SliderMenuActions::FovSlider,
     )
-    // .add_item(
-    //     "Glass Refraction Quality",
-    //     MenuEnum::new(
-    //         get_glass,
-    //         set_glass,
-    //         || GlassQuality::VARIANTS.len(),
-    //         |index| GlassQuality::VARIANTS[index].to_string(),
-    //     ),
-    //     EnumMenuActions::GlassQualityEnum,
-    // )
+    .add_item(
+        "Glass Refraction Quality",
+        (
+            MenuEnum::new(
+                get_glass,
+                set_glass,
+                || GlassQuality::VARIANTS.len(),
+                |index| GlassQuality::VARIANTS[index].to_string(),
+            ),
+        ),
+        EnumMenuActions::GlassQualityEnum,
+    )
     .add_item(
         "Antialiasing",
         MenuEnum::new(

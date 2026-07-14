@@ -27,7 +27,7 @@ impl Plugin for ActionHandlersPlugin {
             .init_resource::<FirePower>()
             .insert_resource(FirePowerWindup {
                 accel: 1.1,
-                max: 100.0,
+                max: 10.0,
                 start: 0.1,
             })
 
@@ -224,7 +224,7 @@ fn on_firing_release(
             // emissive,
             // emissive_exposure_weight: 0.95,
             metallic: 1.0,
-            perceptual_roughness: 1.0,
+            perceptual_roughness: 0.5,
             metallic_roughness_texture: Some(fx.rocky_roughness_texture.clone()),
             ior: 1.77,
             clearcoat: 1.0,

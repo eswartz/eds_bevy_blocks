@@ -166,11 +166,6 @@ impl RetimedSamples {
 
         const MIN_AMP: Volume = Volume::Decibels(-60.0);
 
-        // Clean up trailing zeroes.
-        if let Some(index) = target_samples.iter().rposition(|s| s.abs() > MIN_AMP.amp()) {
-            // dbg!(index, target_samples.len());
-            let _ = target_samples.drain(index..);
-        }
         let mut signal_index = None::<usize>;
 
         while start_frame < src_frames {
@@ -205,8 +200,10 @@ impl RetimedSamples {
         let src_rms = (src_sum_sqr / (1 + start_frame) as f32).sqrt();
 
         // Clean up trailing zeroes.
-        if let Some(index) = target_samples.iter().rposition(|s| s.abs() > Volume::Decibels(-60.0).amp()) {
-            // dbg!(index, target_samples.len());
+        let stop_zeroes = target_samples.len() - target_samples.len() / 8;
+        if let Some(index) = target_samples.iter().enumerate().rposition(
+            |(idx, s)| idx < stop_zeroes || s.abs() > MIN_AMP.amp()
+        ) {
             let _ = target_samples.drain(index..);
         }
 

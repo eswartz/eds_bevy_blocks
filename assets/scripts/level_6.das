@@ -269,10 +269,10 @@ ignore:
         //`grid_units: 4,
         `grid_units: 20,
         //`grid_units: 1,
-        `boom_mass: 5000.0,
-        `block_mass: 0.5,
+        `block_mass: 5.0,
     ]
     %module = NEW_STRUCT [
+        `boom_mass: 100.0,
         `on_init: %on_init,
         `on_update: %on_update,
         `init_data: %init_data,
