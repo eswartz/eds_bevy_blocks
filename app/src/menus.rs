@@ -375,7 +375,7 @@ impl MenuItemHandler for EnumMenuActions {
             let mut queue = CommandQueue::default();
             let mut commands = Commands::new(&mut queue, world);
 
-            commands.set_state_if_neq(LevelState::Advance);
+            commands.set_state(LevelState::Advance);
             start_game(commands.reborrow());
 
             queue.apply(world);
