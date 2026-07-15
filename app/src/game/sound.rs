@@ -153,51 +153,42 @@ impl RetimedSamples {
             .with_crossfade_mode(CrossfadeMode::Fixed(0.01))
             .with_channels(1);
 
-        let mut stretcher = StreamProcessor::new(params);
-
         // Process the file in chunks.
-        const BUF_SIZE: usize = 4096;
-        let mut src_buf = [0.0f32; BUF_SIZE];
-
-        let mut start_frame = 0;
-
-        // Accumulator of signal strength.
-        let mut src_sum_sqr: f32 = 0.0;
-
-        const MIN_AMP: Volume = Volume::Decibels(-60.0);
-
-        let mut signal_index = None::<usize>;
-
-        while start_frame < src_frames {
-            let cnt = source.fill_buffers(&mut [&mut src_buf], 0 .. BUF_SIZE, start_frame as u64);
-            if cnt == 0 {
-                break
-            }
-
-            start_frame += cnt;
-
-            // Prune out leading zeroes.
-            let offs = if signal_index.is_none() {
-                let mut index = 1;
-                while index < cnt && src_buf[index].abs() > MIN_AMP.amp() {
-                    index += 1;
-                }
-                signal_index = Some(index);
-                index
-            } else {
-                0
-            };
-
-            src_sum_sqr += src_buf[0..cnt].iter().map(|s| *s * s).sum::<f32>();
-
-            if let Err(e) = stretcher.process_into(&src_buf[offs..cnt], &mut target_samples) {
-                error!("failed to retime: {e}");
-                return None
-            }
+        // const BUF_SIZE: usize = 4096;
+        let mut src_buf = Vec::<f32>::new();
+        src_buf.resize(src_frames * nch, 0.0);
+        let src_cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], 0 .. src_frames * nch, 0);
+        if src_cnt < src_buf.len() {
+            warn!("truncated sample(?): {} vs {src_frames}", src_cnt / nch);
+            src_buf.resize(src_cnt, 0.0);
         }
 
+        // Accumulator of signal strength.
+        let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
+        const MIN_AMP: Volume = Volume::Decibels(-60.0);
+
+        let mut stretcher = StreamProcessor::new(params);
+
+        let start_frame = 0;
+        target_samples.append(&mut stretcher.process(&src_buf[..]).unwrap());
+        // while start_frame < src_frames {
+        //     let cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], start_frame * nch .. BUF_SIZE, start_frame as u64);
+        //     if cnt == 0 {
+        //         break
+        //     }
+
+        //     start_frame += cnt;
+
+        //     src_sum_sqr += src_buf[0..cnt].iter().map(|s| *s * s).sum::<f32>();
+
+        //     if let Err(e) = stretcher.process_into(&src_buf[0..cnt], &mut target_samples) {
+        //         error!("failed to retime: {e}");
+        //         return None
+        //     }
+        // }
+
         // Get the RMS for use later.
-        let src_rms = (src_sum_sqr / (1 + start_frame) as f32).sqrt();
+        let src_rms = (src_sum_sqr / (1 + src_buf.len()) as f32).sqrt();
 
         // Clean up trailing zeroes.
         let stop_zeroes = target_samples.len() - target_samples.len() / 8;
