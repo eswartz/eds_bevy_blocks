@@ -15,7 +15,7 @@ pub(crate) struct SoundPlugin;
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(RetimedSamples::new(128).with_save_files(false))
+            .insert_resource(RetimedSamples::new(128).with_save_files(true))
             .add_systems(OnEnter(ProgramState::LaunchMenu), init_samples)
             .add_systems(Update,
                 (
@@ -154,7 +154,6 @@ impl RetimedSamples {
             .with_channels(1);
 
         // Process the file in chunks.
-        // const BUF_SIZE: usize = 4096;
         let mut src_buf = Vec::<f32>::new();
         src_buf.resize(src_frames * nch, 0.0);
         let src_cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], 0 .. src_frames * nch, 0);
@@ -163,29 +162,16 @@ impl RetimedSamples {
             src_buf.resize(src_cnt, 0.0);
         }
 
+        // Add zeroes to avoid stretcher failing to dump its buffer.
+        src_buf.append(&mut vec![0.0f32; 4096]);
+
         // Accumulator of signal strength.
         let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
         const MIN_AMP: Volume = Volume::Decibels(-60.0);
 
         let mut stretcher = StreamProcessor::new(params);
 
-        let start_frame = 0;
         target_samples.append(&mut stretcher.process(&src_buf[..]).unwrap());
-        // while start_frame < src_frames {
-        //     let cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], start_frame * nch .. BUF_SIZE, start_frame as u64);
-        //     if cnt == 0 {
-        //         break
-        //     }
-
-        //     start_frame += cnt;
-
-        //     src_sum_sqr += src_buf[0..cnt].iter().map(|s| *s * s).sum::<f32>();
-
-        //     if let Err(e) = stretcher.process_into(&src_buf[0..cnt], &mut target_samples) {
-        //         error!("failed to retime: {e}");
-        //         return None
-        //     }
-        // }
 
         // Get the RMS for use later.
         let src_rms = (src_sum_sqr / (1 + src_buf.len()) as f32).sqrt();
@@ -506,13 +492,15 @@ fn spawn_noise_on_collision(
                 SamplePlayer::new(retimed_sample)
                     .with_volume(Volume::Linear(vol))
                 ,
+                bevy_seedling::prelude::PlaybackSettings::default()
+                    .despawn()
+                    .with_playback(true)
+                    .with_play_from(PlayFrom::Seconds(rng.random_range(0.0 .. 0.05)))
+                    .with_speed(1.0 + rate_fract as f64)
+                ,
                 sample_effects![
                     SpatialBasicNode { offset: (xfrm.translation() - listener_xfrm.translation()).into(), ..default() },
                 ],
-
-                // Then force this feature to apply the desired pitch shift by abusing this API.
-                RandomPitch((rate_fract - 0.00001) as f64 .. (rate_fract + 0.00001) as f64),
-
                 xfrm.clone(),
             ));
 
