@@ -4,6 +4,7 @@ use bevy_asset_loader::loading_state::LoadingStateAppExt as _;
 use bevy_asset_loader::loading_state::config::ConfigureLoadingState as _;
 use bevy_asset_loader::loading_state::config::LoadingStateConfig;
 use bevy_seedling::prelude::SamplePlayer;
+use rand::seq::IndexedRandom as _;
 
 use crate::assets::FxAssets;
 use crate::assets::MusicAssets;
@@ -42,8 +43,14 @@ pub(crate) fn init_background_audio(
         ChildOf(*world_q),
 
         Music,
-        SamplePlayer::new(music.song_1.clone())
-            .looping()
+        SamplePlayer::new(
+            (*[&music.song_1,
+            &music.song_2,
+            &music.song_3,]
+                .choose(&mut rand::rng())
+                .expect("we have one"))
+            .clone())
+        .looping()
     ))
     ;
 }
