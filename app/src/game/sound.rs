@@ -139,9 +139,10 @@ impl RetimedSamples {
 
         // Number of frames (as well as samples, being mono)
         // to generate extra as 0.0 to flush out any window the buggy retimer is using.
-        const TAIL: usize = 8192;
+        const HEAD: usize = 0;
+        const TAIL: usize = 4096;
 
-        let tail_frames = (time_multiplier.max(1.0) as f32 * TAIL as f32).ceil() as usize;
+        let tail_frames = (time_multiplier.max(1.0) as f32 * HEAD as f32).ceil() as usize;
         let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
         let mut target_samples = Vec::<f32>::with_capacity(target_frames + tail_frames);
 
@@ -155,15 +156,16 @@ impl RetimedSamples {
 
         // Process the file in chunks.
         let mut src_buf = Vec::<f32>::new();
-        src_buf.resize(src_frames * nch, 0.0);
-        let src_cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], 0 .. src_frames * nch, 0);
-        if src_cnt < src_buf.len() {
+
+        src_buf.resize(src_frames * nch + HEAD, 0.0);
+        let src_cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], HEAD .. HEAD + src_frames * nch, 0);
+        if src_cnt + HEAD < src_buf.len() {
             warn!("truncated sample(?): {} vs {src_frames}", src_cnt / nch);
-            src_buf.resize(src_cnt, 0.0);
+            src_buf.resize(src_cnt + HEAD, 0.0);
         }
 
         // Add zeroes to avoid stretcher failing to dump its buffer.
-        src_buf.append(&mut vec![0.0f32; 4096]);
+        src_buf.append(&mut vec![0.0f32; TAIL]);
 
         // Accumulator of signal strength.
         let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
