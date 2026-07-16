@@ -29,16 +29,16 @@ impl Plugin for GameActionsPlugin {
 fn check_actions(
     mut gravity_opt: Option<ResMut<avian3d::prelude::Gravity>>,
     #[cfg(feature = "input_bei")]
-    grav_off: Query<&ActionEvents, (With<Action<game_actions::SetGravityOff>>, With<PlayerAction>)>,
+    grav_off: Query<&ActionEvents, (With<Action<game_actions::SetGravityOff>>, With<ActionOf<PlayerContext>>)>,
 
     #[cfg(feature = "input_bei")]
-    grav_tiny: Query<&ActionEvents, (With<Action<game_actions::SetGravityTiny>>, With<PlayerAction>)>,
+    grav_tiny: Query<&ActionEvents, (With<Action<game_actions::SetGravityTiny>>, With<ActionOf<PlayerContext>>)>,
 
     #[cfg(feature = "input_bei")]
-    grav_half: Query<&ActionEvents, (With<Action<game_actions::SetGravityHalf>>, With<PlayerAction>)>,
+    grav_half: Query<&ActionEvents, (With<Action<game_actions::SetGravityHalf>>, With<ActionOf<PlayerContext>>)>,
 
     #[cfg(feature = "input_bei")]
-    grav_normal: Query<&ActionEvents, (With<Action<game_actions::SetGravityNormal>>, With<PlayerAction>)>,
+    grav_normal: Query<&ActionEvents, (With<Action<game_actions::SetGravityNormal>>, With<ActionOf<PlayerContext>>)>,
 
     mut player_mode: ResMut<PlayerMode>,
 ) {
@@ -116,7 +116,7 @@ pub fn assign_extra_actions(
             KeyCode::Numpad0.with_mod_keys(MOD_CTRL_COMMAND),
             ],
         ));
-        commands.spawn((
+    commands.spawn((
         include.clone(),
         Action::<game_actions::SetGravityHalf>::new(),
         consume.clone(),

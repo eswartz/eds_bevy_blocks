@@ -97,7 +97,7 @@ fn configure_world_camera(mut ent_commands: EntityCommands, use_clustered: bool)
                 },
 
                 DistanceFog {
-                    color: Color::WHITE,
+                    color: Color::hsl(0.0, 0.0, 0.5),
                     falloff: FogFalloff::ExponentialSquared { density: 0.001 },
                     ..default()
                 },

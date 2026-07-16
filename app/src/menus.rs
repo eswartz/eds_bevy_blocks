@@ -63,10 +63,6 @@ impl MenuItemHandler for SimpleMenuActions {
                 SimpleMenuActions::Back => {
                     commands.insert_resource(GoBackInMenuRequest);
                 }
-                // SimpleMenuActions::PlayGame => {
-                //     // Do not modify current_level LevelIndex, etc. here, but in client.
-                //     start_game(commands.reborrow());
-                // }
                 SimpleMenuActions::GameMenu => {
                     commands.insert_resource(GoIntoMenuRequest(OverlayState::GameMenu));
                 }

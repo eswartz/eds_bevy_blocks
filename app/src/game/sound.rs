@@ -15,7 +15,7 @@ pub(crate) struct SoundPlugin;
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(RetimedSamples::new(128).with_save_files(true))
+            .insert_resource(RetimedSamples::new(128).with_save_files(false))
             .add_systems(OnEnter(ProgramState::LaunchMenu), init_samples)
             .add_systems(Update,
                 (
