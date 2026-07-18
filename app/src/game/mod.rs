@@ -323,18 +323,10 @@ pub(crate) fn handle_palette(
 #[type_path = "game"]
 pub struct LevelDifficulty(pub Difficulty);
 
-#[derive(Resource, Debug, Clone, Reflect)]
+#[derive(Resource, Debug, Clone, Reflect, Deref)]
 #[reflect(Resource)]
 #[type_path = "game"]
 pub(crate) struct BoomMass(f32);
-
-impl std::ops::Deref for BoomMass {
-    type Target = f32;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 /// Marker for scripts driven by the game itself.
 #[derive(Debug, Default, Clone, PartialEq, Hash, Reflect)]
@@ -572,10 +564,6 @@ fn add_raytracing_to_meshes(
             if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
                 let vertex_count = mesh.count_vertices();
                 mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
-                mesh.insert_attribute(
-                    Mesh::ATTRIBUTE_TANGENT,
-                    vec![[0.0, 0.0, 0.0, 0.0]; vertex_count],
-                );
             }
             if !mesh.contains_attribute(Mesh::ATTRIBUTE_TANGENT) {
                 mesh.generate_tangents().unwrap();
@@ -621,19 +609,6 @@ pub(crate) fn spawn_player_on_start(world: &mut World) {
         PlayerLook { rotation: xfrm.rotation, .. default() },
         xfrm
     ));
-
-    // // Silliness
-    // commands.spawn((
-    //     ChildOf(player_ent),
-    //     Transform::from_translation(Vec3::new(0., 10.0, 0.0)),
-    //     PointLight {
-    //         color: bevy::prelude::Color::Srgba(tailwind::AMBER_50 * 5.0f32),
-    //         range: 15.0,
-    //         intensity: 1.0e5,
-    //         .. default()
-    //     },
-    //     Visibility::Visible,
-    // ));
 
     queue.apply(world);
 }
