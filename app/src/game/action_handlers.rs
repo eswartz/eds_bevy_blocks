@@ -198,7 +198,8 @@ fn on_firing_release(
     let position = player_gun(&look.rotation, eyes);
 
     // TODO: needs to be outside character collider (i.e. measure it? configure it?).
-    let mut pos = position + look.rotation * Vec3::NEG_Z * 1.0;
+    let launch_distance = 0.25;
+    let mut pos = position + look.rotation * Vec3::NEG_Z * launch_distance;
 
     let ray = Ray3d::new(world_pos, look.rotation * Dir3::NEG_Z);
     let mut raycast = mesh_params.p1();
@@ -300,21 +301,21 @@ fn do_fire(
         // }, 1.0);
         // let mesh = meshes.add(mesh_shape.mesh());
         // let collider: Collider = Collider::trimesh_from_mesh(&mesh_shape.mesh().build()).unwrap();
-        let radius = 0.75;
-        let depth = 0.375;
-        let mesh_shape = Extrusion::new(Circle{
-            radius,
-        }, depth);
-        let mut mesh = mesh_shape.mesh().build().rotated_by(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2));
+        let radius = 0.5;
+        let depth = 0.25;
+        let mesh_shape = Extrusion::new(Circle{ radius }, depth);
+        let mut mesh = mesh_shape.mesh().build().rotated_by(
+            Quat::from_rotation_x(std::f32::consts::FRAC_PI_2));
         mesh.generate_tangents().unwrap();
 
         let mesh = meshes.add(mesh);
         let collider: Collider = Collider::cylinder(radius, depth);
+        // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
 
         let mut rng = rand::rng();
-        let xfrm = xfrm * Transform::from_rotation(Quat::from_rotation_y(rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI)));
+        let rot_y = rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI);
+        let xfrm = xfrm * Transform::from_rotation(Quat::from_rotation_y(rot_y));
 
-        // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
         commands.spawn(((
             ChildOf(world.0),
             Name::new("BOOM"),
