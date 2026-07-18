@@ -50,6 +50,8 @@
     %ent = ARG 1
 
     %scene_offs = NEW_STRUCT [x: 20.0, y: -0.5, z: 5.0]
+    %scene_offs = NEW_STRUCT [x: 15.0, y: -0.5, z: -20.0]
+
     %scene_rot = NEW_STRUCT [x: 0.0, y: 0.0, z: 0.0]
     %scene_rot: Tuple = NEW_SEQUENCE [
         `Degrees, %scene_rot,
@@ -66,6 +68,7 @@
        // `rot, %scene_rot,
     ]
 
+    RETURN nil
 }
 
     %boom = NEW_STRUCT [
@@ -75,15 +78,9 @@
         shape: `Sphere,
     ]
 
-    %scene_offs = NEW_STRUCT [x: 20.0, y: -0.5, z: 5.0]
-    %scene_rot = NEW_STRUCT [x: 0.0, y: 0.0, z: 0.0]
-
     %module = NEW_STRUCT [
         boom: %boom,
         on_init: %on_init,
-        //scene: "maps/classroom.glb#Scene0",
-        //scene_offs: %scene_offs,
-        //scene_rot: %scene_rot,
 
         block_size: 0.5,
         half_side_length: 3,

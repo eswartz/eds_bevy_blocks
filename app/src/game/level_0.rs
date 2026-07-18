@@ -3,6 +3,7 @@ use crate::game::BoomMass;
 use crate::game::GameScript;
 use avian3d::math::Vector;
 use bevy::math::Affine2;
+use bevy::world_serialization::WorldInstanceReady;
 use eds_bevy_common::*;
 
 use avian3d::prelude::*;
@@ -34,6 +35,9 @@ pub struct LevelPlugin;
 #[component(storage = "SparseSet")]
 struct Decorate(String, Timer);
 
+#[derive(Resource)]
+struct MakeDynamic(Vec<Entity>);
+
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ProgramState::New), register_level)
@@ -42,82 +46,77 @@ impl Plugin for LevelPlugin {
                     on_level_loaded.run_if(is_in_level(ID)),
             )
             .add_systems(
-                FixedPreUpdate,
+                FixedLast,
                 (
-                    add_colliders.run_if(is_in_level(ID)),
+                    // add_colliders.run_if(is_in_level(ID)),
+                    make_dynamic.run_if(is_in_level(ID)),
                 )
             )
-            .add_observer(|on: On<ColliderConstructorHierarchyReady>,
+            .add_observer(|on: On<WorldInstanceReady>,
                 mut commands: Commands,
+                mesh_q: Query<&Mesh3d>,
+                child_q: Query<&Children>,
+                parent_q: Query<&ChildOf>,
+                name_q: Query<&Name>,
             | {
-                commands.entity(on.entity).insert(Decorate(
-                    ID.to_string(),
-                    Timer::new(Duration::from_secs_f32(5.0), TimerMode::Once),
-                ));
+                let mut ents = vec![];
+                for ent in child_q.iter_descendants_depth_first(on.entity) {
+                    if let Ok(name) = name_q.get(ent)
+                    && (name.starts_with("SchoolChair")
+                        || name.starts_with("SchoolDesk")
+                        || name.starts_with("PlasticChair")
+                        || name.starts_with("LibraryChair")
+                    )
+                    && name.contains("_")
+                    && let Ok(parent) = parent_q.get(ent)
+                    && mesh_q.get(ent).is_ok()
+                    && mesh_q.get(parent.0).is_err()
+                    {
+                        commands.entity(ent).insert(
+                            ColliderConstructor::ConvexDecompositionFromMeshWithConfig(
+                                VhacdParameters {
+                                    resolution: 128,          // Higher = more detail (but slower)
+                                    concavity: 0.01,         // Lower = more parts but better fit
+                                    max_convex_hulls: 32,     // Maximum number of convex parts
+                                    plane_downsampling: 4,    // Precision of plane search
+                                    convex_hull_downsampling: 4, // Precision of convex hull generation
+                                    alpha: 0.05,              // Bias toward symmetrical splits
+                                    beta: 0.05,               // Bias toward revolution axis splits
+                                    convex_hull_approximation: true, // Approximate for speed
+                                    fill_mode: FillMode::FloodFill {
+                                        detect_cavities: false,
+                                    },
+                                .. default()
+                            })
+                        );
+                        ents.push(ent);
+                    }
+                }
+                if !ents.is_empty() {
+                    commands.insert_resource(MakeDynamic(ents));
+                }
             })
         ;
     }
 }
 
-fn add_colliders(
-    mut commands: Commands,
-    mut decorate_q: Query<(Entity, &mut Decorate)>,
-    name_q: Query<&Name>,
+fn make_dynamic(mut commands: Commands, mut make: If<ResMut<MakeDynamic>>,
+    cc_q: Query<(&ComputedCenterOfMass, &ComputedAngularInertia)>,
     mesh_q: Query<&Mesh3d>,
-    child_q: Query<&Children>,
-    parent_q: Query<&ChildOf>,
-    time: Res<Time>,
+    mut prev: Local<Option<Entity>>,
 ) {
-    for (entity, mut decorate) in decorate_q.iter_mut() {
-        if decorate.0 == ID && decorate.1.tick(time.delta()).just_finished() {
-            commands.entity(entity).remove::<Decorate>();
-
-            let mut decorate_info = FxHashSet::default();
-
-            for ent in child_q.iter_descendants_depth_first(entity) {
-                if let Ok(name) = name_q.get(ent)
-                && (name.starts_with("SchoolChair") || name.starts_with("SchoolDesk")|| name.starts_with("PlasticChair"))
-                && name.contains("_")
-                && let Ok(parent) = parent_q.get(ent)
-                && mesh_q.get(ent).is_ok()
-                && mesh_q.get(parent.0).is_err()
-                {
-                    decorate_info.insert((parent.0, ent, name.to_string()));
-                }
-            }
-
-            for (parent, ent, name) in decorate_info {
-                let dens = ColliderDensity(10.0);
-                let mut parent_ent_commands = commands.entity(parent);
-                if name.starts_with("SchoolChair") {
-                    parent_ent_commands.insert((
-                        Mass(10.0),
-                        CenterOfMass(Vector::new(0., -0.2, -0.75)),
-                    ));
-                }
-                else if name.starts_with("PlasticChair") {
-                    parent_ent_commands.insert((
-                        Mass(20.0),
-                        CenterOfMass(Vector::new(0., -0.5, 0.0)),
-                    ));
-                }
-                else if name.starts_with("SchoolDesk") {
-                    parent_ent_commands.insert((
-                        Mass(20.0),
-                        CenterOfMass(Vector::new(0., -0.5, 0.0)),
-                    ));
-                }
-                else {
-                    continue
-                }
-                parent_ent_commands.insert((
-                    RigidBody::Dynamic,
-                    CrosshairTargetable,
-                    dens,
-                    Friction::new(0.9),
-                ));
-            }
+    if let Some(&ent) = (*make).0.first() {
+        if cc_q.contains(ent) {
+            let _ = (*make).0.remove(0);
+            commands.entity(ent).insert(RigidBody::Dynamic);
+            commands.entity(ent).remove::<GravityScale>();
+            *prev = Some(ent);
         }
+    } else {
+        commands.remove_resource::<MakeDynamic>();
+    }
+    if let Some(prev) = prev.take() {
+        commands.entity(prev).remove::<Sleeping>();
     }
 }
 
