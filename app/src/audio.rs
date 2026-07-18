@@ -44,11 +44,13 @@ pub(crate) fn init_background_audio(
 
         Music,
         SamplePlayer::new(
-            (*[&music.song_1,
-            &music.song_2,
-            &music.song_3,]
-                .choose(&mut rand::rng())
-                .expect("we have one"))
+            (*[
+                &music.song_1,
+                &music.song_2,
+                &music.song_3,
+            ]
+            .choose(&mut rand::rng())
+            .expect("we have one"))
             .clone())
         .looping()
     ))
