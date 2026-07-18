@@ -44,14 +44,51 @@
 
 ///////
 
-    %on_update = CALL %make_on_update, []
+%on_update = CALL %make_on_update, []
+
+%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, ...) {
+    %ent = ARG 1
+
+    %scene_offs = NEW_STRUCT [x: 20.0, y: -0.5, z: 5.0]
+    %scene_rot = NEW_STRUCT [x: 0.0, y: 0.0, z: 0.0]
+    %scene_rot: Tuple = NEW_SEQUENCE [
+        `Degrees, %scene_rot,
+    ]
+    %scene = NEW_SEQUENCE [
+        //`Model, "maps/school_gym.glb#Scene0",
+        `Model, "maps/classroom.glb#Scene0",
+    ]
+
+    SYSCALL `bevy_spawn, [
+        //`parent, %ent,
+        `shape, %scene,
+        `offset, %scene_offs,
+       // `rot, %scene_rot,
+    ]
+
+}
+
+    %boom = NEW_STRUCT [
+        mass: 5.0,
+        x: 0.125,
+        y: 0.125,
+        shape: `Sphere,
+    ]
+
+    %scene_offs = NEW_STRUCT [x: 20.0, y: -0.5, z: 5.0]
+    %scene_rot = NEW_STRUCT [x: 0.0, y: 0.0, z: 0.0]
 
     %module = NEW_STRUCT [
-        `block_size: 0.5,
-        `half_side_length: 3,
-        `on_update: %on_update,
-        `boom_mass: 250.0,
-        `block_mass: 100.0,
-        `static: false,
+        boom: %boom,
+        on_init: %on_init,
+        //scene: "maps/classroom.glb#Scene0",
+        //scene_offs: %scene_offs,
+        //scene_rot: %scene_rot,
+
+        block_size: 0.5,
+        half_side_length: 3,
+        on_update: %on_update,
+        block_mass: 100.0,
+        static: false,
     ]
     RETURN %module

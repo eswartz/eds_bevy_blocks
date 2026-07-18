@@ -1,6 +1,7 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
+use avian3d::math::Vector;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
 
@@ -21,10 +22,17 @@ fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
         id: ID.to_string(),
         label: NAME.to_string(),
         scene: maps.level_0.clone(),
+        // scene: assets.load("maps/school_gym.glb#Scene0"),
+        // scene: assets.load("maps/classroom.glb#Scene0"),
+
     });
 }
 
 pub struct LevelPlugin;
+
+#[derive(Component)]
+#[component(storage = "SparseSet")]
+struct Decorate(String, Timer);
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
@@ -33,7 +41,83 @@ impl Plugin for LevelPlugin {
                 OnEnter(LevelState::LevelLoaded),
                     on_level_loaded.run_if(is_in_level(ID)),
             )
+            .add_systems(
+                FixedPreUpdate,
+                (
+                    add_colliders.run_if(is_in_level(ID)),
+                )
+            )
+            .add_observer(|on: On<ColliderConstructorHierarchyReady>,
+                mut commands: Commands,
+            | {
+                commands.entity(on.entity).insert(Decorate(
+                    ID.to_string(),
+                    Timer::new(Duration::from_secs_f32(5.0), TimerMode::Once),
+                ));
+            })
         ;
+    }
+}
+
+fn add_colliders(
+    mut commands: Commands,
+    mut decorate_q: Query<(Entity, &mut Decorate)>,
+    name_q: Query<&Name>,
+    mesh_q: Query<&Mesh3d>,
+    child_q: Query<&Children>,
+    parent_q: Query<&ChildOf>,
+    time: Res<Time>,
+) {
+    for (entity, mut decorate) in decorate_q.iter_mut() {
+        if decorate.0 == ID && decorate.1.tick(time.delta()).just_finished() {
+            commands.entity(entity).remove::<Decorate>();
+
+            let mut decorate_info = FxHashSet::default();
+
+            for ent in child_q.iter_descendants_depth_first(entity) {
+                if let Ok(name) = name_q.get(ent)
+                && (name.starts_with("SchoolChair") || name.starts_with("SchoolDesk")|| name.starts_with("PlasticChair"))
+                && name.contains("_")
+                && let Ok(parent) = parent_q.get(ent)
+                && mesh_q.get(ent).is_ok()
+                && mesh_q.get(parent.0).is_err()
+                {
+                    decorate_info.insert((parent.0, ent, name.to_string()));
+                }
+            }
+
+            for (parent, ent, name) in decorate_info {
+                let dens = ColliderDensity(10.0);
+                let mut parent_ent_commands = commands.entity(parent);
+                if name.starts_with("SchoolChair") {
+                    parent_ent_commands.insert((
+                        Mass(10.0),
+                        CenterOfMass(Vector::new(0., -0.2, -0.75)),
+                    ));
+                }
+                else if name.starts_with("PlasticChair") {
+                    parent_ent_commands.insert((
+                        Mass(20.0),
+                        CenterOfMass(Vector::new(0., -0.5, 0.0)),
+                    ));
+                }
+                else if name.starts_with("SchoolDesk") {
+                    parent_ent_commands.insert((
+                        Mass(20.0),
+                        CenterOfMass(Vector::new(0., -0.5, 0.0)),
+                    ));
+                }
+                else {
+                    continue
+                }
+                parent_ent_commands.insert((
+                    RigidBody::Dynamic,
+                    CrosshairTargetable,
+                    dens,
+                    Friction::new(0.9),
+                ));
+            }
+        }
     }
 }
 
@@ -43,9 +127,13 @@ fn on_level_loaded(
     mut materials: ResMut<Assets<StandardMaterial>>,
 
     scripting: Scripting::<GameScript>,
+    assets: Res<AssetServer>,
     script_assets: Res<ScriptAssets>,
     model_assets: Res<ModelAssets>,
+    ctx_p: ConvertContextParam,
 ) -> Result {
+
+    let ctx = ctx_p.as_ctx();
 
     commands.insert_resource(InstructionText(
         r#"
@@ -58,7 +146,7 @@ fn on_level_loaded(
     let runtime = scripting.runtime;
 
     let script_module = script.module();
-    let cube_size = if let Some(size) = script_module.map().get(&runtime.rt.pool.for_str("block_size"))
+    let cube_size = if let Some(size) = runtime.get_struct_value(&script_module, "block_size")
     && let Some(size) = RtReal::new(&size) {
         *size as f32
     } else {
@@ -73,9 +161,6 @@ fn on_level_loaded(
     };
 
     // Spawn cube stacks
-    // let mat = materials.add(Color::srgb(0.2, 0.7, 0.9));
-    // let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
-
     #[allow(unused)]
     let cuboid_size = cube_size * 0.95;
     #[allow(unused)]
@@ -112,6 +197,30 @@ fn on_level_loaded(
     let mut rng = rand::rng();
 
     let std_mat = materials.get(&model_assets.cube_material).unwrap().clone();
+
+    if let Some(scene) = runtime.get_struct_value(&script_module, "scene")
+    && let Some(scene_path) = RtString::new(&scene, &runtime.rt.pool) {
+        let scene_offs = runtime.get_struct_value(&script_module, "scene_offs")
+            .and_then(|offs| convert_obj_to_value::<Vec3>(&ctx, &offs).ok())
+            .unwrap_or_default()
+        ;
+        let scene_rot = runtime.get_struct_value(&script_module, "scene_rot")
+            .and_then(|offs| convert_obj_to_value::<Vec3>(&ctx, &offs).ok())
+            .unwrap_or_default()
+        ;
+        commands.spawn((
+            ChildOf(world.0),
+            WorldAssetRoot(assets.load(scene_path.str().to_string())),
+            Transform::from_translation(scene_offs)
+                .with_rotation(
+                    Quat::from_euler(EulerRot::XYZ,
+                    scene_rot.x.to_radians(),
+                    scene_rot.y.to_radians(),
+                    scene_rot.z.to_radians()
+                ))
+            ,
+        ));
+    }
 
     let center = Vec3::new(-5.0, axis_scale.y / 2.0, 5.0);
     for x in -half_size..half_size {
