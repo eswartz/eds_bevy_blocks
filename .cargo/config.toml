@@ -4,6 +4,9 @@ rustflags = ["-Z", "threads=4",
   "-Zshare-generics=y",
 ]
 
+[target.x86_64-pc-windows-msvc]
+#linker = "c:/Program Files/LLVM/bin/ld.lld"
+
 [package.metadata.bevy_cli.unstable]
 web-multi-threading = true
 
