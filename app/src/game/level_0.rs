@@ -30,10 +30,6 @@ fn register_level(mut list: ResMut<LevelList>, maps: Res<MapAssets>) {
 
 pub struct LevelPlugin;
 
-#[derive(Component)]
-#[component(storage = "SparseSet")]
-struct Decorate(String, Timer);
-
 #[derive(Resource)]
 struct MakeDynamic(Vec<Entity>);
 
@@ -101,7 +97,6 @@ impl Plugin for LevelPlugin {
 
 fn make_dynamic(mut commands: Commands, mut make: If<ResMut<MakeDynamic>>,
     cc_q: Query<(&ComputedCenterOfMass, &ComputedAngularInertia)>,
-    mesh_q: Query<&Mesh3d>,
     mut prev: Local<Option<Entity>>,
 ) {
     if let Some(&ent) = (*make).0.first() {

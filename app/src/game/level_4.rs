@@ -2,7 +2,6 @@ use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
 use eds_bevy_common::*;
-use eds_bevy_common::physics::*;
 
 use bevy::prelude::*;
 

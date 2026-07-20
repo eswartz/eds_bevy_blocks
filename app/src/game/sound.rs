@@ -1,6 +1,5 @@
 use std::{any::Any, num::NonZeroUsize, sync::Mutex};
 
-use avian3d::parry::glamx::approx::AbsDiffEq;
 use eds_bevy_common::*;
 use eds_bevy_common::physics::*;
 
