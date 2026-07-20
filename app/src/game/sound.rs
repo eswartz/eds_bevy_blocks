@@ -9,7 +9,7 @@ use rustc_hash::FxHashMap;
 
 use lru::LruCache;
 use rand::{RngExt as _, seq::IndexedRandom as _};
-use timestretch::{CrossfadeMode, EdmPreset, QualityMode, StreamProcessor, StretchParams};
+use timestretch::{QualityMode, StretchParams};
 
 pub(crate) struct SoundPlugin;
 
@@ -148,11 +148,8 @@ impl RetimedSamples {
         let mut target_samples = Vec::<f32>::with_capacity(target_frames + tail_frames);
 
         let params = StretchParams::new(time_multiplier as _)
-            .with_preset(if time_multiplier > 1.0 { EdmPreset::DjBeatmatch } else { EdmPreset::Halftime })
             .with_sample_rate(sample_rate.get() as _)
             .with_quality_mode(QualityMode::Balanced)
-            .with_beat_aware(false)
-            .with_crossfade_mode(CrossfadeMode::Fixed(0.01))
             .with_channels(1);
 
         // Process the file in chunks.
@@ -172,9 +169,7 @@ impl RetimedSamples {
         let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
         const MIN_AMP: Volume = Volume::Decibels(-60.0);
 
-        let mut stretcher = StreamProcessor::new(params);
-
-        target_samples.append(&mut stretcher.process(&src_buf[..]).unwrap());
+        target_samples.append(&mut timestretch::stretch(&src_buf[..], &params).unwrap());
 
         // Get the RMS for use later.
         let src_rms = (src_sum_sqr / (1 + src_buf.len()) as f32).sqrt();
