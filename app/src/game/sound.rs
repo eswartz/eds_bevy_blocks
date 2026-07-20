@@ -1,8 +1,10 @@
 use std::{any::Any, num::NonZeroUsize, sync::Mutex};
 
-use avian3d::{dynamics::rigid_body::{AngularVelocity, mass_properties::components::Mass}, parry::glamx::approx::AbsDiffEq, prelude::{Collisions, LinearVelocity}};
-use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
+use avian3d::parry::glamx::approx::AbsDiffEq;
 use eds_bevy_common::*;
+use eds_bevy_common::physics::*;
+
+use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
 use bevy::{math::FloatOrd, prelude::*};
 use rustc_hash::FxHashMap;
 

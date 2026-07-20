@@ -1,23 +1,22 @@
 use std::time::Duration;
+use rand::RngExt as _;
+use rand::seq::IndexedRandom as _;
 
-use crate::assets::FxAssets;
-use crate::game::*;
-
-use avian3d::math::AdjustPrecision as _;
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::ecs::system::SystemParam;
 use bevy::ecs::system::lifetimeless::Read;
 use bevy::math::Affine2;
 use bevy_seedling::sample::PlaybackSettings;
 use bevy_seedling::prelude::*;
-
-use avian3d::prelude::*;
 use bevy::prelude::*;
-use rand::RngExt as _;
-use rand::seq::IndexedRandom as _;
 
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
+
+use crate::assets::FxAssets;
+use crate::game::*;
+
+use eds_bevy_common::physics::*;
 
 pub struct ActionHandlersPlugin;
 
@@ -333,7 +332,7 @@ fn do_fire(
         ),
         (
             CollisionEventsEnabled,
-            LinearVelocity(vel.adjust_precision()),
+            LinearVelocity(vel),
             AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
             // esp. when cylindrical, try not to wobble forever
 
@@ -349,12 +348,11 @@ fn do_fire(
             Mass(boom_mass.0),
             Friction::new(0.75),
             Restitution::new(0.25),
-            SweptCcd::NON_LINEAR,
+            SweptCcd::new().with_filter(CcdFilter::DEFAULT),
 
             RigidBody::Dynamic,
             collider,
             CollisionMargin(0.01),
-
         ),
 
         // Add a light for fun.

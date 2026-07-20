@@ -12,7 +12,8 @@ mod level_4;
 mod level_5;
 mod level_6;
 
-use avian3d::math::*;
+use std::time::Duration;
+
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
 use bevy::mesh::*;
@@ -20,27 +21,23 @@ use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::platform::collections::HashMap;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
+use bevy::asset::uuid::Uuid;
+use bevy::ecs::world::CommandQueue;
+use bevy::prelude::*;
+use bevy::world_serialization::WorldInstanceReady;
+
 use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptTypeBase, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
 pub use action_handlers::*;
 use fedry_runtime::prelude::RuntimeError;
 use strum::{EnumIter, VariantArray};
 
-use std::time::Duration;
-
 use crate::game::bevy_funcs::register_funcs;
 use crate::game::gravity_sleep::GravitySleepPlugin;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
+
 use eds_bevy_common::*;
-
-use bevy::asset::uuid::Uuid;
-use bevy::ecs::world::CommandQueue;
-
-use avian3d::prelude::*;
-use bevy::prelude::*;
-use bevy::world_serialization::WorldInstanceReady;
-
-
+use eds_bevy_common::physics::*;
 use eds_bevy_common::midi_synth::prelude::*;
 
 // #[cfg(all(feature = "solari", feature = "dlss"))]

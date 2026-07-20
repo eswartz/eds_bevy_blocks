@@ -1,9 +1,8 @@
 
 use std::sync::Arc;
-use avian3d::math::*;
 use eds_bevy_common::*;
+use eds_bevy_common::physics::*;
 
-use avian3d::prelude::*;
 use bevy::prelude::*;
 
 /// This is a hack!
@@ -96,8 +95,8 @@ fn sleep_when_resting(
                 // Is other under us?
                 if other_pos.y < my_pos.y {
                     // See if gravity would move "me" into "other". If so, consider to be resting on it.
-                    let next_my_pos = my_pos + grav.0.adjust_precision() * my_current_base_scale * time.delta_secs();
-                    if other_aabb.contains(&ColliderAabb::from_min_max(next_my_pos.adjust_precision(), next_my_pos.adjust_precision())) {
+                    let next_my_pos = my_pos + grav.0 * my_current_base_scale * time.delta_secs();
+                    if other_aabb.contains(&ColliderAabb::from_min_max(next_my_pos, next_my_pos)) {
                         any_under = true;
                         if !is_rested {
                             commands.command_scope(|mut commands| {

@@ -1,8 +1,8 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
-use avian3d::prelude::*;
 use eds_bevy_common::*;
+use eds_bevy_common::physics::*;
 
 use bevy::prelude::*;
 

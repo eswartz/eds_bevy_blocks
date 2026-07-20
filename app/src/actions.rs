@@ -1,8 +1,8 @@
 use eds_bevy_common::*;
 use bevy::prelude::*;
-use avian3d::math::AdjustPrecision as _;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
+use eds_bevy_common::physics::*;
 
 pub(crate) struct GameActionsPlugin;
 
@@ -47,22 +47,22 @@ fn check_actions(
 
     let Some(events) = grav_off.iter().next() else { return };
     if events.contains(ActionEvents::START) {
-        gravity.0 = Vec3::ZERO.adjust_precision();
+        gravity.0 = Vector::ZERO;
         *player_mode = PlayerMode::Space;
     }
     let Some(events) = grav_tiny.iter().next() else { return };
     if events.contains(ActionEvents::START) {
-        gravity.0 = Vec3::new(0.0, -1.0, 0.0).adjust_precision();
+        gravity.0 = Vector::new(0.0, -1.0, 0.0);
         *player_mode = PlayerMode::Space;
     }
     let Some(events) = grav_half.iter().next() else { return };
     if events.contains(ActionEvents::START) {
-        gravity.0 = Vec3::new(0.0, -5.0, 0.0).adjust_precision();
+        gravity.0 = Vector::new(0.0, -5.0, 0.0);
         *player_mode = PlayerMode::Fps;
     }
     let Some(events) = grav_normal.iter().next() else { return };
     if events.contains(ActionEvents::START) {
-        gravity.0 = Vec3::new(0.0, -9.8, 0.0).adjust_precision();
+        gravity.0 = Vector::new(0.0, -9.8, 0.0);
         *player_mode = PlayerMode::Fps;
     }
 }

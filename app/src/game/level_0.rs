@@ -1,12 +1,11 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
-use avian3d::math::Vector;
 use bevy::math::Affine2;
 use bevy::world_serialization::WorldInstanceReady;
 use eds_bevy_common::*;
+use eds_bevy_common::physics::*;
 
-use avian3d::prelude::*;
 use bevy::prelude::*;
 use fedry_bevy_plugin::Scripting;
 use rand::RngExt;

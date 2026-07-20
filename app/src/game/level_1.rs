@@ -5,8 +5,7 @@ use crate::game::OurMidiSynth;
 use crate::game::GameScript;
 use bevy::math::Affine2;
 use eds_bevy_common::*;
-
-use avian3d::prelude::*;
+use eds_bevy_common::physics::*;
 use bevy::prelude::*;
 
 use fedry_bevy_plugin::Scripting;

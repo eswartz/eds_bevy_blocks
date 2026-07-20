@@ -2,10 +2,9 @@ use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::Cube;
 use crate::game::GameScript;
-use avian3d::math::Scalar;
 use eds_bevy_common::*;
+use eds_bevy_common::physics::*;
 
-use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use fedry_bevy_plugin::Scripting;

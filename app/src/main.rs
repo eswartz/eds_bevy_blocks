@@ -11,6 +11,7 @@ use bevy::render::renderer::RenderDevice;
 #[cfg(target_arch = "wasm32")]
 use console_log;
 use eds_bevy_common::colliders::CollidersPlugin;
+use eds_bevy_common::physics::*;
 
 use crate::actions::GameActionsPlugin;
 use crate::assets::*;
@@ -22,7 +23,6 @@ use crate::menus::MenuPlugin;
 use std::sync::Arc;
 use std::time::Duration;
 
-use avian3d::prelude::*;
 use bevy::camera::visibility::RenderLayers;
 use bevy::color::palettes::tailwind::{self, RED_500};
 use bevy::prelude::*;
@@ -32,7 +32,6 @@ use bevy::{
     winit::WinitSettings,
 };
 
-use avian3d::dynamics::solver::SolverConfig;
 use bevy_asset_loader::prelude::*;
 use bevy_skein::SkeinPlugin;
 
