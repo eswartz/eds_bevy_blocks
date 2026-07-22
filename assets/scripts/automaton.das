@@ -80,7 +80,10 @@
     %vel = NEW_STRUCT [x: %vx, y: %vy, z: %vz]
 
     //SYSCALL `print, [%vel, '\n']
-    SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
+    //SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
+    SYSCALL `bevy_call_func, [%ent, `insert_components,
+        `LinearVelocity, %vel,
+    ]
 
     //%d: RealF = CAST %ent, `coerce
     %d = LOAD %data, `num
@@ -104,7 +107,9 @@
 
     %vel = NEW_STRUCT [x: 0, y: 0.1, z: 0]
 
-    SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
+    SYSCALL `bevy_call_func, [%ent, `insert_components,
+        `LinearVelocity, %vel,
+    ]
 
     SYSCALL `delay, [0.05]
 

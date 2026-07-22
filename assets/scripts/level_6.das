@@ -252,7 +252,10 @@ update:
 
     %vel = NEW_STRUCT [`x: %dx, `y: %dy, `z: %dz]
     //SYSCALL `print, [%vel, '\n']
-    SYSCALL `bevy_call_func, [%top_ent, `set_velocity, %vel]
+    //SYSCALL `bevy_call_func, [%top_ent, `set_velocity, %vel]
+    SYSCALL `bevy_call_func, [%top_ent, `insert_components,
+        `LinearVelocity, %vel,
+    ]
     //SYSCALL `print, [%old, '\n']
 ignore:
 
