@@ -164,11 +164,11 @@ fn on_firing_hold(
 fn on_firing_release(
     _fire: On<Complete<actions::Firing>>,
     mut commands: Commands,
-    params: ActionParams,
+    params: Option<ActionParams>,
     mut boom_mat: Local<Handle<StandardMaterial>>,
 ) {
     // Fire something.
-    let ActionParams{
+    let Some(ActionParams{
         mut player_q,
         player_look_q,
         rigid_q,
@@ -180,7 +180,9 @@ fn on_firing_release(
         grabbed_opt,
         mut fire_power,
         boom_mass,
-    } = params;
+    }) = params else {
+        return
+    };
 
     // Only one player...
     let Ok((player, player_xfrm, aabb, mut forces)) = player_q.single_mut() else {
