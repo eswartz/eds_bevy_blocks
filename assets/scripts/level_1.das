@@ -47,7 +47,7 @@ add_notes:
         %msg = NEW_STRUCT [
             command: `channel_volume,
             entity: %ent,
-            velocity: 0.75
+            velocity: 0.5
         ]
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
         %msg = NEW_STRUCT [
@@ -63,7 +63,7 @@ add_notes:
             entity: %ent,
             channel: %channel,
             midi: %note,
-            velocity: 0.5,
+            velocity: 0.25,
         ]
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
@@ -77,10 +77,33 @@ add_notes:
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
 no_notes:
+        %test = SYS_CALL `random_number, [0.0, 50.0]
+        //%test: CntF = SYS_CALL `round, [%test]
+        %test = LESS_R %test, 10.0
+        IF_TRUE %test, no_fun, hop
+hop:
+        %vy = SYS_CALL `random_number, [-25.0, 5.0]
+        %vx = SYS_CALL `random_number, [-5.0, 5.0]
+        %vz = SYS_CALL `random_number, [-5.0, 5.0]
+        %vel = NEW_STRUCT [
+            x: %vx,
+            y: %vy,
+            z: %vz,
+        ]
+
+        SYS_CALL `bevy_call_func, [%ent,
+            //%ent, `insert_components,
+            //`LinearVelocity, %vel,
+            `add_velocity, %vel, `World,
+        ]
+no_fun:
+
+
         %delay2: RealF = MUL %delay, 5.0
+        %delay2: RealF = MOD %delay2, 10.0
         SYSCALL `delay, [%delay2]
 
-        %task = GET_SYSTEM task
+        //%task = GET_SYSTEM task
 
         %outer = GET_FRAME 1
         %cnt = LOAD %outer, cnt
@@ -105,6 +128,7 @@ no_notes:
     %module = NEW_STRUCT [
         `block_size: 0.55,
         `half_side_length: 4,
+        `half_side_length: 3,
         `on_update: %on_update,
         `boom_mass: 10000.0,
         `block_mass: 100.0,
