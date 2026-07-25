@@ -196,7 +196,7 @@ fn on_firing_release(
 
     let world_pos = player_xfrm.translation();
     let eyes = player_eyes(world_pos, aabb, look);
-    let position = player_gun(&look.rotation, eyes);
+    let position = player_gun(&look.rotation, aabb, eyes);
 
     // TODO: needs to be outside character collider (i.e. measure it? configure it?).
     let launch_distance = 0.25;

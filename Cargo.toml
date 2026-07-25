@@ -173,8 +173,6 @@ xsynth-core = "0.3.3"
 
 crossbeam-channel = "0.5.15"
 
-# glam = { version = "0.31", features = ["mint"] }
-
 thiserror = "2.0.12"
 
 test-log = "0.2.18"

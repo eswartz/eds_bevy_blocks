@@ -94,8 +94,8 @@
     //SYSCALL `bevy_call_func, [`set_gravity, -9.8]
 
     %ctr = NEW_STRUCT [`x: 6.0, `y: 5.0, `z: -5.0]
-    //%life = NEW_SEQUENCE [`Temporary, `secs, 60]
-    %life = NEW_SEQUENCE [`Keep]
+    %life = NEW_SEQUENCE [`Temporary, `secs, 60]
+    //%life = NEW_SEQUENCE [`Keep]
 
     %init = NEW_STRUCT [
         `fall_distance: 10.0,

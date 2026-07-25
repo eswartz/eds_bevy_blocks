@@ -384,7 +384,7 @@ fn spawn_noise_on_collision(
                 let vel_rel_n = rel_vel.dot(normal);
                 let vel_rel_t = rel_vel - rel_vel.dot(normal) * normal;
                 let sliding_speed = vel_rel_t.length();
-                let max_slide_speed = if one_is_player { 8.0 } else { 2.0 };
+                let max_slide_speed = if one_is_player { 8.0 } else { 4.0 };
                 let sliding = vel_rel_n.abs() < 0.1 && sliding_speed > max_slide_speed;
                 sliding
             };

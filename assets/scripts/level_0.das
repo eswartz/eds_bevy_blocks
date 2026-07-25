@@ -72,7 +72,7 @@
 }
 
     %boom = NEW_STRUCT [
-        mass: 5.0,
+        mass: 250.0,
         x: 0.125,
         y: 0.125,
         shape: `Sphere,
@@ -85,7 +85,7 @@
         block_size: 0.5,
         half_side_length: 3,
         on_update: %on_update,
-        block_mass: 100.0,
+        block_mass: 5.0,
         static: false,
     ]
     RETURN %module
