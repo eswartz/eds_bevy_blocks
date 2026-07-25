@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use eds_bevy_common::*;
-use fedry_bevy_plugin::debug::ScriptDebugVisible;
+use fedry_bevy_plugin::debug_egui::ScriptDebugVisible;
 use fedry_bevy_plugin::prelude::ScriptControl;
 
 #[cfg(feature = "ebc")]

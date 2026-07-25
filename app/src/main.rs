@@ -252,10 +252,6 @@ fn main() -> AppExit {
                     bevy::dev_tools::states::log_transitions::<LevelState>,
                 ),
             )
-            .insert_resource(GuiState {
-                show_stats: true,
-                ..default()
-            })
         ;
     }
 
