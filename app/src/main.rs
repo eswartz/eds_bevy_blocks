@@ -191,16 +191,16 @@ fn main() -> AppExit {
         .insert_resource(OurUser(default()))
         .insert_resource(PlayerMode::Fps)
         .insert_resource(PlayerInputSettings {
-            max_xz_speed: 32,
-            max_up_speed: 128,
-            jump_accel: 256,
+            max_xz_speed: 32.0,
+            max_up_speed: 128.0,
+            jump_accel: 256.0,
             ..PlayerInputSettings::for_fps()
         })
         // .insert_resource(PlayerMode::Space)
         // .insert_resource(PlayerInputSettings {
-        //     // max_xz_speed: 255,
-        //     // max_down_speed: 255,
-        //     // max_up_speed: 255,
+        //     // max_xz_speed: 255.0,
+        //     // max_down_speed: 255.0,
+        //     // max_up_speed: 255.0,
         //     // accelerate_scale: 5.0,
         //     ..PlayerInputSettings::for_space()
         // })
