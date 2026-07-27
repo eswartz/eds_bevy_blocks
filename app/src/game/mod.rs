@@ -12,7 +12,10 @@ mod level_4;
 mod level_5;
 mod level_6;
 
+pub use action_handlers::*;
+
 use std::time::Duration;
+use strum::{EnumIter, VariantArray};
 
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind;
@@ -27,18 +30,16 @@ use bevy::prelude::*;
 use bevy::world_serialization::WorldInstanceReady;
 
 use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptTypeBase, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
-pub use action_handlers::*;
 use fedry_runtime::prelude::RuntimeError;
-use strum::{EnumIter, VariantArray};
+
+use eds_bevy_common::prelude::*;
+use eds_bevy_common::physics::*;
+use eds_bevy_common::midi_synth::prelude::*;
 
 use crate::game::bevy_funcs::register_funcs;
 use crate::game::gravity_sleep::GravitySleepPlugin;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
-
-use eds_bevy_common::prelude::*;
-use eds_bevy_common::physics::*;
-use eds_bevy_common::midi_synth::prelude::*;
 
 // #[cfg(all(feature = "solari", feature = "dlss"))]
 // use bevy::anti_alias::dlss::{

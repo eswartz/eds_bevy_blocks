@@ -1,20 +1,23 @@
-use crate::assets::*;
-use crate::game::BoomMass;
-use crate::game::Cube;
-use crate::game::OurMidiSynth;
-use crate::game::GameScript;
+use rand::RngExt;
+use rand::prelude::IndexedRandom;
+
 use bevy::math::Affine2;
+use bevy::prelude::*;
+
 use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
-use bevy::prelude::*;
 
 use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::RtNumber;
 use fedry_runtime::prelude::RtReal;
 use fedry_runtime::prelude::RtSInt;
-use rand::RngExt;
-use rand::prelude::IndexedRandom;
+
+use crate::assets::*;
+use crate::game::BoomMass;
+use crate::game::Cube;
+use crate::game::OurMidiSynth;
+use crate::game::GameScript;
 
 pub(crate) const ID: &str = "level1";
 pub(crate) const NAME: &str = "Level 1";

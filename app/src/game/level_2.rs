@@ -1,15 +1,16 @@
-use crate::assets::*;
-use crate::game::BoomMass;
-use crate::game::Cube;
-use crate::game::GameScript;
+use bevy::prelude::*;
+
 use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
-
-use bevy::prelude::*;
 
 use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 use fedry_runtime::prelude::*;
+
+use crate::assets::*;
+use crate::game::BoomMass;
+use crate::game::Cube;
+use crate::game::GameScript;
 
 pub(crate) const ID: &str = "level2";
 pub(crate) const NAME: &str = "Level 2";
