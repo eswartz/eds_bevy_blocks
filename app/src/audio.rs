@@ -8,7 +8,7 @@ use rand::seq::IndexedRandom as _;
 
 use crate::assets::FxAssets;
 use crate::assets::MusicAssets;
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 
 pub struct AudioPlugin;
 

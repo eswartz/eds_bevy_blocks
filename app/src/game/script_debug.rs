@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use fedry_bevy_plugin::debug_egui::ScriptDebugVisible;
 use fedry_bevy_plugin::prelude::ScriptControl;
 

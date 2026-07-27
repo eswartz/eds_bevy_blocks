@@ -36,7 +36,7 @@ use crate::game::gravity_sleep::GravitySleepPlugin;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
 
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
 use eds_bevy_common::midi_synth::prelude::*;
 

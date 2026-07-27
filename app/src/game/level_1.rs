@@ -4,7 +4,7 @@ use crate::game::Cube;
 use crate::game::OurMidiSynth;
 use crate::game::GameScript;
 use bevy::math::Affine2;
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
 use bevy::prelude::*;
 

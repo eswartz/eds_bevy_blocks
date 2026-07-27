@@ -3,7 +3,7 @@ use crate::game::BoomMass;
 use crate::game::GameScript;
 use bevy::math::Affine2;
 use bevy::world_serialization::WorldInstanceReady;
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
 
 use bevy::prelude::*;

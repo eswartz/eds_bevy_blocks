@@ -13,7 +13,7 @@ use bevy::render::renderer::RenderAdapter;
 use bevy::render::renderer::RenderDevice;
 use bevy::camera::Hdr;
 
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 
 #[cfg(feature = "dlss")]
 use bevy::anti_alias::dlss::{
@@ -27,8 +27,6 @@ use bevy::solari::{
 
 #[cfg(feature = "solari")]
 use wgpu::TextureUsages;
-
-use crate::flashlight::Flashlight;
 
 /// Make sure Entities with Camera3d + WorldCamera and ViewCamera exist,
 /// reusing but reconfiguring any existing entities.

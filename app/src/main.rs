@@ -10,9 +10,9 @@ mod game;
 use bevy::render::renderer::RenderDevice;
 #[cfg(target_arch = "wasm32")]
 use console_log;
-use eds_bevy_common::colliders::CollidersPlugin;
+use eds_bevy_common::prelude::CollidersPlugin;
+use eds_bevy_common::prelude::PlayerEnvironmentPlugin;
 use eds_bevy_common::physics::*;
-use eds_bevy_common::player_environment::PlayerEnvironmentPlugin;
 
 use crate::actions::GameActionsPlugin;
 use crate::assets::*;
@@ -37,10 +37,10 @@ use bevy_asset_loader::prelude::*;
 use bevy_skein::SkeinPlugin;
 
 use eds_bevy_common::synth::SynthPlugin;
-use eds_bevy_common::client_synth::ClientSynthPlugin;
+use eds_bevy_common::prelude::ClientSynthPlugin;
 use eds_bevy_common::midi_synth::prelude::MidiSynthPlugin;
 
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 
 
 fn main() -> AppExit {

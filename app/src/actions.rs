@@ -1,4 +1,4 @@
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use bevy::prelude::*;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;

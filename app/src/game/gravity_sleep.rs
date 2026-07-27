@@ -1,6 +1,6 @@
 
 use std::sync::Arc;
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
 
 use bevy::prelude::*;

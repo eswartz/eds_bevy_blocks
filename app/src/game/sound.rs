@@ -1,6 +1,6 @@
 use std::{any::Any, num::NonZeroUsize, sync::Mutex};
 
-use eds_bevy_common::*;
+use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
 
 use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
@@ -243,7 +243,7 @@ pub(crate) enum SampleSelectorType {
     FootstepSlide,
 }
 
-use eds_bevy_common::assets::surfaces;
+use eds_bevy_common::prelude::surfaces;
 
 impl SampleSelector {
     pub(crate) fn new(fx: &CommonFxAssets) -> Self {
