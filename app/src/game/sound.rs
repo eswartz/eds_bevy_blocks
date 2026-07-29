@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::{any::Any, num::NonZeroUsize, sync::Mutex};
 
 use eds_bevy_common::prelude::*;
@@ -5,18 +6,18 @@ use eds_bevy_common::physics::*;
 
 use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
 use bevy::{math::FloatOrd, prelude::*};
+use rand::seq::SliceRandom;
 use rustc_hash::FxHashMap;
 
 use lru::LruCache;
 use rand::{RngExt as _, seq::IndexedRandom as _};
-use timestretch::{QualityMode, StretchParams};
 
 pub(crate) struct SoundPlugin;
 
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(RetimedSamples::new(128).with_save_files(false))
+            .insert_resource(RetimedSamples::new(256).with_save_files(false))
             .add_systems(OnEnter(ProgramState::LaunchMenu), init_samples)
             .add_systems(Update,
                 (
@@ -136,50 +137,49 @@ impl RetimedSamples {
             return None
         };
 
+        // let (n_fft, hop_length) = (2048, 512);
+        let (n_fft, hop_length) = if time_multiplier >= 4.0 {
+            (16384, 2048)
+        } else if time_multiplier >= 3.0 {
+            (8192, 1024)
+        } else if time_multiplier >= 2.0 {
+            (2048, 1024)
+        } else if time_multiplier >= 1.0 {
+            (2048, 1024)
+        } else {
+            (1024, 512)
+        };
+
         let src_frames = source.len_frames() as usize;
+        let mut src_buf = vec![0.0f32; src_frames];
 
-        // Number of frames (as well as samples, being mono)
-        // to generate extra as 0.0 to flush out any window the buggy retimer is using.
-        const HEAD: usize = 0;
-        const TAIL: usize = 4096;
-
-        let tail_frames = (time_multiplier.max(1.0) as f32 * HEAD as f32).ceil() as usize;
-        let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
-        let mut target_samples = Vec::<f32>::with_capacity(target_frames + tail_frames);
-
-        let params = StretchParams::new(time_multiplier as _)
-            .with_sample_rate(sample_rate.get() as _)
-            .with_quality_mode(QualityMode::Balanced)
-            .with_channels(1);
-
-        // Process the file in chunks.
-        let mut src_buf = Vec::<f32>::new();
-
-        src_buf.resize(src_frames * nch + HEAD, 0.0);
-        let src_cnt = source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], HEAD .. HEAD + src_frames * nch, 0);
-        if src_cnt + HEAD < src_buf.len() {
-            warn!("truncated sample(?): {} vs {src_frames}", src_cnt / nch);
-            src_buf.resize(src_cnt + HEAD, 0.0);
-        }
-
-        // Add zeroes to avoid stretcher failing to dump its buffer.
-        src_buf.append(&mut vec![0.0f32; TAIL]);
+        let src_cnt = source.fill_buffers(
+            &mut [&mut src_buf.as_mut_slice()],
+            0 .. src_frames * nch, 0);
 
         // Accumulator of signal strength.
         let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
-        const MIN_AMP: Volume = Volume::Decibels(-60.0);
-
-        target_samples.append(&mut timestretch::stretch(&src_buf[..], &params).unwrap());
 
         // Get the RMS for use later.
         let src_rms = (src_sum_sqr / (1 + src_buf.len()) as f32).sqrt();
 
-        // Clean up trailing zeroes.
-        let stop_zeroes = target_samples.len() - target_samples.len() / 8;
-        if let Some(index) = target_samples.iter().enumerate().rposition(
-            |(idx, s)| idx < stop_zeroes || s.abs() > MIN_AMP.amp()
-        ) {
-            let _ = target_samples.drain(index..);
+        let input_len = src_buf.len();
+        let last_chunk = input_len % n_fft;
+        if last_chunk != 0 {
+            src_buf.resize(src_buf.len() + n_fft - last_chunk, 0.0f32);
+        }
+
+        const MIN_AMP: Volume = Volume::Decibels(-60.0);
+
+        let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
+        let mut target_samples = Vec::<f32>::with_capacity(target_frames);
+
+        let mut builder = dasp_rs::proc::time_stretch(&src_buf[..], 1.0 / time_multiplier)
+            .n_fft(n_fft)
+            .hop_length(hop_length);
+        match builder.compute() {
+            Ok(mut ochunk) => target_samples.append(&mut ochunk),
+            Err(e) => { error!("time stretch failed: {e}"); return None }
         }
 
         // Get RMS power of the signal after conversion.
@@ -197,6 +197,14 @@ impl RetimedSamples {
             }
         }
 
+        // Clean up trailing zeroes (just because).
+        let stop_zeroes = target_samples.len() - target_samples.len() / 8;
+        if let Some(index) = target_samples.iter().enumerate().rposition(
+            |(idx, s)| idx < stop_zeroes || s.abs() > MIN_AMP.amp()
+        ) {
+            let _ = target_samples.drain(index..);
+        }
+
         if self.save_files {
             use bwavfile::*;
 
@@ -210,10 +218,15 @@ impl RetimedSamples {
             let temp_path = std::env::temp_dir().join(format!("{src_name}-{time_multiplier:.3}.wav"));
             info!("writing {temp_path:?}");
             let mut file = std::fs::File::create(temp_path).unwrap();
-            let format = WaveFmt::new_pcm_mono(sample_rate.get() as _, 32);
+
+            // note: only integer here
+            let format = WaveFmt::new_pcm_mono(sample_rate.get() as _, 16);
             let w = WaveWriter::new(&mut file, format).unwrap();
             let mut frame_writer = w.audio_frame_writer().unwrap();
-            frame_writer.write_frames(&target_samples[..]).unwrap();
+            let scaled = target_samples.iter().map(|s| (*s * 32767.0) as i16).collect::<Vec<_>>();
+            frame_writer.write_frames(&scaled[..]).unwrap();
+            // info!("wrote {}", scaled.len());
+            let _ = frame_writer.end();
         }
 
         let resource: Vec<Vec<f32>> = vec![target_samples].into();
@@ -232,7 +245,8 @@ pub(crate) struct SampleSelector {
     pub(crate) slide_samples: SurfaceSampleMap,
     pub(crate) foot_impact_samples: SurfaceSampleMap,
     pub(crate) foot_slide_samples: SurfaceSampleMap,
-    pub(crate) lru: Mutex<Vec<(SampleSelectorType, Handle<AudioSample>)>>,
+    lru: VecDeque<(SampleSelectorType, Handle<AudioSample>)>,
+    limit: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -254,10 +268,24 @@ impl SampleSelector {
             foot_slide_samples: surfaces::sounds_for_footsteps_slide(fx),
 
             lru: default(),
+            limit: 4,
         }
     }
 
-    pub(crate) fn pick_sample(&self, ty: SampleSelectorType, phys_mat: SurfaceMaterial) -> Option<Handle<AudioSample>> {
+    pub(crate) fn set_repeat_limit(self, limit: usize) -> Self {
+        Self {
+            limit,
+            .. self
+        }
+    }
+
+    /// Pick a random sample of the given type,
+    /// guaranteed to be
+    pub(crate) fn pick_sample(
+        &mut self,
+        ty: SampleSelectorType,
+        phys_mat: SurfaceMaterial,
+    ) -> Option<Handle<AudioSample>> {
         let sample_set = match ty {
             SampleSelectorType::SurfaceImpact => &self.impact_samples,
             SampleSelectorType::SurfaceSlide => &self.slide_samples,
@@ -267,17 +295,20 @@ impl SampleSelector {
 
         let samples = sample_set.get(&phys_mat)?;
 
-        let mut lru = self.lru.lock().ok()?;
+        // Our little list of recent samples, so
+        // we maintain uniqueness in sampling.
+        let lru = &mut self.lru;
         let mut max_iters = 8;
         loop {
             let sample = samples.choose(&mut rand::rng()).cloned()?;
             let key = (ty, sample.clone());
             let lru_len = lru.len();
-            if lru_len >= samples.len() {
-                let _ = lru.drain(0 .. samples.len() - 1);
+            if lru_len >= self.limit {
+                // Forget old history.
+                let _ = lru.drain(0 .. self.limit);
             }
-            if max_iters == 0 || lru.last() != Some(&key) {
-                lru.push(key);
+            if !lru.contains(&key) || max_iters == 0 {
+                lru.push_back(key);
                 return Some(sample)
             }
             max_iters -= 1;
@@ -300,7 +331,7 @@ fn spawn_noise_on_collision(
     parent_q: Query<&ChildOf>,
     paused: Res<PhysicsPaused>,
 
-    selector: Res<SampleSelector>,
+    mut selector: ResMut<SampleSelector>,
 
     mut samples: ResMut<Assets<AudioSample>>,
     mut retimed_samples: ResMut<RetimedSamples>,
@@ -473,14 +504,17 @@ fn spawn_noise_on_collision(
             let rate = rng.random_range(speed_range);
             // Reduce the actual retimed sample to a quantized amount since we have all the f32 range possible.
             // let Some(rate_quant) = QuantizedFloat::rounded_to_pow2(rate) else { continue };
-            let Some(rate_quant) = QuantizedFloat::rounded_to_multiple(rate, 1.0 / 3.0) else { continue };
+            // The rate is reduced to a low fraction (a slow operation)
+            // and the rest as a pitch shift.
+            let Some(rate_quant) = QuantizedFloat::rounded_to_multiple(rate, 1.0 / 5.0) else { continue };
             let rate_fract = rate / rate_quant.as_f32();
+            // let rate_fract = 0.0f32;
 
+            // Stretch the sample in time.
             let retimed_sample = retimed_samples.fetch_retimed(
                 samples.reborrow(),
                 sample.clone(),
                 rate_quant.as_f32(),
-
             )
             .unwrap_or_else(|| sample);
 
@@ -494,9 +528,13 @@ fn spawn_noise_on_collision(
                     .despawn()
                     .with_playback(true)
                     .with_play_from(PlayFrom::Seconds(rng.random_range(0.0 .. 0.05)))
-                    .with_speed(1.0 + rate_fract as f64)
+
+                    // Apply the rest of the "time" stretch here.
+                    // .with_speed(1.0 + rate_fract as f64)
                 ,
                 sample_effects![
+                    // Prepopulate offset to avoid any timing problems
+                    // with very short samples being spatialized as if at origin.
                     SpatialBasicNode { offset: (xfrm.translation() - listener_xfrm.translation()).into(), ..default() },
                 ],
                 xfrm.clone(),

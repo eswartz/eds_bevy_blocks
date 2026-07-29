@@ -126,8 +126,9 @@ fedry_runtime.workspace = true
 fedry_bevy_plugin.workspace = true
 
 lru = "0.18.1"
-timestretch = "0.8.0"
+# timestretch = "0.8.0"
 bwavfile = "2.0.1"
+dasp-rs = "0.5.1"
 
 [dev-dependencies]
 test-log.workspace = true
