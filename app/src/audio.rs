@@ -1,9 +1,13 @@
 
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_asset_loader::loading_state::LoadingStateAppExt as _;
 use bevy_asset_loader::loading_state::config::ConfigureLoadingState as _;
 use bevy_asset_loader::loading_state::config::LoadingStateConfig;
-use bevy_seedling::prelude::SamplePlayer;
+use bevy_seedling::prelude::*;
+use bevy_seedling::prelude::PlaybackSettings;
+use rand::RngExt;
 use rand::seq::IndexedRandom as _;
 
 use crate::assets::FxAssets;
@@ -43,6 +47,7 @@ pub(crate) fn init_background_audio(
         ChildOf(*world_q),
 
         Music,
+        PlaybackSettings::default().remove(),
         SamplePlayer::new(
             (*[
                 &music.song_1,
@@ -51,8 +56,20 @@ pub(crate) fn init_background_audio(
             ]
             .choose(&mut rand::rng())
             .expect("we have one"))
-            .clone())
-        .looping()
+            .clone()
+        ),
+        sample_effects![
+        ],
     ))
+    .observe(|event: On<PlaybackCompletion>,
+        mut commands: Commands,
+    | {
+        let entity = event.entity;
+        info!("Playback elapsed on {}.", entity);
+        let delay_secs = rand::rng().random_range(5 ..= 15) as f32;
+        let mut delayed = commands.delayed();
+        info!("Next selection begins in {delay_secs:.0} seconds");
+        delayed.secs(delay_secs).run_system_cached(init_background_audio);
+    })
     ;
 }
