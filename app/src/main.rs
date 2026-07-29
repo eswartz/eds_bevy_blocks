@@ -7,22 +7,11 @@ mod actions;
 mod camera;
 mod game;
 
-use bevy::render::renderer::RenderDevice;
-#[cfg(target_arch = "wasm32")]
-use console_log;
-use eds_bevy_common::prelude::CollidersPlugin;
-use eds_bevy_common::prelude::PlayerEnvironmentPlugin;
-use eds_bevy_common::physics::*;
-
-use crate::actions::GameActionsPlugin;
-use crate::assets::*;
-use crate::audio::AudioPlugin;
-use crate::camera::ensure_3d_camera;
-use crate::game::GamePlugin;
-use crate::menus::MenuPlugin;
-
 use std::sync::Arc;
 use std::time::Duration;
+use bevy::render::error_handler::{RenderErrorHandler, RenderErrorPolicy};
+#[cfg(target_arch = "wasm32")]
+use console_log;
 
 use bevy::camera::visibility::RenderLayers;
 use bevy::color::palettes::tailwind::{self, RED_500};
@@ -35,12 +24,21 @@ use bevy::{
 
 use bevy_asset_loader::prelude::*;
 use bevy_skein::SkeinPlugin;
+use bevy::render::renderer::RenderDevice;
 
-use eds_bevy_common::synth::SynthPlugin;
-use eds_bevy_common::prelude::ClientSynthPlugin;
-use eds_bevy_common::midi_synth::prelude::MidiSynthPlugin;
-
+use eds_bevy_common::midi_synth::synth::MidiSynthPlugin;
+use eds_bevy_common::prelude::CollidersPlugin;
+use eds_bevy_common::prelude::PlayerEnvironmentPlugin;
+use eds_bevy_common::physics::*;
 use eds_bevy_common::prelude::*;
+use wgpu::wgt::error::ErrorType;
+
+use crate::actions::GameActionsPlugin;
+use crate::assets::*;
+use crate::audio::AudioPlugin;
+use crate::camera::ensure_3d_camera;
+use crate::game::GamePlugin;
+use crate::menus::MenuPlugin;
 
 
 fn main() -> AppExit {
@@ -68,6 +66,18 @@ fn main() -> AppExit {
                 1.0 / 15.0,
             )),
         })
+
+        .insert_resource(RenderErrorHandler(
+            |error, main_world, render_world| match error.ty {
+                ErrorType::DeviceLost => RenderErrorPolicy::Recover(default()),
+                ErrorType::OutOfMemory => {
+                    main_world.insert_resource(NextState::Pending(ProgramState::Error));
+                    RenderErrorPolicy::StopRendering
+                }
+                ErrorType::Validation => RenderErrorPolicy::Ignore,
+                ErrorType::Internal => panic!(),
+            },
+        ))
 
         // Register our sources early.
         .add_plugins(CommonAssetsPlugin)
@@ -121,17 +131,17 @@ fn main() -> AppExit {
         )
         .insert_resource(SubstepCount(8))
 
-        .insert_resource(SolverConfig {
-            contact_damping_ratio: 10.0,
-            contact_frequency_factor: 1.5,
-            max_overlap_solve_speed: 1.0,
-            restitution_threshold: 1.0,
-            restitution_iterations: 1,
-            ..default()
-        })
+        // .insert_resource(SolverConfig {
+        //     contact_damping_ratio: 10.0,
+        //     contact_frequency_factor: 1.5,
+        //     max_overlap_solve_speed: 1.0,
+        //     restitution_threshold: 1.0,
+        //     restitution_iterations: 1,
+        //     ..default()
+        // })
         .add_plugins(avian3d::debug_render::PhysicsDebugPlugin::default())
 
-        .insert_resource(TimeToSleep(0.0625))
+        .insert_resource(TimeToSleep(1.0 / 16.0))
 
         .insert_gizmo_config(
              PhysicsGizmos {
