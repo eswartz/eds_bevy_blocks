@@ -26,7 +26,7 @@ impl Plugin for ActionHandlersPlugin {
             .init_resource::<FirePower>()
             .insert_resource(FirePowerWindup {
                 accel: 1.1,
-                max: 10.0,
+                max: 50.0,
                 start: 0.1,
             })
 
@@ -197,6 +197,7 @@ fn on_firing_release(
     let world_pos = player_xfrm.translation();
     let eyes = player_eyes(world_pos, aabb, look);
     let position = player_gun(&look.rotation, aabb, eyes);
+    let player_vel = forces.linear_velocity();
 
     // TODO: needs to be outside character collider (i.e. measure it? configure it?).
     let launch_distance = 0.25;
@@ -247,7 +248,9 @@ fn on_firing_release(
     let rev_power = -power;
     forces.apply_linear_impulse(look.rotation * rev_power * Vec3::Z);
 
-    do_fire(commands.reborrow(), xfrm, power, mat,
+    do_fire(commands.reborrow(),
+        xfrm, player_vel,
+        power, mat,
         grabbed_opt, rigid_q,
         &*common_fx, mesh_params.p0(),
         &*world, &boom_mass,
@@ -260,6 +263,7 @@ fn do_fire(
     mut commands: Commands,
 
     xfrm: Transform,
+    player_vel: RVec3,
     power: f32,
     boom_mat: Handle<StandardMaterial>,
 
@@ -334,7 +338,7 @@ fn do_fire(
         ),
         (
             CollisionEventsEnabled,
-            LinearVelocity(vel),
+            LinearVelocity(vel + player_vel),
             AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
             // esp. when cylindrical, try not to wobble forever
 
