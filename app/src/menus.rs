@@ -136,7 +136,7 @@ fn on_enter_main_menu(
         // },
         // PrettyTextMaterial(glyph_mats.add(TitleShader::default())),
         RenderLayers::layer(RENDER_LAYER_UI),
-        Transform::from_xyz(0., 300.0, 0.),
+        Transform::from_xyz(0., 250.0, 0.),
     ));
 
     let mut builder = MenuItemBuilder::new(
