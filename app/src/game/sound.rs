@@ -396,7 +396,7 @@ fn spawn_noise_on_collision(
             let rel_ang_abs = src_ang_vel.abs() - ang_vel.0.abs();
             let ang_length = rel_ang_abs.length() /* rad */ * std::f32::consts::PI * 0.125 /* m */;
             if vel_length + ang_length < 1.0 {
-                // They're moving slowly relative to each other, ignore
+                // They're moving slowly  other, ignore
                 continue
             }
 
@@ -412,11 +412,13 @@ fn spawn_noise_on_collision(
             let sliding = event.is_touching() && !event.manifolds.is_empty() && {
                 let normal = event.manifolds[0].normal;
 
-                let vel_rel_n = rel_vel.dot(normal);
-                let vel_rel_t = rel_vel - rel_vel.dot(normal) * normal;
+                let norm_rel_vel = rel_vel.normalize_or_zero();
+                let vel_rel_n = norm_rel_vel.dot(normal);
+                let vel_rel_t = rel_vel - norm_rel_vel.dot(normal) * normal;
                 let sliding_speed = vel_rel_t.length();
-                let max_slide_speed = if one_is_player { 8.0 } else { 4.0 };
-                let sliding = vel_rel_n.abs() < 0.1 && sliding_speed > max_slide_speed;
+                let max_slide_speed = if one_is_player { 4.0 } else { 2.0 };
+                let sliding = vel_rel_n.abs() < 0.25 && sliding_speed > max_slide_speed;
+
                 sliding
             };
 
