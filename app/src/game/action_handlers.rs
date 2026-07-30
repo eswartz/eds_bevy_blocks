@@ -130,6 +130,7 @@ struct ActionParams<'w, 's> {
     mesh_params: ParamSet<'w, 's, (
         ResMut<'w, Assets<Mesh>>,
         MeshRayCast<'w, 's>,
+        SpatialQuery<'w, 's>,
     )>,
 
     world: If<Res<'w, WorldMarkerEntity>>,
@@ -196,23 +197,45 @@ fn on_firing_release(
 
     let world_pos = player_xfrm.translation();
     let eyes = player_eyes(world_pos, aabb, look);
-    let position = player_gun(&look.rotation, aabb, eyes);
+    let fire_pos = player_gun(&look.rotation, aabb, eyes);
     let player_vel = forces.linear_velocity();
 
-    // TODO: needs to be outside character collider (i.e. measure it? configure it?).
-    let launch_distance = 0.25;
-    let mut pos = position + look.rotation * Vec3::NEG_Z * launch_distance;
+    // // TODO: needs to be outside character collider (i.e. measure it? configure it?).
+    // let launch_distance = 0.25;
+    // let mut pos = fire_pos + look.rotation * Vec3::NEG_Z * launch_distance;
 
-    let ray = Ray3d::new(world_pos, look.rotation * Dir3::NEG_Z);
-    let mut raycast = mesh_params.p1();
-    let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default()
-        .always_early_exit()
-        .with_visibility(RayCastVisibility::Visible),
-    );
-    if let Some(hit) = hits.get(0) {
-        // Adjust to world (stay in local space).
-        pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.clamp(0.5, 1.5));
+    // let ray = Ray3d::new(world_pos, look.rotation * Dir3::NEG_Z);
+    // let mut raycast = mesh_params.p1();
+    // let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default()
+    //     .always_early_exit()
+    //     .with_visibility(RayCastVisibility::Visible),
+    // );
+    // if let Some(hit) = hits.get(0) {
+    //     // Adjust to world (stay in local space).
+    //     pos = position + look.rotation * Vec3::NEG_Z * (hit.1.distance.clamp(0.5, 1.5));
+    // }
+    let ray = Ray3d::new(fire_pos, look.rotation * Dir3::NEG_Z);
+    let mut spatial = mesh_params.p2();
+    let hit = spatial.cast_shape(
+        &Collider::sphere(0.5),
+        ray.origin, Quat::IDENTITY,
+        ray.direction,
+        &ShapeCastConfig::default(),
+        &SpatialQueryFilter::default().with_excluded_entities([player]));
+
+    const MIN_DISTANCE: f32 = 0.333;
+    if let Some(hit) = hit && hit.distance < MIN_DISTANCE / 2.0 {
+        // Can't fire this close.
+        commands.spawn((
+            UiSfx,
+            SamplePlayer::new(common_fx.cannot.clone()),
+            VolumeNode::from_linear(0.5),
+        ));
+
+        return;
     }
+    // Adjust to world (stay in local space).
+    let pos = fire_pos + look.rotation * Vec3::NEG_Z * MIN_DISTANCE;
 
     let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
     let power = **fire_power;
@@ -235,8 +258,8 @@ fn on_firing_release(
             diffuse_transmission: 0.75,
             specular_transmission: 0.75,
             alpha_mode: AlphaMode::Blend,
-            // normal_map_texture: Some(fx.boom_normal.clone()),
-            normal_map_texture: Some(fx.puck_normal_texture.clone()),
+            normal_map_texture: Some(fx.boom_normal.clone()),
+            // normal_map_texture: Some(fx.puck_normal_texture.clone()),
             .. default()
         });
         *boom_mat = mat.clone();
@@ -271,6 +294,7 @@ fn do_fire(
 
     rigid_q: Query<Entity, With<RigidBody>>,
     common_fx: &Res<CommonFxAssets>,
+
     mut meshes: ResMut<Assets<Mesh>>,
 
     world: &Res<WorldMarkerEntity>,

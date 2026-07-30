@@ -72,10 +72,21 @@ impl RetimedSampleKey {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Reflect, Clone)]
+#[reflect(Resource, Default, Clone)]
 pub(crate) struct RetimedSamples {
+    #[reflect(ignore)]
     cache: LruCache<RetimedSampleKey, Handle<AudioSample>>,
-    save_files: bool,
+    pub(crate) save_files: bool,
+}
+
+impl Default for RetimedSamples {
+    fn default() -> Self {
+        Self {
+            cache: LruCache::new(NonZeroUsize::new(1).unwrap()),
+            save_files: false,
+        }
+    }
 }
 
 impl RetimedSamples {
