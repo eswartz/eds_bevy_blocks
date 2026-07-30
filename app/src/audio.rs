@@ -1,6 +1,3 @@
-
-use std::time::Duration;
-
 use bevy::prelude::*;
 use bevy_asset_loader::loading_state::LoadingStateAppExt as _;
 use bevy_asset_loader::loading_state::config::ConfigureLoadingState as _;

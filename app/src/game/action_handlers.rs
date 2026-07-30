@@ -1,11 +1,6 @@
-use std::time::Duration;
 use rand::RngExt as _;
 use rand::seq::IndexedRandom as _;
 
-use bevy::camera::visibility::NoFrustumCulling;
-use bevy::ecs::system::SystemParam;
-use bevy::ecs::system::lifetimeless::Read;
-use bevy::math::Affine2;
 use bevy_seedling::sample::PlaybackSettings;
 use bevy_seedling::prelude::*;
 use bevy::prelude::*;
@@ -13,11 +8,8 @@ use bevy::prelude::*;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
 
-use crate::assets::FxAssets;
-use crate::game::firing::{FiredObjectMaterial, fire_projectile};
+use crate::game::firing::{FiredObject, fire_projectile};
 use crate::game::*;
-
-use eds_bevy_common::physics::*;
 
 pub struct ActionHandlersPlugin;
 
@@ -25,7 +17,7 @@ impl Plugin for ActionHandlersPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<FiringState>()
-            .init_resource::<FiredObjectMaterial>()
+            .init_resource::<FiredObject>()
             .insert_resource(FirePowerLimits {
                 accel: 1.1,
                 max: 50.0,

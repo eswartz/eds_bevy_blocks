@@ -1,12 +1,11 @@
 use std::collections::VecDeque;
-use std::{any::Any, num::NonZeroUsize, sync::Mutex};
+use std::{any::Any, num::NonZeroUsize};
 
 use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
 
 use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
 use bevy::{math::FloatOrd, prelude::*};
-use rand::seq::SliceRandom;
 use rustc_hash::FxHashMap;
 
 use lru::LruCache;
@@ -172,9 +171,9 @@ impl RetimedSamples {
         let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
 
         // Get the RMS for use later.
-        let src_rms = (src_sum_sqr / (1 + src_buf.len()) as f32).sqrt();
+        let src_rms = (src_sum_sqr / (1 + src_cnt) as f32).sqrt();
 
-        let input_len = src_buf.len();
+        let input_len = src_cnt;
         let last_chunk = input_len % n_fft;
         if last_chunk != 0 {
             src_buf.resize(src_buf.len() + n_fft - last_chunk, 0.0f32);
@@ -185,7 +184,7 @@ impl RetimedSamples {
         let target_frames = (time_multiplier as f32 * src_frames as f32).ceil() as usize;
         let mut target_samples = Vec::<f32>::with_capacity(target_frames);
 
-        let mut builder = dasp_rs::proc::time_stretch(&src_buf[..], 1.0 / time_multiplier)
+        let builder = dasp_rs::proc::time_stretch(&src_buf[..], 1.0 / time_multiplier)
             .n_fft(n_fft)
             .hop_length(hop_length);
         match builder.compute() {
@@ -521,7 +520,6 @@ fn spawn_noise_on_collision(
             // and the rest as a pitch shift.
             let Some(rate_quant) = QuantizedFloat::rounded_to_multiple(rate, 1.0 / 5.0) else { continue };
             let rate_fract = rate / rate_quant.as_f32();
-            // let rate_fract = 0.0f32;
 
             // Stretch the sample in time.
             let retimed_sample = retimed_samples.fetch_retimed(
@@ -543,7 +541,7 @@ fn spawn_noise_on_collision(
                     .with_play_from(PlayFrom::Seconds(rng.random_range(0.0 .. 0.05)))
 
                     // Apply the rest of the "time" stretch here.
-                    // .with_speed(1.0 + rate_fract as f64)
+                    .with_speed(1.0 + rate_fract as f64)
                 ,
                 sample_effects![
                     // Prepopulate offset to avoid any timing problems

@@ -905,7 +905,7 @@ fn update_power_bar(
     images: Res<Assets<Image>>,
     mut ui_alpha_q: Query<&mut UiNodeAlpha>,
     text_q: Single<Entity, With<PowerBarText>>,
-    mut image_q: Single<&mut ImageNode, With<PowerBarStrength>>,
+    image_q: Single<&mut ImageNode, With<PowerBarStrength>>,
 ) {
     gui_area.with_first(GuiAreaMarker::HandStatusArea, move |ent| {
         let Ok(mut alpha) = ui_alpha_q.get_mut(ent) else { return };

@@ -68,7 +68,7 @@ fn main() -> AppExit {
         })
 
         .insert_resource(RenderErrorHandler(
-            |error, main_world, render_world| match error.ty {
+            |error, main_world, _render_world| match error.ty {
                 ErrorType::DeviceLost => RenderErrorPolicy::Recover(default()),
                 ErrorType::OutOfMemory => {
                     main_world.insert_resource(NextState::Pending(ProgramState::Error));

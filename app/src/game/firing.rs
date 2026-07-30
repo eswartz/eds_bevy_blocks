@@ -1,5 +1,4 @@
 
-use std::time::Duration;
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::ecs::system::SystemParam;
 use bevy::ecs::system::lifetimeless::Read;
@@ -7,36 +6,23 @@ use bevy::math::Affine2;
 use bevy_seedling::nodes::core::VolumeNode;
 use bevy_seedling::sample::SamplePlayer;
 use rand::RngExt;
-use strum::{EnumIter, VariantArray};
 
-use bevy::asset::RenderAssetUsages;
-use bevy::color::palettes::tailwind;
 use bevy::mesh::*;
-use bevy::pbr::{ExtendedMaterial, MaterialExtension};
-use bevy::platform::collections::HashMap;
-use bevy::render::render_resource::AsBindGroup;
-use bevy::shader::ShaderRef;
-use bevy::asset::uuid::Uuid;
-use bevy::ecs::world::CommandQueue;
 use bevy::prelude::*;
-use bevy::world_serialization::WorldInstanceReady;
-
-use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptTypeBase, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
-use fedry_runtime::prelude::RuntimeError;
 
 use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
-use eds_bevy_common::midi_synth::prelude::*;
 
 use crate::assets::FxAssets;
 use crate::game::BoomMass;
 
 #[derive(Resource, Default)]
-pub(crate) struct FiredObjectMaterial {
+pub(crate) struct FiredObject {
     material: Option<Handle<StandardMaterial>>,
+    mesh_collider: Option<(Handle<Mesh>, Collider)>,
 }
 
-impl FiredObjectMaterial {
+impl FiredObject {
     pub(crate) fn get_material(
         &mut self,
         fx: &FxAssets,
@@ -67,6 +53,44 @@ impl FiredObjectMaterial {
             self.material.replace(mat.clone());
         }
         self.material.as_ref().unwrap().clone()
+    }
+
+    pub(crate) fn get_mesh_and_collider(
+        &mut self,
+        mut meshes: Mut<Assets<Mesh>>,
+    ) -> (Handle<Mesh>, Collider) {
+        if self.mesh_collider.is_none() {
+            // let size = Vec3::new(2.0, 0.5, 0.5);
+            // let size = Vec3::new(0.5, 2.0, 0.5);
+            // let size = Vec3::new(2.0, 1.0, 0.25);
+
+            // let mesh = meshes.add(Cuboid::from_size(size));
+            // let collider = Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar);
+
+            // let mesh_shape = Extrusion::new(Triangle2d{
+            //     vertices: [
+            //         Vec2::new(0.0, 1.0),
+            //         Vec2::new(-0.5, 0.0),
+            //         Vec2::new(0.5, 0.0),
+            //     ],
+            // }, 1.0);
+            // let mesh = meshes.add(mesh_shape.mesh());
+            // let collider: Collider = Collider::trimesh_from_mesh(&mesh_shape.mesh().build()).unwrap();
+            let radius = 0.5;
+            let depth = 0.25;
+            let mesh_shape = Extrusion::new(Circle{ radius }, depth);
+            let mut mesh = mesh_shape.mesh().build().rotated_by(
+                Quat::from_rotation_x(std::f32::consts::FRAC_PI_2));
+            mesh.generate_tangents().unwrap();
+
+            let mesh = meshes.add(mesh);
+            let collider: Collider = Collider::cylinder(radius, depth);
+            // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
+
+            self.mesh_collider.replace((mesh, collider));
+        }
+
+        self.mesh_collider.as_ref().unwrap().clone()
     }
 }
 
@@ -120,27 +144,14 @@ impl FiringState {
 }
 
 impl FirePowerLimits {
-    // pub(crate) fn apply_force(&self, dt: Duration, power: f32) -> f32 {
-    //     let q = (dt.as_secs_f32() * 64.0).min(1.0);
-    //     let mul = 1.0.lerp(self.accel, q);
-    //     (power * mul).min(self.max)
-    // }
     pub(crate) fn apply_force(&self, elapsed_secs: f32, power: f32) -> f32 {
         let duration = 1.0;
 
-        // let now = ((elapsed_secs % (duration + time_margin * 2.0) - time_margin) / duration).clamp(0.0, 1.0);
         let now = (elapsed_secs / duration).clamp(0.0, 1.0);
         let f = EasingCurve::new(0.0f32, self.accel, EaseFunction::SmoothStepIn);
         let q = f.sample(now).unwrap();
 
-        // let q = (power * elapsed_secs * 64.0).min(1.0);
-        // let mul = 1.0.lerp(self.accel, q);
-        // (power * mul).min(self.max)
-        // (q * mul).min(self.max)
-
         (q + power).min(self.max)
-
-        // elapsed.as_secs_f32()
     }
 }
 
@@ -170,9 +181,8 @@ pub(crate) struct ActionParams<'w, 's> {
 pub(crate) fn fire_projectile(
     In(power): In<f32>,
     mut commands: Commands,
-    mut fire_state: ResMut<FiringState>,
     params: Option<ActionParams>,
-    mut boom_mat: ResMut<FiredObjectMaterial>,
+    fired_object: ResMut<FiredObject>,
 ) {
     // Fire something.
     let Some(ActionParams{
@@ -181,7 +191,7 @@ pub(crate) fn fire_projectile(
         rigid_q,
         common_fx,
         fx,
-        mut materials,
+        materials,
         mut mesh_params,
         world,
         grabbed_opt,
@@ -206,7 +216,7 @@ pub(crate) fn fire_projectile(
     let player_vel = forces.linear_velocity();
 
     let ray = Ray3d::new(fire_pos, look.rotation * Dir3::NEG_Z);
-    let mut spatial = mesh_params.p2();
+    let spatial = mesh_params.p2();
     let hit = spatial.cast_shape(
         &Collider::sphere(0.5),
         ray.origin, Quat::IDENTITY,
@@ -236,9 +246,9 @@ pub(crate) fn fire_projectile(
 
     do_fire(commands.reborrow(),
         xfrm, player_vel,
-        power, boom_mat.get_material(&fx, materials.reborrow()),
+        power, materials, fired_object,
         grabbed_opt, rigid_q,
-        &*common_fx, mesh_params.p0(),
+        &*fx, &*common_fx, mesh_params.p0(),
         &*world, &boom_mass,
     );
 }
@@ -249,11 +259,14 @@ fn do_fire(
     xfrm: Transform,
     player_vel: RVec3,
     power: f32,
-    boom_mat: Handle<StandardMaterial>,
+    mut std_mats: ResMut<Assets<StandardMaterial>>,
+    mut fired_object: ResMut<FiredObject>,
+    // boom_mat: Handle<StandardMaterial>,
 
     grabbed_opt: Option<Res<GrabbedItem>>,
 
     rigid_q: Query<Entity, With<RigidBody>>,
+    fx: &Res<FxAssets>,
     common_fx: &Res<CommonFxAssets>,
 
     mut meshes: ResMut<Assets<Mesh>>,
@@ -275,32 +288,9 @@ fn do_fire(
         }
     } else {
         // Fire a new item.
-        // let size = Vec3::new(2.0, 0.5, 0.5);
-        // let size = Vec3::new(0.5, 2.0, 0.5);
-        // let size = Vec3::new(2.0, 1.0, 0.25);
 
-        // let mesh = meshes.add(Cuboid::from_size(size));
-        // let collider = Collider::cuboid(size.x as Scalar, size.y as Scalar, size.z as Scalar);
-
-        // let mesh_shape = Extrusion::new(Triangle2d{
-        //     vertices: [
-        //         Vec2::new(0.0, 1.0),
-        //         Vec2::new(-0.5, 0.0),
-        //         Vec2::new(0.5, 0.0),
-        //     ],
-        // }, 1.0);
-        // let mesh = meshes.add(mesh_shape.mesh());
-        // let collider: Collider = Collider::trimesh_from_mesh(&mesh_shape.mesh().build()).unwrap();
-        let radius = 0.5;
-        let depth = 0.25;
-        let mesh_shape = Extrusion::new(Circle{ radius }, depth);
-        let mut mesh = mesh_shape.mesh().build().rotated_by(
-            Quat::from_rotation_x(std::f32::consts::FRAC_PI_2));
-        mesh.generate_tangents().unwrap();
-
-        let mesh = meshes.add(mesh);
-        let collider: Collider = Collider::cylinder(radius, depth);
-        // let collider = Collider::capsule((size.z / 2.0) as Scalar, (size.y - size.x) as Scalar);
+        let mat = fired_object.get_material(&fx, std_mats.reborrow());
+        let (mesh, collider) = fired_object.get_mesh_and_collider(meshes.reborrow());
 
         let mut rng = rand::rng();
         let rot_y = rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI);
@@ -309,8 +299,8 @@ fn do_fire(
         commands.spawn(((
             ChildOf(world.0),
             Name::new("BOOM"),
-            Mesh3d(mesh.clone()),
-            MeshMaterial3d(boom_mat),
+            Mesh3d(mesh),
+            MeshMaterial3d(mat),
             xfrm,
 
             // ActiveCollisionHooks::MODIFY_CONTACTS,
