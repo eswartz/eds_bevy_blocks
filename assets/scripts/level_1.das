@@ -82,8 +82,8 @@ no_notes:
         %test = LESS_R %test, 10.0
         IF_TRUE %test, no_fun, hop
 hop:
-        %vy = SYS_CALL `random_number, [-25.0, -5.0]
         %vx = SYS_CALL `random_number, [-5.0, 5.0]
+        %vy = SYS_CALL `random_number, [-5.0, 5.0]
         %vz = SYS_CALL `random_number, [-5.0, 5.0]
         %vel = NEW_STRUCT [
             x: %vx,
@@ -128,10 +128,10 @@ no_fun:
     %module = NEW_STRUCT [
         `block_size: 0.55,
         `half_side_length: 4,
-//        `half_side_length: 3,
+        `half_side_length: 3,
         `on_update: %on_update,
         `boom_mass: 5000.0,
-        `block_mass: 10.0,
+        `block_mass: 50.0,
         `static: false,
         `cube_gap: 0.02,
         `collision_margin: 0.0,

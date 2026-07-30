@@ -7,6 +7,7 @@
     %dist: RealF = LOAD %data, `fall_distance, true
     %delay: RealF = LOAD %data, `delay, true
     %life: Tuple = LOAD %data, `lifetime, true
+    %restitution: RealF = LOAD %data, `restitution, true
 
     %x = MOD %ent, 11
     %x = SUB %x, 5.0
@@ -45,6 +46,8 @@
     %shape = NEW_SEQUENCE [`MeshMaterial, %mesh_mat]
     %collider_shape = NEW_SEQUENCE [`Cube, x, 1.0, y, 0.025, z, 1.0]
 
+    %rest = NEW_SEQUENCE [`coefficient, %restitution, `combine_rule, `Average]
+
     %new = SYSCALL `bevy_spawn, [
         `Name, "TILE",
         `Cube, nil,
@@ -62,7 +65,8 @@
         `rigid_body, `Dynamic,
         `shape, %shape,
         `collider_shape, %collider_shape,
-        `friction, 1.0,
+        `friction, 0.9,
+        `Restitution, %rest,
 
         `mass, 10.0,
 
@@ -98,8 +102,9 @@
     //%life = NEW_SEQUENCE [`Keep]
 
     %init = NEW_STRUCT [
-        `fall_distance: 10.0,
+        `fall_distance: 5.0,
         `delay: 5.0,
+        `restitution: 0.2,
         `lifetime: %life,
     ]
 
