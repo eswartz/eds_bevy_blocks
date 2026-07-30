@@ -217,12 +217,26 @@ pub(crate) fn fire_projectile(
 
     let ray = Ray3d::new(fire_pos, look.rotation * Dir3::NEG_Z);
     let spatial = mesh_params.p2();
+
+    let excluded = if let Some(grabbed) = &grabbed_opt {
+        vec![
+            grabbed.entity,
+            player,
+        ]
+    } else {
+        vec![
+            player,
+        ]
+    };
+
     let hit = spatial.cast_shape(
         &Collider::sphere(0.5),
         ray.origin, Quat::IDENTITY,
         ray.direction,
         &ShapeCastConfig::default(),
-        &SpatialQueryFilter::default().with_excluded_entities([player]));
+        &SpatialQueryFilter::default().with_excluded_entities(excluded),
+    );
+
 
     const MIN_DISTANCE: f32 = 0.333;
     if let Some(hit) = hit && hit.distance < MIN_DISTANCE / 2.0 {
@@ -261,7 +275,6 @@ fn do_fire(
     power: f32,
     mut std_mats: ResMut<Assets<StandardMaterial>>,
     mut fired_object: ResMut<FiredObject>,
-    // boom_mat: Handle<StandardMaterial>,
 
     grabbed_opt: Option<Res<GrabbedItem>>,
 
@@ -280,7 +293,6 @@ fn do_fire(
     if let Some(grabbed) = &grabbed_opt {
         // Fire the item we are holding, if it still exists.
         if rigid_q.contains(grabbed.entity) {
-            // commands.queue(WakeBody(grabbed.entity));    // sometimes crashes
             commands.write_message(GrabbingCommand::ReleaseItems(Some(vel)));
             any = true;
         } else {
@@ -305,7 +317,6 @@ fn do_fire(
 
             // ActiveCollisionHooks::MODIFY_CONTACTS,
 
-            // Dominance(16),
             Spawned,
             Projectile,
             CrosshairTargetable,
@@ -317,13 +328,12 @@ fn do_fire(
             AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
             // esp. when cylindrical, try not to wobble forever
 
-            AngularDamping(boom_mass.0.max(0.1).ln() / 10.0),
+            AngularDamping(0.1),
             LinearDamping(0.05),
             SleepThreshold {
                 linear: 0.125,
                 angular: 0.125,
             },
-
         ),
         (
             Mass(boom_mass.0),
