@@ -123,7 +123,10 @@ impl Plugin for GamePlugin {
 
             .add_systems(
                 PreUpdate,
-                add_raytracing_to_meshes,
+                (
+                    add_raytracing_to_meshes,
+                    add_raytracing_to_lights,
+                )
             )
 
             .add_systems(
@@ -429,74 +432,6 @@ fn on_scene_ready(
     }
 }
 
-#[allow(unused)]
-fn extract_mesh_cube(mesh: &Mesh, center: Vec3, half_size: Vec3) -> Option<(Mesh, Vec<[u32; 3]>, Vec<Vector>)> {
-    let inds = mesh.indices().unwrap();
-
-    let full_pos = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap().as_float3().unwrap();
-    let full_normals = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap().as_float3().unwrap();
-    let full_uvs = match mesh.attribute(Mesh::ATTRIBUTE_UV_0).unwrap() {
-        VertexAttributeValues::Float32x2(values) => values,
-        _ => panic!(),
-    };
-
-    let mut pos = vec![];
-    let mut normals = vec![];
-    let mut uvs = vec![];
-    let mut indices = vec![];
-    for [ind0, ind1, ind2] in inds.iter().array_chunks::<3>() {
-        let pos0 = full_pos[ind0];
-        let pos1 = full_pos[ind1];
-        let pos2 = full_pos[ind2];
-        if contains_pt(&pos0, center, half_size)
-        || contains_pt(&pos1, center, half_size)
-        || contains_pt(&pos2, center, half_size) {
-            let l = pos.len() as u32;
-            indices.push([l, l + 1, l + 2]);
-
-            pos.push(pos0);
-            pos.push(pos1);
-            pos.push(pos2);
-
-            normals.push(full_normals[ind0]);
-            normals.push(full_normals[ind1]);
-            normals.push(full_normals[ind2]);
-
-            uvs.push(full_uvs[ind0]);
-            uvs.push(full_uvs[ind1]);
-            uvs.push(full_uvs[ind2]);
-        }
-    }
-
-    if pos.is_empty() {
-        return None
-    }
-
-    let mut mesh = Mesh::new(wgpu::PrimitiveTopology::TriangleList, RenderAssetUsages::all())
-        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, VertexAttributeValues::Float32x3(pos.clone()))
-        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, VertexAttributeValues::Float32x3(normals))
-        .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, VertexAttributeValues::Float32x2(uvs));
-
-    if let Err(err) = mesh.generate_tangents() {
-        warn!("failed to generate tangents: {err}");
-    }
-
-    // Some(mesh)
-
-    let positions = pos
-        .into_iter()
-        .map(|v| Vec3::from_array(v)
-            .into())
-        .collect::<Vec<_>>();
-    Some((mesh, indices, positions))
-}
-
-fn contains_pt(pt: &[f32; 3], center: Vec3, half_size: Vec3) -> bool {
-    pt[0] >= center.x - half_size.x && pt[0] <= center.x + half_size.x
-    && pt[1] >= center.y - half_size.y && pt[1] <= center.y + half_size.y
-    && pt[2] >= center.z - half_size.z && pt[2] <= center.z + half_size.z
-}
-
 pub(crate) fn ensure_levels(mut level_list: ResMut<LevelList>) {
     level_list.0.sort_by(|a, b| a.id.cmp(&b.id));
 }
@@ -539,48 +474,67 @@ fn add_raytracing_to_meshes() {}
 
 #[cfg(feature = "solari")]
 fn add_raytracing_to_meshes(
-    world: If<Res<WorldMarkerEntity>>,
-    children: Query<&Children>,
     mesh_query: Query<(
+        Entity,
         &Mesh3d,
     ), Changed<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut commands: Commands,
 ) {
-    if mesh_query.is_empty() {
-        return
-    }
+    for (ent, mesh3d) in mesh_query.iter() {
+        let Mesh3d(mesh_handle) = mesh3d;
 
-    for descendant in children.iter_descendants(world.0.0) {
-        if let Ok((Mesh3d(mesh_handle),)) =
-            mesh_query.get(descendant)
-        {
-            // Add raytracing mesh component
-            commands
-                .entity(descendant)
-                .insert(RaytracingMesh3d(mesh_handle.clone()));
-
-            // Ensure meshes are Solari compatible
-            let mut mesh = meshes.get_mut(mesh_handle).unwrap();
-            if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
-                let vertex_count = mesh.count_vertices();
-                mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
-            }
-            if !mesh.contains_attribute(Mesh::ATTRIBUTE_TANGENT) {
-                mesh.generate_tangents().unwrap();
-            }
-            if mesh.contains_attribute(Mesh::ATTRIBUTE_UV_1) {
-                mesh.remove_attribute(Mesh::ATTRIBUTE_UV_1);
-            }
-            if let Some(indices) = mesh.indices_mut()
-                && let Indices::U16(_) = indices
-            {
-                *indices = Indices::U32(indices.iter().map(|i| i as u32).collect());
-            }
+        // Ensure meshes are Solari compatible, editing them in-place.
+        let Some(mut mesh) = meshes.get_mut(mesh_handle.id()) else { continue };
+        if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
+            let vertex_count = mesh.count_vertices();
+            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
         }
+        if !mesh.contains_attribute(Mesh::ATTRIBUTE_TANGENT) {
+            mesh.generate_tangents().unwrap();
+        }
+        if mesh.contains_attribute(Mesh::ATTRIBUTE_UV_1) {
+            mesh.remove_attribute(Mesh::ATTRIBUTE_UV_1);
+        }
+        if let Some(indices) = mesh.indices_mut()
+            && !matches!(indices, Indices::U32(_))
+        {
+            *indices = Indices::U32(indices.iter().map(|i| i as u32).collect());
+        }
+
+        // Add or replace raytracing mesh component
+        commands
+            .entity(ent)
+            .insert(RaytracingMesh3d(mesh_handle.clone()));
+
     }
 }
 
+#[cfg(not(feature = "solari"))]
+fn add_raytracing_to_lights() {}
+
+#[cfg(feature = "solari")]
+fn add_raytracing_to_lights(
+    mut pt_query: Query<&mut PointLight, Changed<PointLight>>,
+    mut spot_query: Query<&mut SpotLight, Changed<SpotLight>>,
+    mut dir_query: Query<&mut DirectionalLight, Changed<DirectionalLight>>,
+) {
+    for mut light in pt_query.iter_mut() {
+        if light.shadow_maps_enabled {
+            light.shadow_maps_enabled = false;
+        }
+    }
+    for mut light in spot_query.iter_mut() {
+        if light.shadow_maps_enabled {
+            light.shadow_maps_enabled = false;
+        }
+    }
+    for mut light in dir_query.iter_mut() {
+        if light.shadow_maps_enabled {
+            light.shadow_maps_enabled = false;
+        }
+    }
+}
 
 fn added_player_start(q: Query<&Transform, Added<PlayerStart>>) -> bool {
     let flag = q.iter().next().is_some();
