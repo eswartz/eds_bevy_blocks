@@ -38,7 +38,7 @@ use eds_bevy_common::physics::*;
 use eds_bevy_common::midi_synth::prelude::*;
 
 use crate::game::bevy_funcs::register_funcs;
-use crate::game::firing::{FirePowerLimits, FiringState};
+use crate::game::firing::{FirePowerLimits, FiringPlugin, FiringState};
 use crate::game::gravity_sleep::GravitySleepPlugin;
 use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
@@ -64,6 +64,7 @@ impl Plugin for GamePlugin {
 
         app
             .add_plugins(ActionHandlersPlugin)
+            .add_plugins(FiringPlugin)
             .add_plugins(SoundPlugin)
             .add_plugins(FedryScriptingPlugin)
             .add_plugins(ScriptDebugPlugin)

@@ -50,8 +50,8 @@ opt-level = 2
 # [profile.dev.package.xsynth-core]
 # opt-level = 3
 
-[profile.dev.package.timestretch]
-opt-level = 3
+# [profile.dev.package.timestretch]
+# opt-level = 3
 [profile.dev.package.bevy_mikktspace]
 opt-level = 3
 [profile.dev.package."*"]

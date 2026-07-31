@@ -1,3 +1,5 @@
+#[cfg(feature = "input_bei")]
+use bevy_enhanced_input::action::events::Cancel;
 use rand::RngExt as _;
 use rand::seq::IndexedRandom as _;
 
@@ -8,7 +10,8 @@ use bevy::prelude::*;
 #[cfg(feature = "input_bei")]
 use bevy_enhanced_input::prelude::*;
 
-use crate::game::firing::{FiredObject, fire_projectile};
+#[cfg(feature = "input_bei")]
+use crate::game::firing::{FireGhost, prepare_projectile, fire_projectile};
 use crate::game::*;
 
 pub struct ActionHandlersPlugin;
@@ -16,14 +19,6 @@ pub struct ActionHandlersPlugin;
 impl Plugin for ActionHandlersPlugin {
     fn build(&self, app: &mut App) {
         app
-            .init_resource::<FiringState>()
-            .init_resource::<FiredObject>()
-            .insert_resource(FirePowerLimits {
-                accel: 1.1,
-                max: 50.0,
-                start: 0.1,
-            })
-
             .add_systems(
                 FixedUpdate,
                 play_player_out_of_bounds
@@ -35,6 +30,7 @@ impl Plugin for ActionHandlersPlugin {
             .add_observer(on_firing_start)
             .add_observer(on_firing_hold)
             .add_observer(on_firing_release)
+            .add_observer(on_firing_cancel)
             .add_observer(on_flashlight_toggle)
         ;
     }
@@ -70,31 +66,59 @@ pub(crate) fn play_player_out_of_bounds(
 #[cfg(feature = "input_bei")]
 fn on_firing_start(
     _fire: On<Start<actions::Firing>>,
+    alt_fire: Single<&TriggerState, (With<Action<actions::AltFiring>>, With<ActionOf<PlayerContext>>)>,
+    mut commands: Commands,
     mut fire_state: ResMut<FiringState>,
     limits: Res<FirePowerLimits>,
+    grabbed_opt: Option<Res<GrabbedItem>>,
 ) {
+    if !matches!(*alt_fire, TriggerState::None) {
+        return
+    }
     (*fire_state).start(&limits);
+    if grabbed_opt.is_none() {
+        commands.run_system_cached(prepare_projectile);
+    }
 }
 
 #[cfg(feature = "input_bei")]
 fn on_firing_hold(
     fire: On<Fire<actions::Firing>>,
+    alt_fire: Single<&TriggerState, (With<Action<actions::AltFiring>>, With<ActionOf<PlayerContext>>)>,
     mut fire_state: ResMut<FiringState>,
     limits: Res<FirePowerLimits>,
 ) {
+    if !matches!(*alt_fire, TriggerState::None) {
+        return
+    }
     (*fire_state).update(fire.fired_secs, &limits);
 }
 
 #[cfg(feature = "input_bei")]
 fn on_firing_release(
     _fire: On<Complete<actions::Firing>>,
+    alt_fire: Single<&TriggerState, (With<Action<actions::AltFiring>>, With<ActionOf<PlayerContext>>)>,
+    mut commands: Commands,
+    mut fire_state: ResMut<FiringState>,
+) {
+    if !matches!(*alt_fire, TriggerState::None) {
+        return
+    }
+
+    let power = fire_state.power();
+    (*fire_state).clear();
+
+    commands.run_system_cached_with(fire_projectile, power);
+}
+
+#[cfg(feature = "input_bei")]
+fn on_firing_cancel(
+    _fire: On<Fire<actions::AltFiring>>,
     mut commands: Commands,
     mut fire_state: ResMut<FiringState>,
 ) {
     let power = fire_state.power();
     (*fire_state).clear();
-
-    commands.run_system_cached_with(fire_projectile, power);
 }
 
 #[cfg(feature = "input_bei")]

@@ -12,9 +12,34 @@ use bevy::prelude::*;
 
 use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
+use rand::seq::IndexedRandom;
 
 use crate::assets::FxAssets;
 use crate::game::BoomMass;
+
+pub(crate) struct FiringPlugin;
+
+impl Plugin for FiringPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .init_resource::<FiringState>()
+            .init_resource::<FiredObject>()
+            .insert_resource(FirePowerLimits {
+                accel: 1.1,
+                max: 50.0,
+                start: 0.1,
+            })
+            .add_systems(
+                FixedPreUpdate,
+                projectile_follow_player
+                    .run_if(not(is_paused))
+                    .run_if(in_state(LevelState::Playing))
+                    .run_if(in_state(ProgramState::InGame)),
+            )
+        ;
+    }
+}
+
 
 #[derive(Resource, Default)]
 pub(crate) struct FiredObject {
@@ -97,6 +122,7 @@ impl FiredObject {
 
 /// Marks whatever entity is going to be fired.
 #[derive(Component, Default, Debug, Reflect)]
+#[component(storage = "SparseSet")]
 #[reflect(Component)]
 #[type_path = "game"]
 pub(crate) struct FireGhost;
@@ -178,11 +204,144 @@ pub(crate) struct ActionParams<'w, 's> {
     boom_mass: Res<'w, BoomMass>,
 }
 
+const MIN_FIRE_DISTANCE: f32 = 0.333;
+
+pub(crate) fn prepare_projectile(
+    mut commands: Commands,
+    params: Option<ActionParams>,
+    mut fired_object: ResMut<FiredObject>,
+    ghost_q: Query<Entity, With<FireGhost>>,
+) {
+    // Fire something.
+    let Some(ActionParams{
+        mut player_q,
+        player_look_q,
+        rigid_q: _,
+        common_fx: _,
+        fx,
+        mut materials,
+        mut mesh_params,
+        world,
+        grabbed_opt: _,
+        boom_mass,
+    }) = params else {
+        return
+    };
+
+    // Only one player...
+    let Ok((player, player_xfrm, aabb, _forces)) = player_q.single_mut() else {
+        log::error!("no single Player");
+        return;
+    };
+    let Ok(look) = player_look_q.get(player) else {
+        log::error!("no PlayerLook");
+        return;
+    };
+
+    // Remove old one, if any.
+    if let Ok(ent) = ghost_q.single() {
+        commands.entity(ent).despawn();
+    }
+
+    let world_pos = player_xfrm.translation();
+    let eyes = player_eyes(world_pos, aabb, look);
+    let fire_pos = player_gun(&look.rotation, aabb, eyes, 0.75) + Vec3::NEG_Y;
+
+    // Adjust to world (stay in local space).
+    let pos = fire_pos + look.rotation * Vec3::NEG_Z * MIN_FIRE_DISTANCE;
+
+    let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
+
+    let mat = fired_object.get_material(&fx, materials.reborrow());
+    let (mesh, collider) = fired_object.get_mesh_and_collider(mesh_params.p0().reborrow());
+
+    let mut rng = rand::rng();
+    let rot_y = rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI);
+    let xfrm = xfrm * Transform::from_rotation(Quat::from_rotation_y(rot_y));
+
+    commands.spawn(((
+        ChildOf((*world).0),
+
+        Name::new("BOOM"),
+        Mesh3d(mesh),
+        MeshMaterial3d(mat),
+        xfrm,
+
+        Spawned,
+        Projectile,
+        CrosshairTargetable,
+        SurfaceMaterial::Stone,
+    ),
+    (
+        // CollisionEventsEnabled,
+        // LinearVelocity(vel + player_vel),
+        // AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
+        // // esp. when cylindrical, try not to wobble forever
+
+        AngularDamping(0.25),
+        LinearDamping(0.05),
+        SleepThreshold {
+            linear: 0.125,
+            angular: 0.125,
+        },
+    ),
+    (
+        Mass(boom_mass.0),
+        Friction::new(0.75),
+        Restitution::new(0.25),
+        SweptCcd::new().with_filter(CcdFilter::DEFAULT),
+
+        RigidBody::Dynamic,
+        CollisionLayers::NONE,
+
+        collider,
+        CollisionMargin(0.01),
+    ),
+
+    FireGhost
+    ));
+}
+
+pub(crate) fn projectile_follow_player(
+    firing_state: Res<FiringState>,
+    player_q: Query<(Entity, Read<GlobalTransform>, Read<ColliderAabb>), With<Player>>,
+    player_look_q: Query<Read<PlayerLook>>,
+    ghost_q: Query<Entity, With<FireGhost>>,
+    mut xfrm_q: Query<&mut Transform>,
+) {
+    if !firing_state.is_active() { return }
+    let Ok(ghost) = ghost_q.single() else { return };
+
+    let Ok((player, player_xfrm, aabb)) = player_q.single() else {
+        log::error!("no single Player");
+        return;
+    };
+    let Ok(look) = player_look_q.get(player) else {
+        log::error!("no PlayerLook");
+        return;
+    };
+
+    let world_pos = player_xfrm.translation();
+    let eyes = player_eyes(world_pos, aabb, look);
+    let fire_pos = player_gun(&look.rotation, aabb, eyes, 0.75);
+
+    // Move projectile up to position.
+    if let Ok(mut xfrm) = xfrm_q.get_mut(ghost) {
+        let new_pos = Vec3::new(
+            fire_pos.x,
+            (xfrm.translation.y + fire_pos.y) / 2.0,
+            fire_pos.z,
+        );
+        xfrm.translation = new_pos;
+    }
+}
+
 pub(crate) fn fire_projectile(
     In(power): In<f32>,
     mut commands: Commands,
     params: Option<ActionParams>,
     fired_object: ResMut<FiredObject>,
+    ghost_q: Query<Entity, With<FireGhost>>,
 ) {
     // Fire something.
     let Some(ActionParams{
@@ -212,7 +371,7 @@ pub(crate) fn fire_projectile(
 
     let world_pos = player_xfrm.translation();
     let eyes = player_eyes(world_pos, aabb, look);
-    let fire_pos = player_gun(&look.rotation, aabb, eyes);
+    let fire_pos = player_gun(&look.rotation, aabb, eyes, 0.5);
     let player_vel = forces.linear_velocity();
 
     let ray = Ray3d::new(fire_pos, look.rotation * Dir3::NEG_Z);
@@ -237,13 +396,14 @@ pub(crate) fn fire_projectile(
         &SpatialQueryFilter::default().with_excluded_entities(excluded),
     );
 
-
-    const MIN_DISTANCE: f32 = 0.333;
-    if let Some(hit) = hit && hit.distance < MIN_DISTANCE / 2.0 {
+    if let Some(hit) = hit && hit.distance < MIN_FIRE_DISTANCE / 2.0 {
         // Can't fire this close.
         commands.spawn((
             UiSfx,
-            SamplePlayer::new(common_fx.cannot.clone()),
+            SamplePlayer::new([
+                // common_fx.cannot1.clone(),
+                common_fx.cannot2.clone(),
+            ].choose(&mut rand::rng()).unwrap().clone()),
             VolumeNode::from_linear(0.5),
         ));
 
@@ -251,16 +411,19 @@ pub(crate) fn fire_projectile(
     }
 
     // Adjust to world (stay in local space).
-    let pos = fire_pos + look.rotation * Vec3::NEG_Z * MIN_DISTANCE;
+    let pos = fire_pos + look.rotation * Vec3::NEG_Z * MIN_FIRE_DISTANCE;
 
     let xfrm = Transform::from_translation(pos).with_rotation(look.rotation);
 
     let rev_power = -power;
     forces.apply_linear_impulse(look.rotation * rev_power * Vec3::Z);
 
+    let ghost_opt = ghost_q.single().ok();
+
     do_fire(commands.reborrow(),
         xfrm, player_vel,
         power, materials, fired_object,
+        ghost_opt,
         grabbed_opt, rigid_q,
         &*fx, &*common_fx, mesh_params.p0(),
         &*world, &boom_mass,
@@ -276,6 +439,7 @@ fn do_fire(
     mut std_mats: ResMut<Assets<StandardMaterial>>,
     mut fired_object: ResMut<FiredObject>,
 
+    ghost_opt: Option<Entity>,
     grabbed_opt: Option<Res<GrabbedItem>>,
 
     rigid_q: Query<Entity, With<RigidBody>>,
@@ -289,15 +453,42 @@ fn do_fire(
     boom_mass: &BoomMass,
 ) -> bool {
     let vel = xfrm.rotation * Vec3::NEG_Z * power;
-    let mut any = false;
+
     if let Some(grabbed) = &grabbed_opt {
         // Fire the item we are holding, if it still exists.
         if rigid_q.contains(grabbed.entity) {
             commands.write_message(GrabbingCommand::ReleaseItems(Some(vel)));
-            any = true;
+
+            commands.spawn((
+                UiSfx,
+                SamplePlayer::new(common_fx.release.clone()),
+                VolumeNode::from_linear(0.5),
+            ));
+
+            return true
         } else {
             commands.write_message(GrabbingCommand::CancelGrabItems);
         }
+        return false
+    }
+
+    let mut rng = rand::rng();
+    let rot_y = rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI);
+    let xfrm = xfrm * Transform::from_rotation(Quat::from_rotation_y(rot_y));
+
+    let fired_ent = if let Some(ghost) = ghost_opt {
+        commands.entity(ghost).remove::<FireGhost>();
+
+        commands.entity(ghost).insert((
+            ChildOf(world.0),
+            xfrm,
+            CollisionLayers::default(),
+            CollisionEventsEnabled,
+            LinearVelocity(vel + player_vel),
+            AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
+        ));
+
+        ghost
     } else {
         // Fire a new item.
 
@@ -308,68 +499,68 @@ fn do_fire(
         let rot_y = rng.random_range(-std::f32::consts::PI .. std::f32::consts::PI);
         let xfrm = xfrm * Transform::from_rotation(Quat::from_rotation_y(rot_y));
 
-        commands.spawn(((
-            ChildOf(world.0),
-            Name::new("BOOM"),
-            Mesh3d(mesh),
-            MeshMaterial3d(mat),
-            xfrm,
-
-            // ActiveCollisionHooks::MODIFY_CONTACTS,
-
-            Spawned,
-            Projectile,
-            CrosshairTargetable,
-            SurfaceMaterial::Stone,
-        ),
-        (
-            CollisionEventsEnabled,
-            LinearVelocity(vel + player_vel),
-            AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
-            // esp. when cylindrical, try not to wobble forever
-
-            AngularDamping(0.1),
-            LinearDamping(0.05),
-            SleepThreshold {
-                linear: 0.125,
-                angular: 0.125,
-            },
-        ),
-        (
-            Mass(boom_mass.0),
-            Friction::new(0.75),
-            Restitution::new(0.25),
-            SweptCcd::new().with_filter(CcdFilter::DEFAULT),
-
-            RigidBody::Dynamic,
-            collider,
-            CollisionMargin(0.01),
-        ),
-
-        // Add a light for fun.
-        // We use NoFrustumCulling to avoid bad light clipping,
-        // and a child because MeshRayCast ignores ones with this component.
-        children![
+        let new_id = commands.spawn((
             (
-                PointLight {
-                    intensity: 3200.0,
-                    color: (Color::hsla(30.0, 0.5, 1.0, 1.0).to_linear() * 10.0).into(),
-                    ..default()
+                ChildOf(world.0),
+                Name::new("BOOM"),
+                Mesh3d(mesh),
+                MeshMaterial3d(mat),
+                xfrm,
+
+                // ActiveCollisionHooks::MODIFY_CONTACTS,
+
+                Spawned,
+                Projectile,
+                CrosshairTargetable,
+                SurfaceMaterial::Stone,
+            ),
+            (
+                CollisionEventsEnabled,
+                LinearVelocity(vel + player_vel),
+                AngularVelocity(Vector::new(0., vel.length() * 0.1, 0.,)),
+                // esp. when cylindrical, try not to wobble forever
+
+                AngularDamping(boom_mass.0.max(0.1).ln() / 4.0),
+                LinearDamping(0.05),
+                SleepThreshold {
+                    linear: 0.125,
+                    angular: 0.125,
                 },
-                NoFrustumCulling,
-            )
-        ]
-        ));
-        any = true;
-    }
+            ),
+            (
+                Mass(boom_mass.0),
+                Friction::new(0.75),
+                Restitution::new(0.25),
+                SweptCcd::new().with_filter(CcdFilter::DEFAULT),
 
-    if any {
-        commands.spawn((
-            UiSfx,
-            SamplePlayer::new(common_fx.swoosh.clone()),
-            VolumeNode::from_linear(0.5),
-        ));
-    }
+                RigidBody::Dynamic,
+                collider,
+                CollisionMargin(0.01),
+            ),
+        ))
+        .id();
 
-    any
+        new_id
+    };
+
+    commands.spawn((
+        UiSfx,
+        SamplePlayer::new(common_fx.release.clone()),
+        VolumeNode::from_linear(0.5),
+    ));
+
+    // Add a light for fun.
+    // We use NoFrustumCulling to avoid bad light clipping,
+    // and a child because MeshRayCast ignores ones with this component.
+    commands.spawn((
+        ChildOf(fired_ent),
+        PointLight {
+            intensity: 3200.0,
+            color: (Color::hsla(30.0, 0.5, 1.0, 1.0).to_linear() * 10.0).into(),
+            ..default()
+        },
+        NoFrustumCulling,
+    ));
+
+    true
 }
