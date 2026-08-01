@@ -50,6 +50,8 @@ pub(crate) fn init_background_audio(
                 &music.song_1,
                 &music.song_2,
                 &music.song_3,
+                &music.song_4,
+                &music.song_5,
             ]
             .choose(&mut rand::rng())
             .expect("we have one"))

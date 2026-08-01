@@ -16,6 +16,10 @@ pub struct MusicAssets {
     pub song_2: Handle<AudioSample>,
     #[asset(path = "music/260714-song-s02-song-mix-4.ogg")]
     pub song_3: Handle<AudioSample>,
+    #[asset(path = "music/251224-test-samples-8-01.ogg")]
+    pub song_4: Handle<AudioSample>,
+    #[asset(path = "music/260714-song-remix-64-romus046j.ogg")]
+    pub song_5: Handle<AudioSample>,
 }
 
 impl MusicAssets {
