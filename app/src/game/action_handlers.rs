@@ -9,7 +9,7 @@ use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
 #[cfg(feature = "input_bei")]
-use crate::game::firing::{cancel_projectile, fire_projectile, prepare_projectile};
+use crate::game::firing::{FireActionState, cancel_projectile, prepare_projectile};
 use crate::game::*;
 
 pub struct ActionHandlersPlugin;
@@ -97,16 +97,16 @@ fn on_firing_release(
     _fire: On<Complete<actions::Firing>>,
     alt_fire: Single<&TriggerState, (With<Action<actions::AltFiring>>, With<ActionOf<PlayerContext>>)>,
     mut commands: Commands,
-    mut fire_state: ResMut<FiringState>,
+    mut params: If<FireActionState>,
+    spatial: If<SpatialQuery>,
+    meshes: ResMut<Assets<Mesh>>,
+    xfrm_q: Query<&Transform>,
 ) {
     if !matches!(*alt_fire, TriggerState::None) {
         return
     }
 
-    let power = fire_state.power();
-    (*fire_state).clear();
-
-    commands.run_system_cached_with(fire_projectile, power);
+    (*params).fire_projectile(commands.reborrow(), &*spatial, meshes, xfrm_q);
 }
 
 /// We implement firing cancellation as using Alt fire to cancel it.
