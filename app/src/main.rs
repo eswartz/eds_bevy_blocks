@@ -1,5 +1,3 @@
-#![feature(iter_array_chunks)]
-
 mod menus;
 mod assets;
 mod audio;

@@ -1,3 +1,5 @@
+/// Metallic plates falling from the sky relative to spawned blue cubes.
+
 %on_update = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
     %ctx = ARG 0
     %ent = ARG 1

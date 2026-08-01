@@ -1,3 +1,5 @@
+/// Huge green fields with lighted bulbs floating overhead.
+
 %on_update = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, ...) {
     %ctx = ARG 0
     %ent = ARG 1
@@ -141,7 +143,7 @@ x2f:
         // Why not!
         //'bevy_light::spot_light::SpotLight', %spot_light,
         'SpotLight', %spot_light,
-        'SpotLightTexture', %spot_light_tex,
+        //'SpotLightTexture', %spot_light_tex,  // breaks main texture in 0.19
         //'bevy_light::point_light::PointLight', %point_light,
         //'DirectionalLight', %dir_light,
         //'DirectionalLightTexture', %dir_light_tex,

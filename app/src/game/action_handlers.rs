@@ -1,5 +1,3 @@
-#[cfg(feature = "input_bei")]
-use bevy_enhanced_input::action::events::Cancel;
 use rand::RngExt as _;
 use rand::seq::IndexedRandom as _;
 
@@ -11,7 +9,7 @@ use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
 #[cfg(feature = "input_bei")]
-use crate::game::firing::{FireGhost, prepare_projectile, fire_projectile};
+use crate::game::firing::{cancel_projectile, fire_projectile, prepare_projectile};
 use crate::game::*;
 
 pub struct ActionHandlersPlugin;
@@ -111,14 +109,22 @@ fn on_firing_release(
     commands.run_system_cached_with(fire_projectile, power);
 }
 
+/// We implement firing cancellation as using Alt fire to cancel it.
 #[cfg(feature = "input_bei")]
 fn on_firing_cancel(
     _fire: On<Fire<actions::AltFiring>>,
+    mut fire_action: Single<
+        &mut TriggerState, (
+            With<Action<actions::Firing>>,
+            With<ActionOf<PlayerContext>>,
+        )>,
+    mut fire_state: If<ResMut<FiringState>>,
     mut commands: Commands,
-    mut fire_state: ResMut<FiringState>,
 ) {
-    let power = fire_state.power();
     (*fire_state).clear();
+    **fire_action = TriggerState::None;
+
+    commands.run_system_cached(cancel_projectile);
 }
 
 #[cfg(feature = "input_bei")]

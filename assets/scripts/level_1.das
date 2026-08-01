@@ -1,3 +1,4 @@
+/// Rug and block cube pile on carpet/rug platform in huge desert.
 
 %make_on_update = NEW_BLOCK `make_on_update, (in_use_synths) {
     LOCAL cnt, false, CntF
@@ -82,9 +83,9 @@ no_notes:
         %test = LESS_R %test, 10.0
         IF_TRUE %test, no_fun, hop
 hop:
-        %vx = SYS_CALL `random_number, [-5.0, 5.0]
-        %vy = SYS_CALL `random_number, [-5.0, 5.0]
-        %vz = SYS_CALL `random_number, [-5.0, 5.0]
+        %vx = SYS_CALL `random_number, [5.0]
+        %vy = SYS_CALL `random_number, [5.0]
+        %vz = SYS_CALL `random_number, [5.0]
         %vel = NEW_STRUCT [
             x: %vx,
             y: %vy,
