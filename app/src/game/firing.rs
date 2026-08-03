@@ -241,7 +241,9 @@ pub(crate) fn prepare_projectile(
     let (mesh, collider) = fire_state.fired_object.get_mesh_and_collider(meshes);
     let mut rng = rand::rng();
     let rot_y = rng.random_range(-std::f32::consts::PI..std::f32::consts::PI);
-    let xfrm = fire_xfrm.clone().rotate_local_y(rot_y);
+    let mut xfrm = fire_xfrm.clone();
+    xfrm.rotate_local_y(rot_y);
+
     commands.spawn((
         (
             ChildOf((*fire_state.world).0),
@@ -376,7 +378,7 @@ impl<'w, 's> FireActionState<'w, 's> {
     /// Get the position where firing starts,
     /// world space based on the player's body and look rotation.
     pub(crate) fn get_firing_transform(&self, obj_distance: f32) -> Option<Transform> {
-        let Ok((player, player_xfrm, aabb, _forces)) = self.player_q.single() else {
+        let Ok((player, player_gxfrm, aabb, _forces)) = self.player_q.single() else {
             return None;
         };
         let Ok(look) = self.player_look_q.get(player) else {
@@ -385,7 +387,7 @@ impl<'w, 's> FireActionState<'w, 's> {
         // Fire where we look.
         let fire_rot = look.rotation;
 
-        let world_pos = player_xfrm.translation();
+        let world_pos = player_gxfrm.translation();
         let eyes = player_eyes(world_pos, aabb, look);
 
         let body_distance = 0.5;
