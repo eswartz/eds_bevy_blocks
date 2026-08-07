@@ -129,6 +129,13 @@ fn main() -> AppExit {
         )
         .insert_resource(SubstepCount(8))
 
+        // Knobs to try, which don't always work.
+        .insert_resource(ColliderTreeOptimization{
+            // use_async_tasks: false,
+            // optimize_in_place: true,
+            .. default()
+        })
+
         // .insert_resource(SolverConfig {
         //     contact_damping_ratio: 10.0,
         //     contact_frequency_factor: 1.5,
