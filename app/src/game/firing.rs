@@ -336,13 +336,14 @@ pub(crate) fn cancel_projectile(
     mut commands: Commands,
     fire_state: FireActionState,
     xfrm_q: Query<&Transform>,
+    illegal_style: Res<FiredItemStyle>,
 ) {
     // Remove old one, if any.
-    let Ok(ent) = fire_state.ghost_q.single() else {
+    let Ok(ghost) = fire_state.ghost_q.single() else {
         return;
     };
 
-    if let Ok(xfrm) = xfrm_q.get(ent) {
+    if let Ok(xfrm) = xfrm_q.get(ghost) {
         let tween = Tween::new(
             EaseFunction::BounceOut,
             Duration::from_secs_f32(0.25),
@@ -355,13 +356,16 @@ pub(crate) fn cancel_projectile(
         )
         .with_cycle_completed_event(true);
 
-        commands.entity(ent).insert(TweenAnim::new(tween)).observe(
+        illegal_style.remove_from(commands.entity(ghost));
+
+        commands.entity(ghost).insert(TweenAnim::new(tween)).observe(
             |event: On<CycleCompletedEvent>, mut commands: Commands| {
                 commands.entity(event.anim_entity).try_despawn();
             },
         );
+
     } else {
-        commands.entity(ent).despawn();
+        commands.entity(ghost).despawn();
     }
 }
 
