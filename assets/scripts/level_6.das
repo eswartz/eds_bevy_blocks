@@ -167,6 +167,8 @@ x_step:
 
         `SurfaceMaterial, `Stone,
         `Projectile, nil,
+
+        `swept_ccd, `off,
     ]
 
     // State for cell.
