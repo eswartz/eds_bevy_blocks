@@ -32,6 +32,38 @@
         `collider_shape, %collider_shape,
     ]
 
+    %li: IntF = COPY 10
+
+    %intense = SYSCALL `random_number,  [1.0e6, 1.0e8]
+    %spot_light = NEW_STRUCT [
+        intensity: %intense,
+        range: 25.0,
+        radius: 15.0,
+        //outer_angle: 1.0,
+        //inner_angle: 0.25,
+        shadow_maps_enabled: false,
+    ]
+
+li_loop:
+    %lx = SYSCALL `random_number,  [-32.0, 32.0]
+    %ly = SYSCALL `random_number,  [1.0, 16.0]
+    %lz = SYSCALL `random_number,  [-32.0, 32.0]
+    %pos = NEW_STRUCT [`x, %lx, `y, %ly, `z, %lz]
+
+    SYSCALL `bevy_spawn, [
+        `Name, "LIGHT",
+
+        `offset, %pos,
+
+         `SpotLight, %spot_light,
+    ]
+
+    %li = SUB_I %li, 1
+    %cmp = EQUAL_I %li, 0
+    IF_TRUE %cmp, li_done, li_loop
+
+li_done:
+
     STORE %data, `tick, 0
     STORE %data, `smoodge, %top_ent
 
