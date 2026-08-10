@@ -256,7 +256,9 @@ pub(crate) struct SampleSelector {
     pub(crate) foot_impact_samples: SurfaceSampleMap,
     pub(crate) foot_slide_samples: SurfaceSampleMap,
     lru: VecDeque<(SampleSelectorType, Handle<AudioSample>)>,
-    limit: usize,
+    /// Leave this many items in `lru` when clearing history.
+    /// The larger it is, the less likely repeats will occur.
+    lru_cap: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -278,13 +280,13 @@ impl SampleSelector {
             foot_slide_samples: surfaces::sounds_for_footsteps_slide(fx),
 
             lru: default(),
-            limit: 4,
+            lru_cap: 4,
         }
     }
 
     pub(crate) fn set_repeat_limit(self, limit: usize) -> Self {
         Self {
-            limit,
+            lru_cap: limit,
             .. self
         }
     }
@@ -312,12 +314,12 @@ impl SampleSelector {
         loop {
             let sample = samples.choose(&mut rand::rng()).cloned()?;
             let key = (ty, sample.clone());
-            let lru_len = lru.len();
-            if lru_len >= self.limit {
-                // Forget old history.
-                let _ = lru.drain(0 .. self.limit);
-            }
             if !lru.contains(&key) || max_iters == 0 {
+                let lru_len = lru.len();
+                if lru_len >= self.lru_cap {
+                    // Forget old history.
+                    let _ = lru.drain(0 .. self.lru_cap.min(lru_len));
+                }
                 lru.push_back(key);
                 return Some(sample)
             }
@@ -478,7 +480,7 @@ fn spawn_noise_on_collision(
                     (event.collider2, phys_mat_b)
                 };
 
-                let vol_mid = ((vel_length + ang_length) / 5.0).min(0.95);
+                let vol_mid = ((vel_length + ang_length) / 2.0).min(0.95);
                 if vol_mid < 0.01 {
                     continue
                 }
