@@ -79,7 +79,7 @@
         //`CollisionEventsEnabled, nil,
 
         `despawn_after, %life,
-
+        `swept_ccd, `linear,
     ]
 
     // Package ScriptCreationInfo data.
@@ -105,7 +105,7 @@
 
     %init = NEW_STRUCT [
         `fall_distance: 5.0,
-        `delay: 5.0,
+        `delay: 1.0,
         `restitution: 0.2,
         `lifetime: %life,
     ]
