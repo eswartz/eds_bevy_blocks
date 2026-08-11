@@ -106,9 +106,7 @@ gltf = { version = "*" }
 wgpu = "29"
 rand = { version = "0.10.0" }
 
-bevy-inspector-egui = { git = "ssh://git@github.com/eswartz/bevy-inspector-egui-fork.git", branch = "main", default-features = false, features = ["bevy", "bevy_gizmos", "egui_clipboard" ] } #, "documentation"] } #"highlight_changes"] }
-bevy_egui = { version = "0.41", features = ["render", "serde"] }
-egui = { version = "0.35", features = ["bytemuck"] }
+
 
 # avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = [
 avian3d = { version = "0.8.0-dev", default-features = false, features = [
@@ -129,10 +127,9 @@ avian3d = { version = "0.8.0-dev", default-features = false, features = [
 ] }
 bevy_enhanced_input = { version = "0.26", features = ["reflect", "state", "serialize"] }
 
-firewheel = { version = "0.10" }
+# firewheel = { version = "0.12" }
 
-# We must mention it and reference the repo because there's no published crate of 0.8 to patch.
-bevy_seedling = { git = "https://github.com/CorvusPrudens/bevy_seedling.git", branch = "master", default-features = false, features = [
+bevy_seedling = { version = "0.8.0", default-features = false, features = [
     "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
     "cpal",
