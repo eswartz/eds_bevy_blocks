@@ -151,7 +151,9 @@ fn on_enter_main_menu(
     add_level_selector(&mut builder,
         "Play",
         &level_list,
-        current_level.as_deref());
+        current_level.as_deref(),
+        EnumMenuActions::SelectStartLevelEnum,
+    );
 
     // builder.add_item(
     //     if let Some(level) = current_level {
@@ -165,51 +167,6 @@ fn on_enter_main_menu(
     .add_item("Options", (), SimpleMenuActions::OptionsMenu)
     .add_item("Quit", (), SimpleMenuActions::Quit)
     .finish(&mut history);
-}
-
-fn add_level_selector(
-    builder: &mut MenuItemBuilder,
-    label: &str,
-    level_list: &LevelList,
-    current_level: Option<&CurrentLevel>,
-) {
-    fn get_level(In(entity): In<Entity>, mut enum_q: Query<&mut MenuEnum>,
-        level_index: Res<LevelIndex>,
-        next_level_index: Option<Res<NextLevelIndex>>,
-    ) {
-        let index = next_level_index.map_or(level_index.0, |nli| nli.0);
-        enum_q.get_mut(entity).unwrap().current = Some(index);
-    }
-    fn set_level(In(v): In<usize>, mut commands: Commands) {
-        commands.insert_resource(NextLevelIndex(v));
-    }
-    let get_level = builder.commands().register_system(IntoSystem::into_system(get_level));
-    let set_level = builder.commands().register_system(IntoSystem::into_system(set_level));
-
-    let level_infos = level_list.0.clone();
-    let current_level = current_level.cloned();
-    let level_count = level_infos.len();
-    let level_names = level_infos.iter().map(|info| info.label.clone()).collect::<Vec<_>>();
-
-    builder
-        .add_item(
-            label,
-            MenuEnum::new(
-                get_level,
-                set_level,
-                move || level_count,
-                move |index| {
-                    if let Some(level) = &current_level && level.id == level_infos[index].id {
-                        format!("{} (reset)", level_names[index])
-                    } else if !level_names.is_empty() {
-                        level_names[index].clone()
-                    } else {
-                        "???".to_string()
-                    }
-                }
-            ),
-            EnumMenuActions::SelectStartLevelEnum,
-        );
 }
 
 fn on_enter_game_menu(
@@ -254,7 +211,9 @@ fn on_enter_game_menu(
     add_level_selector(
         &mut builder,
         "Start",
-        &level_list, current_level.as_deref());
+        &level_list, current_level.as_deref(),
+        EnumMenuActions::SelectStartLevelEnum,
+    );
 
     builder.add_item(
         "Difficulty",
@@ -326,7 +285,9 @@ fn on_enter_escape_menu(
     add_level_selector(
         &mut builder,
         "Go To",
-        &level_list, Some(&current_level));
+        &level_list, Some(&current_level),
+        EnumMenuActions::SelectStartLevelEnum,
+    );
 
     builder.add_item("Stop", (), SimpleMenuActions::StopGame)
     .finish(&mut history);
@@ -371,8 +332,7 @@ impl MenuItemHandler for EnumMenuActions {
             let mut queue = CommandQueue::default();
             let mut commands = Commands::new(&mut queue, world);
 
-            commands.set_state(LevelState::Advance);
-            start_game(commands.reborrow());
+            commands.set_state(LevelState::Enter);
 
             queue.apply(world);
         }
@@ -789,11 +749,4 @@ fn on_enter_video_menu(
     )
     .add_item("Back", (), SimpleMenuActions::Back)
     .finish(&mut history);
-}
-
-fn start_game(mut commands: Commands) {
-    commands.set_state(OverlayState::Loading);
-    commands.set_state(ProgramState::InGame);
-    commands.set_state(GameplayState::AssetsLoaded);
-    // commands.insert_resource(ConnectToServer);
 }

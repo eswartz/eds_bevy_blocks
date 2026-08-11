@@ -192,6 +192,10 @@ impl Plugin for GamePlugin {
             )
 
             .add_systems(
+                OnEnter(LevelState::Enter),
+                start_game
+            )
+            .add_systems(
                 OnEnter(LevelState::Advance),
                 advance_level
             )
@@ -577,7 +581,7 @@ pub(crate) fn setup_level(
     }
 
     let level = &level_list.0[level_index.0];
-    commands.insert_resource(CurrentLevel(level.clone()));
+    commands.insert_resource(CurrentLevel{ index, info: level.clone() });
 }
 
 pub(crate) fn spawn_level(
@@ -627,6 +631,14 @@ fn init_player_settings(
     } else {
         log::warn!("no PlayerCameraMode in LevelRoot");
     }
+}
+
+pub(crate) fn start_game(mut commands: Commands) {
+    commands.set_state(OverlayState::Loading);
+    commands.set_state(ProgramState::InGame);
+    commands.set_state(GameplayState::AssetsLoaded);
+    // commands.insert_resource(ConnectToServer);
+    commands.set_state(LevelState::Advance);
 }
 
 pub(crate) fn advance_level(
@@ -748,7 +760,7 @@ fn check_lost_level(
     }
 
     // Restarts level.
-    commands.set_state(LevelState::Advance);
+    commands.set_state(LevelState::Enter);
 }
 
 /// The power bar strength image inside [HandStatusArea].
