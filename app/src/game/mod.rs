@@ -1,7 +1,6 @@
 mod action_handlers;
 mod sound;
 mod firing;
-mod script_debug;
 mod bevy_funcs;
 mod gravity_sleep;
 mod level_0;
@@ -13,6 +12,7 @@ mod level_5;
 mod level_6;
 
 pub use action_handlers::*;
+use fedry_bevy_plugin::script_debug::ScriptDebugPlugin;
 
 use std::time::Duration;
 use strum::{EnumIter, VariantArray};
@@ -38,7 +38,6 @@ use eds_bevy_common::midi_synth::prelude::*;
 use crate::game::bevy_funcs::register_funcs;
 use crate::game::firing::{FirePowerLimits, FiringPlugin, FiringState};
 use crate::game::gravity_sleep::GravitySleepPlugin;
-use crate::game::script_debug::ScriptDebugPlugin;
 use crate::game::sound::SoundPlugin;
 
 // #[cfg(all(feature = "solari", feature = "dlss"))]
@@ -65,9 +64,9 @@ impl Plugin for GamePlugin {
             .add_plugins(FiringPlugin)
             .add_plugins(SoundPlugin)
             .add_plugins(FedryScriptingPlugin)
-            .add_plugins(ScriptDebugPlugin)
             .add_plugins(GravitySleepPlugin)
 
+            .add_plugins(ScriptDebugPlugin)
             .add_plugins(DetailNormalPlugin)
             .add_plugins(SplitIntoCubesPlugin)
 
@@ -235,8 +234,6 @@ impl Plugin for GamePlugin {
                 handle_depth_map,
                 tick_depth_map,
             ).chain())
-
-            .add_systems(PreUpdate, apply_uv_box_map)
 
             .add_systems(OnEnter(LevelState::Advance), cleanup_palette_materials)
         ;

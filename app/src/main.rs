@@ -236,8 +236,6 @@ fn main() -> AppExit {
             )
         )
 
-        .insert_resource(ProductName("Blocks".to_string()))
-
         .add_systems(Startup,
             setup_adapter)
 

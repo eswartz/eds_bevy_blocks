@@ -28,6 +28,8 @@ impl Plugin for MenuPlugin {
     }
 }
 
+const GAME_TITLE: &str = "Blocks!";
+
 #[derive(Debug)]
 pub(crate) enum SimpleMenuActions {
     // PlayGame,
@@ -106,8 +108,6 @@ fn on_enter_main_menu(
     mut commands: Commands,
     gui_assets: Res<CommonGuiAssets>,
     mut history: ResMut<MenuItemSelectionHistory>,
-    // mut glyph_mats: ResMut<Assets<TitleShader>>,
-    product_name: Res<ProductName>,
     level_list: Res<LevelList>,
     current_level: Option<Res<CurrentLevel>>,
 ) {
@@ -117,7 +117,7 @@ fn on_enter_main_menu(
 
     commands.spawn((
         DespawnOnReset(OverlayState::MainMenu),
-        Text2d::new(&product_name.0),
+        Text2d::new(GAME_TITLE),
         TextFont {
             font_size: FontSize::Px(128.0),
             font: gui_assets.std_ui.clone().into(),

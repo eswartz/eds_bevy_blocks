@@ -127,9 +127,9 @@ no_fun:
     %on_update = CALL %make_on_update, [%use_synths]
 
     %module = NEW_STRUCT [
-        `block_size: 0.55,
+        `block_size: 0.5,
         `half_side_length: 4,
-        `half_side_length: 3,
+        //`half_side_length: 3,
         `on_update: %on_update,
         `boom_mass: 5000.0,
         `block_mass: 50.0,
