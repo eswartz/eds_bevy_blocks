@@ -183,7 +183,7 @@ fn main() -> AppExit {
 
         .add_plugins(ActionPlugin)
         .add_plugins(CollidersPlugin)
-        .add_plugins(MaterialsPlugin)
+        .add_plugins(SpawnHelpersPlugin)
         .add_plugins(EffectsPlugin)
         .add_plugins(SkyboxPlugin)
         .add_plugins(LevelsPlugin)
