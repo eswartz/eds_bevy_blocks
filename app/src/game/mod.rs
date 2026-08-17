@@ -215,8 +215,8 @@ impl Plugin for GamePlugin {
                 FixedUpdate,
                 (
                     check_next_level,
-                    check_won_level.run_if(in_state(LevelState::Won)),
-                    check_lost_level.run_if(in_state(LevelState::Lost)),
+                    check_won_level.run_if(in_state(LevelState::Won)).run_if(not(is_paused)),
+                    check_lost_level.run_if(in_state(LevelState::Lost)).run_if(not(is_paused)),
                 )
                     .run_if(not(is_in_menu))
                     .run_if(in_state(ProgramState::InGame))
@@ -733,7 +733,7 @@ fn check_won_level(
     level_list: Res<LevelList>,
 ) {
     if !end_timer.timer.tick(time.delta()).is_finished() {
-        return;
+        return
     }
 
     let next_index = level_index.0 + 1;

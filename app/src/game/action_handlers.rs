@@ -30,6 +30,7 @@ impl Plugin for ActionHandlersPlugin {
             .add_observer(on_firing_release)
             .add_observer(on_firing_cancel)
             .add_observer(on_flashlight_toggle)
+            .add_observer(on_grab_toggle)
         ;
     }
 }
@@ -144,4 +145,17 @@ fn on_flashlight_toggle(
             flashlight.enabled ^= true;
         }
     }
+}
+
+#[cfg(feature = "input_bei")]
+fn on_grab_toggle(
+    _fire: On<Start<actions::ToggleSelect>>,
+    mut commands: Commands,
+    mut highlighting_mode: ResMut<HighlightingMode>,
+) {
+    *highlighting_mode = highlighting_mode.original_or_enabled().toggle_enabled();
+    if highlighting_mode.is_disabled() {
+        commands.run_system_cached(clear_highlighted);
+    }
+    commands.write_message(GrabbingCommand::ReleaseItems(None));
 }
