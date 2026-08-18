@@ -143,7 +143,7 @@ x2f:
         // Why not!
         //'bevy_light::spot_light::SpotLight', %spot_light,
         'SpotLight', %spot_light,
-        //'SpotLightTexture', %spot_light_tex,  // breaks main texture in 0.19
+        'SpotLightTexture', %spot_light_tex,
         //'bevy_light::point_light::PointLight', %point_light,
         //'DirectionalLight', %dir_light,
         //'DirectionalLightTexture', %dir_light_tex,
