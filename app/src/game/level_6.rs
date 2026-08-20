@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
-use fedry_runtime::prelude::*;
 
 use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
@@ -61,8 +60,7 @@ fn on_level_loaded(
     //     data.map_mut().insert(k.clone(), v.clone());
     // }
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
-        && let Some(mass) = RtNumber::new(&mass) {
+    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
         mass.as_real() as f32
     } else {
         5000.0f32
@@ -73,8 +71,7 @@ fn on_level_loaded(
         .map_or_else(|| Vec3::new(12.0, 1.0, -15.0),
         |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0 + Vec3::Y * 2.0);
 
-    // let model = if let Some(p) = scripting.get_struct_value(&script_module, "model")
-    //     && let Some(p) = RtString::new(&p, &scripting.rt.pool) {
+    // let model = if let Some(p) = scripting.get_struct_value_as_string(&script_module, "model") {
     //     Some(p.str().to_string())
     // } else {
     //     None

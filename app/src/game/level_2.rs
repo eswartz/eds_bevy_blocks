@@ -60,8 +60,7 @@ fn on_level_loaded(
         0.75
     };
 
-    let cube_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "block_mass")
-    && let Some(mass) = RtNumber::new(&mass) {
+    let cube_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
         mass.as_real() as f32
     } else {
         10.0f32
@@ -85,10 +84,10 @@ fn on_level_loaded(
         cube_size as Scalar,
     );
 
-    let size = if let Some(side_length) = runtime.get_struct_value(&script_module,
-    "side_length")
-    && let Some(side_length) = RtSInt::new(&side_length) {
-        *side_length as i32
+    let size = if let Some(side_length) = runtime.get_struct_value_as_number(&script_module,
+    "side_length") {
+
+        side_length.as_uint() as i32
     } else {
         6
     };
@@ -100,8 +99,7 @@ fn on_level_loaded(
         RigidBody::Dynamic
     };
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
-        && let Some(mass) = RtNumber::new(&mass) {
+    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
         mass.as_real() as f32
     } else {
         50.0f32

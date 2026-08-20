@@ -7,7 +7,6 @@ use bevy::prelude::*;
 
 use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
-use fedry_runtime::prelude::*;
 
 pub(crate) const ID: &str = "level5";
 pub(crate) const NAME: &str = "Level 5";
@@ -56,8 +55,7 @@ fn on_level_loaded(
 
     let script_module = script.module();
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value(&script_module, "boom_mass")
-        && let Some(mass) = RtNumber::new(&mass) {
+    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
         mass.as_real() as f32
     } else {
         5000.0f32
@@ -72,8 +70,7 @@ fn on_level_loaded(
     let cube_size = 0.1;
     let cube_mesh = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
 
-    let count = if let Some(v) = runtime.get_struct_value(&script_module, "count")
-        && let Some(v) = RtNumber::new(&v) {
+    let count = if let Some(v) = runtime.get_struct_value_as_number(&script_module, "count") {
         v.as_uint() as usize
     } else {
         1
