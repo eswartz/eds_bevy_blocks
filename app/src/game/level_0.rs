@@ -1,6 +1,7 @@
 use crate::assets::*;
 use crate::game::BoomMass;
 use crate::game::GameScript;
+use anyhow::anyhow;
 use bevy::math::Affine2;
 use bevy::world_serialization::WorldInstanceReady;
 use eds_bevy_common::prelude::*;
@@ -138,13 +139,13 @@ fn on_level_loaded(
     let runtime = scripting.runtime;
 
     let script_module = script.module();
-    let cube_size = if let Some(size) = runtime.get_struct_value_as_number(&script_module, "block_size") {
+    let cube_size = if let Ok(size) = runtime.get_struct_value_as_number(&script_module, "block_size") {
         size.as_real() as f32
     } else {
         0.75
     };
 
-    let cube_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
+    let cube_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
         mass.as_real() as f32
     } else {
         10.0f32
@@ -161,7 +162,7 @@ fn on_level_loaded(
 
     let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
-    let half_size = if let Some(half_side_length) = runtime.get_struct_value_as_number(&script_module,
+    let half_size = if let Ok(half_side_length) = runtime.get_struct_value_as_number(&script_module,
     "half_side_length") {
 
         half_side_length.as_sint() as i32
@@ -169,14 +170,14 @@ fn on_level_loaded(
         6
     };
 
-    let rigid_body = if let Some(is_static) = runtime.get_struct_value(&script_module, "static")
+    let rigid_body = if let Ok(is_static) = runtime.get_struct_value(&script_module, "static")
     && is_static.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
     };
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
+    let boom_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
         mass.as_real() as f32
     } else {
         50.0f32
@@ -187,13 +188,15 @@ fn on_level_loaded(
 
     let std_mat = materials.get(&model_assets.cube_material).unwrap().clone();
 
-    if let Some(scene_path) = runtime.get_struct_value_as_string(&script_module, "scene") {
+    if let Ok(scene_path) = runtime.get_struct_value_as_string(&script_module, "scene") {
         let scene_offs = runtime.get_struct_value(&script_module, "scene_offs")
-            .and_then(|offs| convert_obj_to_value::<Vec3>(&ctx, &offs).ok())
+            .map_err(|e| anyhow!(e))
+            .and_then(|offs| convert_obj_to_value::<Vec3>(&ctx, &offs))
             .unwrap_or_default()
         ;
         let scene_rot = runtime.get_struct_value(&script_module, "scene_rot")
-            .and_then(|offs| convert_obj_to_value::<Vec3>(&ctx, &offs).ok())
+            .map_err(|e| anyhow!(e))
+            .and_then(|offs| convert_obj_to_value::<Vec3>(&ctx, &offs))
             .unwrap_or_default()
         ;
         commands.spawn((

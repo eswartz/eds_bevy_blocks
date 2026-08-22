@@ -60,7 +60,7 @@ fn on_level_loaded(
     //     data.map_mut().insert(k.clone(), v.clone());
     // }
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
+    let boom_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
         mass.as_real() as f32
     } else {
         5000.0f32

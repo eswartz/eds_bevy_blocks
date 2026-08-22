@@ -68,7 +68,7 @@ fn on_level_loaded(
         0.75
     };
 
-    let cube_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
+    let cube_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
         mass.as_real() as f32
     } else {
         10.0f32
@@ -77,13 +77,13 @@ fn on_level_loaded(
     // Spawn cube stacks
     let collider = Collider::cuboid(1.0, 1.0, 1.0);
 
-    let cube_gap = if let Some(v) = runtime.get_struct_value_as_number(&script_module, "cube_gap") {
+    let cube_gap = if let Ok(v) = runtime.get_struct_value_as_number(&script_module, "cube_gap") {
         v.as_real() as f32
     } else {
         0.02
     };
 
-    let collision_margin = if let Some(v) = runtime.get_struct_value_as_number(&script_module, "collision_margin") {
+    let collision_margin = if let Ok(v) = runtime.get_struct_value_as_number(&script_module, "collision_margin") {
         v.as_real() as f32
     } else {
         cube_gap / 4.0
@@ -96,14 +96,14 @@ fn on_level_loaded(
     // };
     // commands.insert_resource(avian3d::collision::collider::DefaultAabbMargin(enlarge_aabb));
 
-    let half_size = if let Some(v) = runtime.get_struct_value_as_number(
+    let half_size = if let Ok(v) = runtime.get_struct_value_as_number(
         &script_module, "half_side_length") {
         v.as_uint() as i32
     } else {
         6
     };
 
-    let rigid_body = if let Some(v) = runtime.get_struct_value(
+    let rigid_body = if let Ok(v) = runtime.get_struct_value(
         &script_module, "static")
     && v.as_bool() {
         RigidBody::Static
@@ -111,14 +111,14 @@ fn on_level_loaded(
         RigidBody::Dynamic
     };
 
-    let with_synth = if let Some(v) = runtime.get_struct_value(
+    let with_synth = if let Ok(v) = runtime.get_struct_value(
         &script_module, "with_synth") {
         v.as_bool()
     } else {
         true
     };
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(
+    let boom_mass = if let Ok(mass) = runtime.get_struct_value_as_number(
         &script_module, "boom_mass") {
 
         mass.as_real() as f32

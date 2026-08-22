@@ -60,7 +60,7 @@ fn on_level_loaded(
         0.75
     };
 
-    let cube_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
+    let cube_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "block_mass") {
         mass.as_real() as f32
     } else {
         10.0f32
@@ -84,7 +84,7 @@ fn on_level_loaded(
         cube_size as Scalar,
     );
 
-    let size = if let Some(side_length) = runtime.get_struct_value_as_number(&script_module,
+    let size = if let Ok(side_length) = runtime.get_struct_value_as_number(&script_module,
     "side_length") {
 
         side_length.as_uint() as i32
@@ -92,28 +92,28 @@ fn on_level_loaded(
         6
     };
 
-    let rigid_body = if let Some(is_static) = runtime.get_struct_value(&script_module, "static")
+    let rigid_body = if let Ok(is_static) = runtime.get_struct_value(&script_module, "static")
     && is_static.as_bool() {
         RigidBody::Static
     } else {
         RigidBody::Dynamic
     };
 
-    let boom_mass = if let Some(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
+    let boom_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
         mass.as_real() as f32
     } else {
         50.0f32
     };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let center = if let Some(pos) = runtime.get_struct_value(&script_module, "center_pos")
+    let center = if let Ok(pos) = runtime.get_struct_value(&script_module, "center_pos")
         && let Some(pos) = runtime.get_vec3(&pos)  {
         pos
     } else {
         Vec3::new(12.0, axis_scale.y / 2.0, -15.0)
     };
 
-    if let Some(data_obj) = runtime.get_struct_value(&script_module, "block_data") {
+    if let Ok(data_obj) = runtime.get_struct_value(&script_module, "block_data") {
         if let Some(data) = RtStruct::new(&data_obj) {
             let data = data.map();
             let into = script.data();
