@@ -2,7 +2,7 @@
 
 // This script generates worker entities to compute a single pixel
 // of the Mandelbrot set.
-%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_init = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %data = ARG 2

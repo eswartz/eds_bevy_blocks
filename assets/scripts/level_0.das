@@ -1,9 +1,9 @@
 /// The plastic green field, "Please Don't Disturb",
 /// vast arena of dead architecture...
-%make_on_update = NEW_BLOCK `make_on_update, () {
+%make_on_update = () {
     LOCAL cnt, false, CntF
 
-    %update_cb = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, ...) {
+    %update_cb = (ctx: Struct, ent: Cnt64, ...) {
         %ctx = ARG 0
         %ent = ARG 1
         %step: CntF = LOAD %ctx, `tick_count, true
@@ -48,7 +48,7 @@
 
 %on_update = CALL %make_on_update, []
 
-%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, ...) {
+%on_init = (ctx: Struct, ent: Cnt64, ...) {
     %ent = ARG 1
 
     %scene_offs = [x: 20.0, y: -0.5, z: 5.0]

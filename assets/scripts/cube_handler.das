@@ -1,4 +1,4 @@
-%on_update = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, ...) {
+%on_update = (ctx: Struct, ent: Cnt64, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %step: CntF = LOAD %ctx, `tick_count, true

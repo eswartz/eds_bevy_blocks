@@ -1,6 +1,6 @@
 // This computes a given coordinate in the Mandelbrot set.
 
-%on_init = NEW_BLOCK `on_init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_init = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
     %ent = ARG 1
     %data = ARG 2
 
@@ -20,7 +20,7 @@
     RETURN nil
 }
 
-%on_update = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_update = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %data = ARG 2

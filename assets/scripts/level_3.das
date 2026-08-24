@@ -1,6 +1,6 @@
 /// Huge green fields with lighted bulbs floating overhead.
 
-%on_update = NEW_BLOCK `update_cb, (ctx: Struct, ent: Cnt64, ...) {
+%on_update = (ctx: Struct, ent: Cnt64, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %step: CntF = LOAD %ctx, `tick_count, true

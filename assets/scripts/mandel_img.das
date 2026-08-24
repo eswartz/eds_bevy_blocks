@@ -1,7 +1,7 @@
 // This computes a given coordinate in the Mandelbrot set
 // by taking an available entry from a `worklist.
 
-%on_update = NEW_BLOCK `on_update, (ctx: Struct, ent: Cnt64, ent_data, ...) {
+%on_update = (ctx: Struct, ent: Cnt64, ent_data, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %ent_data = ARG 2

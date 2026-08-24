@@ -1,4 +1,4 @@
-%on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_init = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
     %ctx = ARG 0
     %ent: CntF = ARG 1
     %data: Struct = ARG 2
@@ -6,9 +6,9 @@
     %entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
     SYSCALL `print, ["SMOODGE: ", %entstr, '\n']
 
-    %pos = [`x: 0, `y: 2, `z: 0]
+    %pos = NEW_STRUCT [`x: 0, `y: 2, `z: 0]
 
-    %mesh_mat = [
+    %mesh_mat = NEW_STRUCT [
         `mesh: "models/smoodge.glb#Mesh0/Primitive0",
         `material: "models/smoodge.glb#Material0/std",
     ]
@@ -35,7 +35,7 @@
     %li: IntF = COPY 10
 
     %intense = SYSCALL `random_number,  [1.0e6, 1.0e8]
-    %spot_light = [
+    %spot_light = NEW_STRUCT [
         intensity: %intense,
         range: 25.0,
         radius: 15.0,
@@ -48,7 +48,7 @@ li_loop:
     %lx = SYSCALL `random_number,  [-32.0, 32.0]
     %ly = SYSCALL `random_number,  [1.0, 16.0]
     %lz = SYSCALL `random_number,  [-32.0, 32.0]
-    %pos = [x: %lx, y: %ly, z: %lz]
+    %pos = NEW_STRUCT [`x, %lx, `y, %ly, `z, %lz]
 
     SYSCALL `bevy_spawn, [
         `Name, "LIGHT",
@@ -97,7 +97,7 @@ li_done:
 
     %shape = [`Sphere, %unitsz_h]
     %info =  [`subdivisions, 1]
-    %shape: Struct = [kind: %shape, `info: %info]
+    %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     %grid_units_h = LSHR %grid_units, 1
     %y: IntF = SUB 0, %grid_units_h
@@ -132,7 +132,7 @@ x_step:
     %color_enum = [`Hsla, `hue, %hue, `saturation, 1, `lightness, 0.5, `alpha, 1.0]
     //SYSCALL `print, [%ccr, "/", %ccg, " "]
 
-    %pos = [x: %wx, z: %wy, y: 2.0]
+    %pos = NEW_STRUCT [x: %wx, z: %wy, y: 2.0]
 
     %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
@@ -159,7 +159,7 @@ x_step:
     %sx = MINR %sx, 1.5
 
     %sx = MULR %sx, 0.1     // if not parented
-    %scale = [`x, %sx, `y, %sx, `z, %sx]
+    %scale = NEW_STRUCT [`x, %sx, `y, %sx, `z, %sx]
     //SYSCALL `print, [%scale, '\n']
     //SYSCALL `print, [%color_enum, '\n']
 
@@ -207,14 +207,14 @@ x_step:
     %num: IntF = CAST %ent, `coerce
     //%num = ADDI %x, %y
     %num = ABSI %num
-    %cell_data = [
+    %cell_data = NEW_STRUCT [
         `pos: %pos,
         `parent: %top_ent,
         `num: %num,
     ]
 
     // Package ScriptCreationInfo data.
-    %sci = [
+    %sci = NEW_STRUCT [
         path: `scripts/automaton.das,
         mode: `Async,
     ]
@@ -235,7 +235,7 @@ exit:
 
 ///////
 
-%on_update = NEW_BLOCK `update, (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_update = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
     %ctx = ARG 0
     %ent: CntF = ARG 1
     %data = ARG 2
@@ -284,7 +284,7 @@ update:
 
     %old = SYSCALL `bevy_call_func, [%top_ent, `look_at, %pent, 0.5]
 
-    %vel = [`x: %dx, `y: %dy, `z: %dz]
+    %vel = NEW_STRUCT [`x: %dx, `y: %dy, `z: %dz]
     //SYSCALL `print, [%vel, '\n']
     //SYSCALL `bevy_call_func, [%top_ent, `set_velocity, %vel]
     SYSCALL `bevy_call_func, [%top_ent, `insert_components,
@@ -301,14 +301,14 @@ ignore:
 
 ///////
 
-    %init_data = [
+    %init_data = NEW_STRUCT [
         //`model: "models/smoodge.glb#Scene0",
         //`grid_units: 4,
         `grid_units: 20,
         //`grid_units: 1,
         `block_mass: 5.0,
     ]
-    %module = [
+    %module = NEW_STRUCT [
         `boom_mass: 100.0,
         `on_init: %on_init,
         `on_update: %on_update,
