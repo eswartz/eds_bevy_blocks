@@ -32,12 +32,12 @@
     %info =  []
     //%shape = [`Plane, x, %gridsz, y, %gridsz]
     //%info =  [`subdivisions, 8]
-    //%shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
+    //%shape: Struct = [`kind, %shape, `info, %info]
 
     %y = ADD %gridsz_h, 0.025
-    %pos = NEW_STRUCT [x: 0.0, y: %y, z: 5.0]
+    %pos = [x: 0.0, y: %y, z: 5.0]
 
-    %rot = NEW_STRUCT [x: -90.0]
+    %rot = [x: -90.0]
     %rot: Tuple = [`Deg, %rot]
 
     %imgsz = [`x, %grid_units, `y, %grid_units]
@@ -98,13 +98,13 @@ x_step:
 
     %px = ADD %cellx, %grid_units_h
     %py = ADD %celly, %grid_units_h
-    %coord = NEW_STRUCT [
+    %coord = [
         `x: %px,
         `y: %py,
     ]
 
     // Parameters for the cell.
-    %cell_data = NEW_STRUCT [
+    %cell_data = [
         `cr: %cr,
         `ci: %ci,
         `zr: 0.0,
@@ -145,11 +145,11 @@ make_worker:
     ]
 
     %mode = [`Async]
-    %sci = NEW_STRUCT [
+    %sci = [
         path: `scripts/mandel_img.das,
         mode: %mode,
     ]
-    %cell_data = NEW_STRUCT [
+    %cell_data = [
         worklist: %worklist,
     ]
     SYSCALL `bevy_call_func, [%worker, `add_script, %sci, %cell_data]
@@ -167,7 +167,7 @@ exit:
 %sz = DIV %sz, 1048576.0
 %sz = DIV %sz, 1024.0
 
-%init_data = NEW_STRUCT [
+%init_data = [
     // number of entities to chug through data.
     //`num_workers: 1024,
     //`num_workers: 128,
@@ -189,7 +189,7 @@ exit:
     `max_iters: 2500,
 ]
 
-%module = NEW_STRUCT [
+%module = [
     `on_init: %on_init,
 
     `boom_mass: 500.0,

@@ -139,7 +139,7 @@ skip:
     RETURN nil
 }
 
-%module = NEW_STRUCT [
+%module = [
     //`on_init: %on_init,
     `on_update: %on_update,
 ]

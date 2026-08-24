@@ -41,11 +41,11 @@
     %shape = [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
     //%info =  [`subdivisions, 2]
     %info =  []
-    %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
+    %shape: Struct = [kind: %shape, info: %info]
 
     // // Make plane face viewer
-    //%rot = NEW_STRUCT [x: -90.0]
-    %rot = NEW_STRUCT [x: 0.0]
+    //%rot = [x: -90.0]
+    %rot = [x: 0.0]
     %rot: Tuple = [`Deg, %rot]
 
     // Spawn all the grid points, initializing them with
@@ -76,7 +76,7 @@ x_step:
     //%wy: RealF = NEG %wy    // top-down
     %wy = ADD %wy, %gridcy
 
-    %pos = NEW_STRUCT [x: %wx, y: %wy, z: 0.0]
+    %pos = [x: %wx, y: %wy, z: 0.0]
 
     %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
@@ -127,10 +127,7 @@ x_step:
     //SYSCALL `print, [%data, "\n"]
 
     // Package ScriptCreationInfo data.
-    %sci = NEW_STRUCT [
-        path: `scripts/mandel_ent.das,
-        mode: `Async,
-    ]
+    %sci = [ path: `scripts/mandel_ent.das, mode: `Async ]
     SYSCALL `bevy_call_func, [%new, `add_script, %sci, %data]
 
 x_next:

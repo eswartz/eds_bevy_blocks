@@ -24,7 +24,7 @@
 
     %y = DIV %y, 4
 
-    %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
+    %pos = [x: %x, y: %y, z: %z]
 
     %sz: RealF = MOD %tmp, 31
     %tmp = DIV %tmp, 31.0
@@ -32,7 +32,7 @@
     %sz = DIV %sz, 4
     %sz: RealF = ADD %sz, 0.5
 
-    %size = NEW_STRUCT [x: %sz, y: %sz, z: %sz]
+    %size = [x: %sz, y: %sz, z: %sz]
 
     %deg = MOD %step, 360
     %rot = [y: %deg]
@@ -79,7 +79,7 @@ x1f:
 x2f:
 
     %intense = MUL 1000000.0, %g
-    %spot_light = NEW_STRUCT [
+    %spot_light = [
         intensity: %intense,
         range: 10.0,
         radius: 5.0,
@@ -87,30 +87,30 @@ x2f:
         //inner_angle: 0.25,
         shadow_maps_enabled: false,
     ]
-    %spot_light_tex = NEW_STRUCT [
+    %spot_light_tex = [
         image: %light_img,
         //cubemap_layout: `SequenceVertical,
     ]
 
     %intense = MUL 500000.0, %b
-    %point_light = NEW_STRUCT [
+    %point_light = [
         intensity: %intense,
         range: 50.0,
         radius: 100.0,
         shadow_maps_enabled: false,
     ]
-    %pt_light_tex = NEW_STRUCT [
+    %pt_light_tex = [
         image: %light_img,
         cubemap_layout: `SequenceVertical,
     ]
 
     %intense = MUL 1000.0, %b
     %intense = ADD %intense, 100
-    %dir_light = NEW_STRUCT [
+    %dir_light = [
         illuminance: %intense,
         shadow_maps_enabled: false,
     ]
-    %dir_light_tex = NEW_STRUCT [
+    %dir_light_tex = [
         image: "textures/spiral_1.webp",
         tiled: false,
     ]
@@ -183,7 +183,7 @@ x2f:
     //SYSCALL `delay, [0.5]
 
     //SYSCALL `delay, [0.001]
-    %vec = NEW_STRUCT [x: 0, y: 10, z: 0]
+    %vec = [x: 0, y: 10, z: 0]
     //SYSCALL `bevy_call_func, [%new, `add_velocity, %vec]
 
     SYSCALL `delay, [0.1]
@@ -192,7 +192,7 @@ x2f:
 
 ///////
 
-    %module = NEW_STRUCT [
+    %module = [
         `on_update: %on_update,
         `boom_mass: 500.0,
         `count: 1,

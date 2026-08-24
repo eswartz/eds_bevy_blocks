@@ -20,7 +20,7 @@
     %y = MOD %ent, 3
     %y = ADD %y, %dist
 
-    %pos = NEW_STRUCT [x: %x, y: %y, z: %z]
+    %pos = [x: %x, y: %y, z: %z]
 
     // Make a color.
     %rr = ADD %x, %step
@@ -40,11 +40,11 @@
 
     %rot_x = MOD %step, 45
 
-    %angle = NEW_STRUCT [y: %rot_x, x: 0, z: 0]
+    %angle = [y: %rot_x, x: 0, z: 0]
     %angle: Tuple = [`Deg, %angle]
 
     // Make a cuboid.
-    %mesh_mat = NEW_STRUCT [mesh: "models/tile.glb#Mesh0/Primitive0", material: "models/tile.glb#Material0/std"]
+    %mesh_mat = [mesh: "models/tile.glb#Mesh0/Primitive0", material: "models/tile.glb#Material0/std"]
     %shape = [`MeshMaterial, %mesh_mat]
     %collider_shape = [`Cube, x, 1.0, y, 0.025, z, 1.0]
 
@@ -103,14 +103,14 @@
     %life = [`Temporary, `secs, 60]
     //%life = [`Keep]
 
-    %init = NEW_STRUCT [
+    %init = [
         `fall_distance: 5.0,
         `delay: 1.0,
         `restitution: 0.2,
         `lifetime: %life,
     ]
 
-    %module = NEW_STRUCT [
+    %module = [
         `block_size: 0.375,
         `side_length: 3,
         `on_update: %on_update,

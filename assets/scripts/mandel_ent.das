@@ -123,7 +123,7 @@ done:
     %posy = LOAD %pos, `y
     %posz = LOAD %pos, `z
     %posz = ADD %posz, %depth
-    %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
+    %vec = [x: %posx, y: %posy, z: %posz]
     //%parent = LOAD %data, `parent
     //%coord = [`RelativeTo, %parent]
     //SYSCALL `bevy_call_func, [%ent, `set_position, %vec, %coord]
@@ -172,11 +172,9 @@ face_player:
     RETURN nil
 }
 
-%init_data = NEW_STRUCT [
+%init_data = [ : ]
 
-]
-
-%module = NEW_STRUCT [
+%module = [
     `on_init: %on_init,
     `on_update: %on_update,
     `init_data: %init_data,
