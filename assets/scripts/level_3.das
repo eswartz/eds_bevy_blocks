@@ -35,8 +35,8 @@
     %size = NEW_STRUCT [x: %sz, y: %sz, z: %sz]
 
     %deg = MOD %step, 360
-    %rot = NEW_STRUCT [y: %deg]
-    %rot: Tuple = NEW_SEQUENCE [`Deg, %rot]
+    %rot = [y: %deg]
+    %rot: Tuple = [`Deg, %rot]
 
     // Make a color.
     %rr = ADD %x, %step
@@ -51,19 +51,19 @@
     %b = DIV %z, 13.0
     %b = MOD %b, 5.0
 
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b, `alpha, 0.25]
+    %color_enum = [`Srgba, `red, %r, `green, %g, `blue, %b, `alpha, 0.25]
     %r = MUL %r, 3.0
     %g = MUL %g, 3.0
     %b = MUL %b, 2.0
-    %emissive = NEW_SEQUENCE [`Srgba, `red, %r, `green, %g, `blue, %b, `alpha, 0.5]
+    %emissive = [`Srgba, `red, %r, `green, %g, `blue, %b, `alpha, 0.5]
 
-    %shape = NEW_SEQUENCE [`Cube, x, 0.25, y, 0.50, z, 0.75]
-    %shape = NEW_SEQUENCE [`Sphere, 0.5]
+    %shape = [`Cube, x, 0.25, y, 0.50, z, 0.75]
+    %shape = [`Sphere, 0.5]
 
     %mass = COPY 0.0001
     %friction = COPY 0.125
 
-    %collider_shape = NEW_SEQUENCE [`Sphere, 1.0]
+    %collider_shape = [`Sphere, 1.0]
     //%collider_scale = DIV %r, 2.0
     %collider_scale = COPY %r
     %collider_scale = ADD %collider_scale, 2.0
@@ -115,8 +115,8 @@ x2f:
         tiled: false,
     ]
 
-    %rest = NEW_SEQUENCE [`coefficient, 1, `combine_rule, `Average]
-    %grav_scale = NEW_SEQUENCE [0.125]
+    %rest = [`coefficient, 1, `combine_rule, `Average]
+    %grav_scale = [0.125]
 
     %pt_ent = SYSCALL `bevy_spawn, [
         `parent, %ent,

@@ -45,13 +45,13 @@ fwd:
         IF_TRUE %use_synths, add_notes, no_notes
 
 add_notes:
-        %msg = NEW_STRUCT [
+        %msg = [
             command: `channel_volume,
             entity: %ent,
             velocity: 0.5
         ]
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
-        %msg = NEW_STRUCT [
+        %msg = [
             command: `program_change,
             entity: %ent,
             channel: %channel,
@@ -59,7 +59,7 @@ add_notes:
         ]
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-        %msg = NEW_STRUCT [
+        %msg = [
             command: `note_on,
             entity: %ent,
             channel: %channel,
@@ -68,7 +68,7 @@ add_notes:
         ]
         SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-        %msg = NEW_STRUCT [
+        %msg = [
             command: `note_off,
             entity: %ent,
             channel: %channel,
@@ -86,7 +86,7 @@ hop:
         %vx = SYS_CALL `random_number, [5.0]
         %vy = SYS_CALL `random_number, [5.0]
         %vz = SYS_CALL `random_number, [5.0]
-        %vel = NEW_STRUCT [
+        %vel = [
             x: %vx,
             y: %vy,
             z: %vz,
@@ -126,7 +126,7 @@ no_fun:
     %use_synths = COPY true
     %on_update = CALL %make_on_update, [%use_synths]
 
-    %module = NEW_STRUCT [
+    %module = [
         `block_size: 0.5,
         `half_side_length: 4,
         //`half_side_length: 3,

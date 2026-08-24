@@ -51,14 +51,14 @@
 %on_init = NEW_BLOCK `init, (ctx: Struct, ent: Cnt64, ...) {
     %ent = ARG 1
 
-    %scene_offs = NEW_STRUCT [x: 20.0, y: -0.5, z: 5.0]
-    %scene_offs = NEW_STRUCT [x: 15.0, y: -0.5, z: -20.0]
+    %scene_offs = [x: 20.0, y: -0.5, z: 5.0]
+    %scene_offs = [x: 15.0, y: -0.5, z: -20.0]
 
-    %scene_rot = NEW_STRUCT [x: 0.0, y: 0.0, z: 0.0]
-    %scene_rot: Tuple = NEW_SEQUENCE [
+    %scene_rot = [x: 0.0, y: 0.0, z: 0.0]
+    %scene_rot: Tuple = [
         `Degrees, %scene_rot,
     ]
-    %scene = NEW_SEQUENCE [
+    %scene = [
         //`Model, "maps/school_gym.glb#Scene0",
         `Model, "maps/classroom.glb#Scene0",
     ]
@@ -73,14 +73,14 @@
     RETURN nil
 }
 
-    %boom = NEW_STRUCT [
+    %boom = [
         mass: 250.0,
         x: 0.125,
         y: 0.125,
         shape: `Sphere,
     ]
 
-    %module = NEW_STRUCT [
+    %module = [
         boom: %boom,
         on_init: %on_init,
 

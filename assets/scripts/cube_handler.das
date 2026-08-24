@@ -11,7 +11,7 @@
     %n = MOD %n, 75
     %n: CntF = ADD %n, 20
 
-    %msg = NEW_STRUCT [
+    %msg = [
         command: `program_change,
         entity: %ent,
         channel: %voice,
@@ -19,7 +19,7 @@
     ]
     SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-    %msg = NEW_STRUCT [
+    %msg = [
         command: `note_on,
         entity: %ent,
         channel: %voice,
@@ -29,7 +29,7 @@
     ]
     SYSCALL `bevy_call_func, [`write_message, `MidiSynthMessage, %msg]
 
-    %msg = NEW_STRUCT [
+    %msg = [
         command: `note_off,
         entity: %ent,
         channel: %voice,
@@ -43,12 +43,12 @@
 
     %y = MOD %step, 8
     %y = DIV %y, 2.0
-    %vec = NEW_STRUCT [x: -0.1, y: %y, z: 0.1]
+    %vec = [x: -0.1, y: %y, z: 0.1]
 
     RETURN nil
 }
 
-%module = NEW_STRUCT [
+%module = [
     `on_update: %on_update,
 ]
 RETURN %module

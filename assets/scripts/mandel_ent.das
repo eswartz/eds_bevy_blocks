@@ -125,7 +125,7 @@ done:
     %posz = ADD %posz, %depth
     %vec = NEW_STRUCT [x: %posx, y: %posy, z: %posz]
     //%parent = LOAD %data, `parent
-    //%coord = NEW_SEQUENCE [`RelativeTo, %parent]
+    //%coord = [`RelativeTo, %parent]
     //SYSCALL `bevy_call_func, [%ent, `set_position, %vec, %coord]
     SYSCALL `bevy_call_func, [%ent, `set_position, %vec]
 

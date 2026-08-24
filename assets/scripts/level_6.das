@@ -12,11 +12,11 @@
         `mesh: "models/smoodge.glb#Mesh0/Primitive0",
         `material: "models/smoodge.glb#Material0/std",
     ]
-    %model = NEW_SEQUENCE [
+    %model = [
         `MeshMaterial, %mesh_mat,
         //`Model, "models/smoodge.glb#Scene0",
     ]
-    %collider_shape = NEW_SEQUENCE [`Cube, x, 1.0, y, 1.0, z, 1.0]
+    %collider_shape = [`Cube, x, 1.0, y, 1.0, z, 1.0]
     %top_ent = SYSCALL `bevy_spawn, [
         `parent, %ent,
         `Name, "WATCH",
@@ -95,8 +95,8 @@ li_done:
     %cy = COPY 0.0
     %cz = COPY 0.0
 
-    %shape = NEW_SEQUENCE [`Sphere, %unitsz_h]
-    %info =  NEW_SEQUENCE [`subdivisions, 1]
+    %shape = [`Sphere, %unitsz_h]
+    %info =  [`subdivisions, 1]
     %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     %grid_units_h = LSHR %grid_units, 1
@@ -128,8 +128,8 @@ x_step:
     %ccg = MODR %ccg, 1.0
     %ccb = MODR %ccb, 1.0
     %hue = MULR %ccb, 360.0
-    //%color_enum = NEW_SEQUENCE [`Srgba, `red, %ccr, `green, %ccg, `blue, %ccb, `alpha, 0.25]
-    %color_enum = NEW_SEQUENCE [`Hsla, `hue, %hue, `saturation, 1, `lightness, 0.5, `alpha, 1.0]
+    //%color_enum = [`Srgba, `red, %ccr, `green, %ccg, `blue, %ccb, `alpha, 0.25]
+    %color_enum = [`Hsla, `hue, %hue, `saturation, 1, `lightness, 0.5, `alpha, 1.0]
     //SYSCALL `print, [%ccr, "/", %ccg, " "]
 
     %pos = NEW_STRUCT [x: %wx, z: %wy, y: 2.0]
@@ -138,9 +138,9 @@ x_step:
 
     %mass: RealF = LOAD %data, `block_mass
 
-    %stone = NEW_SEQUENCE [`Model, "models/stone.glb#Scene0"]
-    %sphere_shape = NEW_SEQUENCE [`Sphere, 1.0]
-    %sphere_collider_shape = NEW_SEQUENCE [`Sphere, 0.6]
+    %stone = [`Model, "models/stone.glb#Scene0"]
+    %sphere_shape = [`Sphere, 1.0]
+    %sphere_collider_shape = [`Sphere, 0.6]
 
     %rx: RealF = CAST %x, `coerce
     %rx = SINR %rx
@@ -149,7 +149,7 @@ x_step:
     %ry = COSR %ry
     %ry = MULR %ry, 2.22222
 
-    %rot = NEW_SEQUENCE [`Rad, %rx, %ry, 0.0]
+    %rot = [`Rad, %rx, %ry, 0.0]
     //SYSCALL `print, [%rot, '\n']
 
     %sx: RealF = CAST %ccg, `coerce
@@ -163,7 +163,7 @@ x_step:
     //SYSCALL `print, [%scale, '\n']
     //SYSCALL `print, [%color_enum, '\n']
 
-    %density = NEW_SEQUENCE [100.0]
+    %density = [100.0]
     %new = SYSCALL `bevy_spawn, [
       //  `parent, %ent,
         `scriptable, true,

@@ -36,22 +36,22 @@
     %cellsz = DIV %sz, %grid_units
 
     // Note: don't try to use alpha here, else we really slow down from OIT sorting!
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, 1, `green, 1, `blue, 1]
-    %shape = NEW_SEQUENCE [`Plane, x, %unitsz_h, y, %unitsz_h]
-    %shape = NEW_SEQUENCE [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
-    //%info =  NEW_SEQUENCE [`subdivisions, 2]
-    %info =  NEW_SEQUENCE []
+    %color_enum = [`Srgba, `red, 1, `green, 1, `blue, 1]
+    %shape = [`Plane, x, %unitsz_h, y, %unitsz_h]
+    %shape = [`Cube, x, %unitsz_h, y, %unitsz_h, z, 0.01]
+    //%info =  [`subdivisions, 2]
+    %info =  []
     %shape: Struct = NEW_STRUCT [`kind, %shape, `info, %info]
 
     // // Make plane face viewer
     //%rot = NEW_STRUCT [x: -90.0]
     %rot = NEW_STRUCT [x: 0.0]
-    %rot: Tuple = NEW_SEQUENCE [`Deg, %rot]
+    %rot: Tuple = [`Deg, %rot]
 
     // Spawn all the grid points, initializing them with
     // the coordinates to render.
 
-    %tag = NEW_SEQUENCE [0]
+    %tag = [0]
 
     %grid_units_h = LSHR %grid_units, 1
     %y: IntF = SUB 0, %grid_units_h

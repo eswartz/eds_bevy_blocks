@@ -91,12 +91,12 @@ done:
 
     %c: RealF = MULR %depth, 16.0
     %c = MODR %c, 1.0
-    //%color_enum = NEW_SEQUENCE [`Hsva, `hue, 0, `saturation, 0, `value, %c, `alpha, 1]
-    %color_enum = NEW_SEQUENCE [`Srgba, `red, %c, `green, %c, `blue, %c]
+    //%color_enum = [`Hsva, `hue, 0, `saturation, 0, `value, %c, `alpha, 1]
+    %color_enum = [`Srgba, `red, %c, `green, %c, `blue, %c]
 
     %img_handle = LOAD %data, `img
 
-    %img = NEW_SEQUENCE [`Handle, %img_handle]
+    %img = [`Handle, %img_handle]
     SYSCALL `bevy_call_func, [
         %ent,
         set_image_pixel,
@@ -106,10 +106,10 @@ done:
         %color_enum,
     ]
 
-    %sound_asset = NEW_SEQUENCE [
+    %sound_asset = [
         `Asset, "common://sounds/340915__passairmangrace__metalclang1_loud_bip-03.ogg",
     ]
-    %sound_vol = NEW_SEQUENCE [
+    %sound_vol = [
         `Linear, 0.1,
     ]
 
@@ -120,7 +120,7 @@ done:
     %pitch_scale = MAXR %pitch_scale, 0.2
     %pitch_scale = MINR %pitch_scale, 5.0
 
-    %sound_cue = NEW_SEQUENCE [
+    %sound_cue = [
         `source, %sound_asset,
         `volume, %sound_vol,
         `pitch_scale, %pitch_scale,

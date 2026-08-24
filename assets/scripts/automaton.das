@@ -17,7 +17,7 @@
     %ent = ARG 1
     %data = ARG 2
 
-    //%vec = NEW_STRUCT [x: -0.1, y: 0.0, z: -0.1]
+    //%vec = [x: -0.1, y: 0.0, z: -0.1]
 
     %pos = SYSCALL `bevy_call_func, [%ent, `get_position, `World]
     //SYSCALL `print, ["from ", %pos, '\n']
@@ -77,7 +77,7 @@
     %vy = MAXR %vy, -2.0
     %vz = MAXR %vz, %rspeed
 
-    %vel = NEW_STRUCT [x: %vx, y: %vy, z: %vz]
+    %vel = [x: %vx, y: %vy, z: %vz]
 
     //SYSCALL `print, [%vel, '\n']
     //SYSCALL `bevy_call_func, [%ent, `set_velocity, %vel]
@@ -105,7 +105,7 @@
     %ent = ARG 1
     %data = ARG 2
 
-    %vel = NEW_STRUCT [x: 0, y: 0.1, z: 0]
+    %vel = [x: 0, y: 0.1, z: 0]
 
     SYSCALL `bevy_call_func, [%ent, `insert_components,
         `LinearVelocity, %vel,
@@ -117,7 +117,7 @@
 }
 
 
-%module = NEW_STRUCT [
+%module = [
     `on_init: %on_init,
     `on_update: %on_update,
     //`on_update: %on_update_temp,

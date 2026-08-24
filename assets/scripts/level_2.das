@@ -36,19 +36,19 @@
     %b = MOD %b, 5.0
 
     %hue = MOD %step, 360.0
-    %color_enum = NEW_SEQUENCE [`Hsva, `hue, %hue, `saturation, 0.75, `value, %r]
+    %color_enum = [`Hsva, `hue, %hue, `saturation, 0.75, `value, %r]
 
     %rot_x = MOD %step, 45
 
     %angle = NEW_STRUCT [y: %rot_x, x: 0, z: 0]
-    %angle: Tuple = NEW_SEQUENCE [`Deg, %angle]
+    %angle: Tuple = [`Deg, %angle]
 
     // Make a cuboid.
     %mesh_mat = NEW_STRUCT [mesh: "models/tile.glb#Mesh0/Primitive0", material: "models/tile.glb#Material0/std"]
-    %shape = NEW_SEQUENCE [`MeshMaterial, %mesh_mat]
-    %collider_shape = NEW_SEQUENCE [`Cube, x, 1.0, y, 0.025, z, 1.0]
+    %shape = [`MeshMaterial, %mesh_mat]
+    %collider_shape = [`Cube, x, 1.0, y, 0.025, z, 1.0]
 
-    %rest = NEW_SEQUENCE [`coefficient, %restitution, `combine_rule, `Average]
+    %rest = [`coefficient, %restitution, `combine_rule, `Average]
 
     %new = SYSCALL `bevy_spawn, [
         `Name, "TILE",
@@ -83,8 +83,8 @@
     ]
 
     // Package ScriptCreationInfo data.
-    %async = NEW_SEQUENCE [`Async]
-    %sci = NEW_STRUCT [
+    %async = [`Async]
+    %sci = [
         path: `scripts/cube_handler.das,
         mode: %async,
     ]
@@ -99,9 +99,9 @@
 
     //SYSCALL `bevy_call_func, [`set_gravity, -9.8]
 
-    %ctr = NEW_STRUCT [`x: 6.0, `y: 5.0, `z: -5.0]
-    %life = NEW_SEQUENCE [`Temporary, `secs, 60]
-    //%life = NEW_SEQUENCE [`Keep]
+    %ctr = [`x: 6.0, `y: 5.0, `z: -5.0]
+    %life = [`Temporary, `secs, 60]
+    //%life = [`Keep]
 
     %init = NEW_STRUCT [
         `fall_distance: 5.0,
