@@ -48,7 +48,7 @@
     %color = [`Srgba, `red, 2, `green, 2,  `blue, 2]
 
     // Spawn the billboard showing the image of the render.
-    %img_ent = SYSCALL `bevy_spawn, [
+    %img_ent = SYSCALL `bevy_call_func, [`spawn_entity,
         `parent, %ent,
         `Name, "Mandelbrot",
 
@@ -139,7 +139,7 @@ make_worker_loop:
 
 make_worker:
     // Package ScriptCreationInfo data.
-    %worker = SYSCALL `bevy_spawn, [
+    %worker = SYSCALL `bevy_call_func, [`spawn_entity,
         `parent, %ent,
         `Name, "WORKER",
     ]

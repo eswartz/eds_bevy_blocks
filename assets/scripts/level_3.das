@@ -118,7 +118,7 @@ x2f:
     %rest = [`coefficient, 1, `combine_rule, `Average]
     %grav_scale = [0.125]
 
-    %pt_ent = SYSCALL `bevy_spawn, [
+    %pt_ent = SYSCALL `bevy_call_func, [`spawn_entity,
         `parent, %ent,
 
         // Offset is mapped to bevy_transform::components::transform::Transform.translation
@@ -156,7 +156,7 @@ x2f:
         `Name, `LIGHT!,
     ]
 
-    %new = SYSCALL `bevy_spawn, [
+    %new = SYSCALL `bevy_call_func, [`spawn_entity,
         `parent, %pt_ent,
 
         `color, %color_enum,

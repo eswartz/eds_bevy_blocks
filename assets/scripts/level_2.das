@@ -50,7 +50,7 @@
 
     %rest = [`coefficient, %restitution, `combine_rule, `Average]
 
-    %new = SYSCALL `bevy_spawn, [
+    %new = SYSCALL `bevy_call_func, [`spawn_entity,
         `Name, "TILE",
         `Cube, nil,
         `swept_ccd, `linear,

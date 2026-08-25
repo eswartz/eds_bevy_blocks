@@ -6,6 +6,23 @@
     %entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
     SYSCALL `print, ["SMOODGE: ", %entstr, '\n']
 
+    %pos = NEW_STRUCT [`x: 74.0, `y: -48.0, `z: 4.0]
+
+    %model0 = [ `Model, "maps/test_terrain.glb#Scene0",]
+    %scale = [x: 4, y: 4, z: 4]
+    SYSCALL `bevy_call_func, [`spawn_entity,
+        `parent, %ent,
+        `Name, "TERRAIN",
+
+        `offset, %pos,
+        `shape, %model0,
+        `scale, %scale,
+
+        `Visibility, `Inherited,
+        `RigidBody, `Static,
+    ]
+
+
     %pos = NEW_STRUCT [`x: 0, `y: 2, `z: 0]
 
     %mesh_mat = NEW_STRUCT [
@@ -17,7 +34,7 @@
         //`Model, "models/smoodge.glb#Scene0",
     ]
     %collider_shape = [`Cube, x, 1.0, y, 1.0, z, 1.0]
-    %top_ent = SYSCALL `bevy_spawn, [
+    %top_ent = SYSCALL `bevy_call_func, [`spawn_entity,
         `parent, %ent,
         `Name, "WATCH",
 
@@ -50,7 +67,7 @@ li_loop:
     %lz = SYSCALL `random_number,  [-32.0, 32.0]
     %pos = NEW_STRUCT [`x, %lx, `y, %ly, `z, %lz]
 
-    SYSCALL `bevy_spawn, [
+    SYSCALL `bevy_call_func, [`spawn_entity,
         `Name, "LIGHT",
 
         `offset, %pos,
@@ -164,7 +181,7 @@ x_step:
     //SYSCALL `print, [%color_enum, '\n']
 
     %density = [100.0]
-    %new = SYSCALL `bevy_spawn, [
+    %new = SYSCALL `bevy_call_func, [`spawn_entity,
       //  `parent, %ent,
         `scriptable, true,
 

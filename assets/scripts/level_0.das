@@ -63,7 +63,7 @@
         `Model, "maps/classroom.glb#Scene0",
     ]
 
-    SYSCALL `bevy_spawn, [
+    SYSCALL `bevy_call_func, [`spawn_entity,
         //`parent, %ent,
         `shape, %scene,
         `offset, %scene_offs,

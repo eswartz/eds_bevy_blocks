@@ -84,7 +84,7 @@ x_step:
     %prod: CntF = MUL %x, %y
     SET_INDEX %tag, 0, %prod
 
-    %new = SYSCALL `bevy_spawn, [
+    %new = SYSCALL `bevy_call_func, [`spawn_entity,
         `parent, %ent,
         //`relative_to, %ent,
         `scriptable, true,
