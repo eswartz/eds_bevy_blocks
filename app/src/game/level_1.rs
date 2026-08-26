@@ -62,7 +62,7 @@ fn on_level_loaded(
     let script_module = script.module();
 
     let cube_size = if let Some(size) = script_module.map().get(&runtime.rt.pool.for_str("block_size"))
-    && let Some(size) = RtReal::new(&size) {
+    && let Some(size) = RtReal::try_from(&size) {
         *size as f32
     } else {
         0.75

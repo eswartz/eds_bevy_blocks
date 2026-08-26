@@ -54,7 +54,7 @@ fn on_level_loaded(
     let script_module = script.module();
 
     let cube_size = if let Some(size) = script_module.map().get(&runtime.rt.pool.for_str("block_size"))
-    && let Some(size) = RtReal::new(&size) {
+    && let Some(size) = RtReal::try_from(&size) {
         *size as f32
     } else {
         0.75
@@ -114,7 +114,7 @@ fn on_level_loaded(
     };
 
     if let Ok(data_obj) = runtime.get_struct_value(&script_module, "block_data") {
-        if let Some(data) = RtStruct::new(&data_obj) {
+        if let Some(data) = RtStruct::try_from(&data_obj) {
             let data = data.map();
             let into = script.data();
             let mut into = into.map_mut();
