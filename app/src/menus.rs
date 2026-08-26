@@ -738,7 +738,7 @@ fn on_enter_video_menu(
         EnumMenuActions::TextureQualityEnum,
     )
     .add_item(
-        "Shadow Quality",
+        "Soft Shadow Quality",
         MenuEnum::new(
             get_shadow,
             set_shadow,
