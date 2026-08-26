@@ -75,7 +75,7 @@ debug-assertions = false
 [workspace.dependencies]
 eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", branch = "main", features = ["firewheel", "bevy_skein", "highlighting", "grabbing", "input_bei", "midi_synth"] }
 fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git", branch = "main" }
-fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry.git", branch = "main", features = ["egui", "ebc", "midi_synth", "input_bei"] }
+fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry_bevy.git", branch = "main", features = ["egui", "ebc", "midi_synth", "input_bei"] }
 
 game = { path = "game" }
 
