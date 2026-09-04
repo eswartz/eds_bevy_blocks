@@ -1,7 +1,7 @@
 // This computes a given coordinate in the Mandelbrot set
 // by taking an available entry from a `worklist.
 
-%on_update = (ctx: Struct, ent: Cnt64, ent_data, ...) {
+%on_update = (ctx: Struct, ent: Uns64, ent_data, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %ent_data = ARG 2
@@ -20,13 +20,13 @@ work:
     %ci: RealF = LOAD %data, `ci
 
     // stop limit
-    %max_iters: CntF = LOAD %data, `max_iters
+    %max_iters: UnsF = LOAD %data, `max_iters
 
     // current count; 0 means not started,
     // > 0 means still going;
     // < 0 means completed at -iters.
     %iters_s: IntF = LOAD %data, `iters
-    %iters: CntF = CAST %iters_s, `coerce
+    %iters: UnsF = CAST %iters_s, `coerce
 
     // < 0 means finished @ -iters
     %t = LESS_I %iters_s, 0
@@ -46,7 +46,7 @@ loop:
     IF_TRUE %t, calc, past_max
 
 calc:
-    %iters: CntF = ADDU %iters, 1
+    %iters: UnsF = ADDU %iters, 1
     // advance z = z²+c
     // (a+bi) * (c+di) = ac - bd + (ad+bc)i
     // (zr+zi) * (zr+zi) = zr² - zi² + (2*zr*zi)

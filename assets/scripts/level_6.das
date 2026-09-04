@@ -1,6 +1,6 @@
-%on_init = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_init = (ctx: Struct, ent: Uns64, data: Struct, ...) {
     %ctx = ARG 0
-    %ent: CntF = ARG 1
+    %ent: UnsF = ARG 1
     %data: Struct = ARG 2
 
     %entstr = SYSCALL `bevy_call_func, [`ent_to_string, %ent]
@@ -95,7 +95,7 @@ li_done:
     %unitsz_h = COPY 0.25
     %unitsz = COPY 1.0
 
-    %umul: CntF = MODU %ent, 32
+    %umul: UnsF = MODU %ent, 32
     %umul = XORU %umul, 0xa
     %umul = MAXU %umul, 0x4
     %umul: RealF = CAST %umul, `coerce
@@ -105,7 +105,7 @@ li_done:
     %unitsz = MAXR %unitsz, 0.5
     %unitsz = MINR %unitsz, 5.0
 
-    %grid_units: CntF = LOAD %data, `grid_units
+    %grid_units: UnsF = LOAD %data, `grid_units
 
     // Default computation center
     %cx = COPY 0.0
@@ -252,9 +252,9 @@ exit:
 
 ///////
 
-%on_update = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_update = (ctx: Struct, ent: Uns64, data: Struct, ...) {
     %ctx = ARG 0
-    %ent: CntF = ARG 1
+    %ent: UnsF = ARG 1
     %data = ARG 2
 
     %pent = SYSCALL `bevy_call_func, [%ent, `get_player_entity]
@@ -263,7 +263,7 @@ exit:
     %pposx: RealF = LOAD %ppos, `x
     %pposy: RealF = LOAD %ppos, `y
 
-    %dpy: CntF = LOAD %ctx, `tick_count, true
+    %dpy: UnsF = LOAD %ctx, `tick_count, true
     //%dpy = MODU %dpy, 256
     //%dpy: IntF = SUBI %dpy, 64
     %dpy: RealF = CAST %dpy, `coerce

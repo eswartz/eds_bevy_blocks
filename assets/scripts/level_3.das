@@ -1,9 +1,9 @@
 /// Huge green fields with lighted bulbs floating overhead.
 
-%on_update = (ctx: Struct, ent: Cnt64, ...) {
+%on_update = (ctx: Struct, ent: Uns64, ...) {
     %ctx = ARG 0
     %ent = ARG 1
-    %step: CntF = LOAD %ctx, `tick_count, true
+    %step: UnsF = LOAD %ctx, `tick_count, true
 
     %tmp = COPY %step
 

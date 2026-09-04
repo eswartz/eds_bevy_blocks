@@ -1,7 +1,7 @@
 /// Rug and block cube pile on carpet/rug platform in huge desert.
 
 %make_on_update = (in_use_synths) {
-    LOCAL cnt, false, CntF
+    LOCAL cnt, false, UnsF
 
     %in_use_synths = ARG 0
     LOCAL use_synths, false, Bool
@@ -10,10 +10,10 @@
     %frame = GET_FRAME
     STORE %frame, use_synths, %in_use_synths
 
-    %update_cb = (ctx: Struct, ent: Cnt64, ...) {
+    %update_cb = (ctx: Struct, ent: Uns64, ...) {
         %ctx = ARG 0
         %ent = ARG 1
-        %step: CntF = LOAD %ctx, `tick_count, true
+        %step: UnsF = LOAD %ctx, `tick_count, true
 
         // Startup delay
         %seq: Bool = LESS_U %step, 600
@@ -23,16 +23,16 @@ sleep:
         %d3: RealF = DIV %d3, 1.0
         SYSCALL `delay, [%d3]
 skip:
-        %t: CntF = ADD %ent, %step
+        %t: UnsF = ADD %ent, %step
         %tn = COPY %t
         //%tnc = ADDU %tn, 0x1f200
 
-        %channel: CntF = MOD %tn, 16
-        %program: CntF = MOD %tn, 127
+        %channel: UnsF = MOD %tn, 16
+        %program: UnsF = MOD %tn, 127
         %teq: Bool = EQUAL_U %channel, 9
         IF_TRUE %teq, next, fwd
 next:
-        %program: CntF = COPY 0
+        %program: UnsF = COPY 0
 
 fwd:
         %note = MOD %t, 0x6f
@@ -79,7 +79,7 @@ add_notes:
 
 no_notes:
         %test = SYS_CALL `random_number, [0.0, 50.0]
-        //%test: CntF = SYS_CALL `round, [%test]
+        //%test: UnsF = SYS_CALL `round, [%test]
         %test = LESS_R %test, 10.0
         IF_TRUE %test, no_fun, hop
 hop:

@@ -5,14 +5,14 @@
 //
 // (Yes, it's ridiculously expensive.)
 
-%on_init = (ctx: Struct, ent: Cnt64, data: Struct) {
+%on_init = (ctx: Struct, ent: Uns64, data: Struct) {
     %ctx = ARG 0
     %ent = ARG 1
     %data = ARG 2
 
-    %step: CntF = LOAD %ctx, `tick_count, true
+    %step: UnsF = LOAD %ctx, `tick_count, true
 
-    %grid_units: CntF = LOAD %data, `grid_units, true
+    %grid_units: UnsF = LOAD %data, `grid_units, true
 
     // World grid position
     %gridcx = COPY 0.0
@@ -81,7 +81,7 @@ x_step:
     %name = SYSCALL `to_string, ["(", %x, ", ", %y, ")"]
 
     // Make a Moiré pattern.
-    %prod: CntF = MUL %x, %y
+    %prod: UnsF = MUL %x, %y
     SET_INDEX %tag, 0, %prod
 
     %new = SYSCALL `bevy_call_func, [`spawn_entity,

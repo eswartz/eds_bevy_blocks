@@ -1,7 +1,7 @@
-%on_update = (ctx: Struct, ent: Cnt64, ...) {
+%on_update = (ctx: Struct, ent: Uns64, ...) {
     %ctx = ARG 0
     %ent = ARG 1
-    %step: CntF = LOAD %ctx, `tick_count, true
+    %step: UnsF = LOAD %ctx, `tick_count, true
 
     %voice = COPY 1
 
@@ -9,7 +9,7 @@
 
     %n = MUL %step, 17
     %n = MOD %n, 75
-    %n: CntF = ADD %n, 20
+    %n: UnsF = ADD %n, 20
 
     %msg = [
         command: `program_change,

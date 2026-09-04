@@ -1,21 +1,21 @@
 /// The plastic green field, "Please Don't Disturb",
 /// vast arena of dead architecture...
 %make_on_update = () {
-    LOCAL cnt, false, CntF
+    LOCAL cnt, false, UnsF
 
-    %update_cb = (ctx: Struct, ent: Cnt64, ...) {
+    %update_cb = (ctx: Struct, ent: Uns64, ...) {
         %ctx = ARG 0
         %ent = ARG 1
-        %step: CntF = LOAD %ctx, `tick_count, true
+        %step: UnsF = LOAD %ctx, `tick_count, true
 
 //        SYSCALL `print, ["<", %step]
 
-        %t: CntF = CAST %ent, `coerce
-        //%tns: CntF = LSHR %t, 32
-        //%tns2: CntF = ADD %t, %tns
-        //%tn: CntF = MOD %tns2, 0xa00
-        %tn: CntF = MOD %t, 0xa00
-        %tnc: CntF = ADD %tn, 0x1f400
+        %t: UnsF = CAST %ent, `coerce
+        //%tns: UnsF = LSHR %t, 32
+        //%tns2: UnsF = ADD %t, %tns
+        //%tn: UnsF = MOD %tns2, 0xa00
+        %tn: UnsF = MOD %t, 0xa00
+        %tnc: UnsF = ADD %tn, 0x1f400
         %ts = SYSCALL char_to_string, [%tnc]
 
         %task = GET_SYSTEM task
@@ -48,7 +48,7 @@
 
 %on_update = CALL %make_on_update, []
 
-%on_init = (ctx: Struct, ent: Cnt64, ...) {
+%on_init = (ctx: Struct, ent: Uns64, ...) {
     %ent = ARG 1
 
     %scene_offs = [x: 20.0, y: -0.5, z: 5.0]

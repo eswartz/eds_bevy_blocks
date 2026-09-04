@@ -1,4 +1,4 @@
-%on_init = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_init = (ctx: Struct, ent: Uns64, data: Struct, ...) {
 
     %ent = ARG 1
     %data = ARG 2
@@ -12,7 +12,7 @@
     RETURN nil
 }
 
-%on_update = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_update = (ctx: Struct, ent: Uns64, data: Struct, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %data = ARG 2
@@ -25,7 +25,7 @@
     %posy: RealF = LOAD %pos, `y
     %posz: RealF = LOAD %pos, `z
 
-    %pent: CntF = LOAD %data, `parent
+    %pent: UnsF = LOAD %data, `parent
     %goal_pos = SYSCALL `bevy_call_func, [%pent, `get_position, `World]
     //SYSCALL `print, ["to ", %goal_pos, '\n']
     %goal_posx: RealF = LOAD %goal_pos, `x
@@ -100,7 +100,7 @@
     RETURN nil
 }
 
-%on_update_temp = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_update_temp = (ctx: Struct, ent: Uns64, data: Struct, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %data = ARG 2

@@ -2,7 +2,7 @@
 
 // This script generates worker entities to compute a single pixel
 // of the Mandelbrot set.
-%on_init = (ctx: Struct, ent: Cnt64, data: Struct, ...) {
+%on_init = (ctx: Struct, ent: Uns64, data: Struct, ...) {
     %ctx = ARG 0
     %ent = ARG 1
     %data = ARG 2
@@ -15,15 +15,15 @@
 
     %gridsz_h = DIV %gridsz, 2.0
 
-    %num_workers: CntF = LOAD %data, `num_workers
+    %num_workers: UnsF = LOAD %data, `num_workers
 
     // Pixel grid unit count
-    %grid_units: CntF = LOAD %data, `grid_units
+    %grid_units: UnsF = LOAD %data, `grid_units
 
     %cx: RealF = LOAD %data, `cx
     %cy: RealF = LOAD %data, `cy
     %sz: RealF = LOAD %data, `sz
-    %max_iters: CntF = LOAD %data, `max_iters
+    %max_iters: UnsF = LOAD %data, `max_iters
 
     %cell_sz = DIV %sz, %grid_units
 
@@ -131,7 +131,7 @@ y_next:
 
 cells_done:
 
-    %i: CntF = COPY 0
+    %i: UnsF = COPY 0
 
 make_worker_loop:
     %f = LESS_U %i, %num_workers
@@ -154,7 +154,7 @@ make_worker:
     ]
     SYSCALL `bevy_call_func, [%worker, `add_script, %sci, %cell_data]
 
-    %i: CntF = ADD %i, 1
+    %i: UnsF = ADD %i, 1
     JUMP make_worker_loop
 
 exit:
