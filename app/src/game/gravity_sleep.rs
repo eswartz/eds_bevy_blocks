@@ -1,7 +1,6 @@
-
-use std::sync::Arc;
-use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
+use eds_bevy_common::prelude::*;
+use std::sync::Arc;
 
 use bevy::prelude::*;
 
@@ -12,22 +11,18 @@ pub struct GravitySleepPlugin;
 
 impl Plugin for GravitySleepPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<ApplySleepHelper>()
-
-            .add_systems(
-                FixedUpdate,
-                    (
-                        sleep_when_resting.run_if(|apply: Option<Res<ApplySleepHelper>>|
-                            apply.is_some_and(|a| **a)),
-                        reset_sleep_when_resting.run_if(resource_changed::<ApplySleepHelper>)
-                    )
-                    .before(PhysicsSystems::Prepare)
-                    .run_if(not(is_user_paused))
-                    .run_if(in_state(LevelState::Playing))
-                    .run_if(in_state(ProgramState::InGame)),
+        app.init_resource::<ApplySleepHelper>().add_systems(
+            FixedUpdate,
+            (
+                sleep_when_resting
+                    .run_if(|apply: Option<Res<ApplySleepHelper>>| apply.is_some_and(|a| **a)),
+                reset_sleep_when_resting.run_if(resource_changed::<ApplySleepHelper>),
             )
-        ;
+                .before(PhysicsSystems::Prepare)
+                .run_if(not(is_user_paused))
+                .run_if(in_state(LevelState::Playing))
+                .run_if(in_state(ProgramState::InGame)),
+        );
     }
 }
 
@@ -35,7 +30,7 @@ impl Plugin for GravitySleepPlugin {
 #[derive(Component, Debug, Reflect, Clone, PartialEq)]
 #[reflect(Component, Debug)]
 #[component(storage = "SparseSet")]
-pub struct OrigGravityScale{
+pub struct OrigGravityScale {
     pub orig_scale: Scalar,
     pub restore_next_time: bool,
 }
@@ -51,7 +46,15 @@ fn sleep_when_resting(
     // mut commands: Commands,
     commands: ParallelCommands,
     collisions: Collisions,
-    forces_q: Query<Entity, (With<Spawned>, With<RigidBody>, Without<Grabbed>, With<GlobalTransform>)>,
+    forces_q: Query<
+        Entity,
+        (
+            With<Spawned>,
+            With<RigidBody>,
+            Without<Grabbed>,
+            With<GlobalTransform>,
+        ),
+    >,
     grav: Res<Gravity>,
     xfrm_aabb_q: Query<(&GlobalTransform, &ColliderAabb)>,
     grav_q: Query<(Option<&GravityScale>, Option<&OrigGravityScale>)>,
@@ -63,16 +66,19 @@ fn sleep_when_resting(
     forces_q.par_iter().for_each(|ent| {
         let mut any_under = false;
 
-        let Ok((my_xfrm, _my_aabb)) = xfrm_aabb_q.get(ent) else { return };
-        let Ok((my_grav_opt, my_orig_grav_opt)) = grav_q.get(ent) else { return };
+        let Ok((my_xfrm, _my_aabb)) = xfrm_aabb_q.get(ent) else {
+            return;
+        };
+        let Ok((my_grav_opt, my_orig_grav_opt)) = grav_q.get(ent) else {
+            return;
+        };
 
-        let my_desired_scale = my_orig_grav_opt.map_or(
-            my_grav_opt.map_or(1.0, |g| g.0),
-            |g| g.orig_scale);
+        let my_desired_scale =
+            my_orig_grav_opt.map_or(my_grav_opt.map_or(1.0, |g| g.0), |g| g.orig_scale);
 
         if my_desired_scale.abs() == 0. {
             // I don't want to move via gravity anyway.
-            return
+            return;
         }
 
         // Have we manipulated the scale?
@@ -86,10 +92,15 @@ fn sleep_when_resting(
         // so we don't constantly intersect/depenetrate it.
         let my_pos = my_xfrm.translation();
         for pair in collisions.graph().contact_pairs_with(ent) {
-
             if pair.is_touching() {
-                let other = if pair.collider1 == ent { pair.collider2 } else { pair.collider1 };
-                let Ok((other_xfrm, other_aabb)) = xfrm_aabb_q.get(other) else { continue };
+                let other = if pair.collider1 == ent {
+                    pair.collider2
+                } else {
+                    pair.collider1
+                };
+                let Ok((other_xfrm, other_aabb)) = xfrm_aabb_q.get(other) else {
+                    continue;
+                };
                 let other_pos = other_xfrm.translation();
 
                 // Is other under us?
@@ -100,7 +111,7 @@ fn sleep_when_resting(
                         any_under = true;
                         if !is_rested {
                             commands.command_scope(|mut commands| {
-                                commands.entity(ent).insert(OrigGravityScale{
+                                commands.entity(ent).insert(OrigGravityScale {
                                     orig_scale: my_desired_scale,
                                     restore_next_time: false,
                                 });
@@ -111,7 +122,7 @@ fn sleep_when_resting(
                                 commands.entity(ent).insert(GravityScale(new_scale));
                                 debug!("resting {ent}");
                             });
-                            rested.fetch_add(1, Ordering::SeqCst);
+                            rested.fetch_add(1, Ordering::Relaxed);
                         }
                     }
                     break;
@@ -124,7 +135,7 @@ fn sleep_when_resting(
             commands.command_scope(|mut commands| {
                 if let Some(orig) = my_orig_grav_opt {
                     if !orig.restore_next_time {
-                        commands.entity(ent).insert(OrigGravityScale{
+                        commands.entity(ent).insert(OrigGravityScale {
                             orig_scale: orig.orig_scale,
                             restore_next_time: true,
                         });
@@ -132,18 +143,16 @@ fn sleep_when_resting(
                         debug!("waking {ent}");
 
                         commands.entity(ent).insert(GravityScale(my_desired_scale));
-                        commands.entity(ent).try_remove::<(
-                            OrigGravityScale,
-                        )>();
+                        commands.entity(ent).try_remove::<(OrigGravityScale,)>();
                     }
                 }
             });
-            awoken.fetch_add(1, Ordering::SeqCst);
+            awoken.fetch_add(1, Ordering::Relaxed);
         }
     });
 
-    let rested = rested.load(Ordering::SeqCst);
-    let awoken = awoken.load(Ordering::SeqCst);
+    let rested = rested.load(Ordering::Relaxed);
+    let awoken = awoken.load(Ordering::Relaxed);
     if rested != 0 || awoken != 0 {
         debug!("new rested {rested}, awoken {awoken}");
     }
@@ -154,21 +163,21 @@ fn reset_sleep_when_resting(
     commands: ParallelCommands,
     grav_q: Query<(Entity, Option<&GravityScale>, Option<&OrigGravityScale>), With<RigidBody>>,
 ) {
-    grav_q.par_iter().for_each(|(ent, my_grav_opt, my_orig_grav_opt)| {
+    grav_q
+        .par_iter()
+        .for_each(|(ent, my_grav_opt, my_orig_grav_opt)| {
+            let my_desired_scale =
+                my_orig_grav_opt.map_or(my_grav_opt.map_or(1.0, |g| g.0), |g| g.orig_scale);
 
-        let my_desired_scale = my_orig_grav_opt.map_or(
-            my_grav_opt.map_or(1.0, |g| g.0),
-            |g| g.orig_scale);
-
-        if my_orig_grav_opt.is_some() {
-            commands.command_scope(|mut commands| {
-                let mut ent_commands = commands.entity(ent);
-                if my_desired_scale != 1.0 {
-                    ent_commands.insert(GravityScale(my_desired_scale));
-                } else {
-                    ent_commands.try_remove::<(OrigGravityScale, GravityScale)>();
-                }
-            });
-        }
-    });
+            if my_orig_grav_opt.is_some() {
+                commands.command_scope(|mut commands| {
+                    let mut ent_commands = commands.entity(ent);
+                    if my_desired_scale != 1.0 {
+                        ent_commands.insert(GravityScale(my_desired_scale));
+                    } else {
+                        ent_commands.try_remove::<(OrigGravityScale, GravityScale)>();
+                    }
+                });
+            }
+        });
 }
