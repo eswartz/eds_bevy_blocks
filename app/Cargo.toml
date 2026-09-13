@@ -1,5 +1,5 @@
 [package]
-name = "eds_blocks"
+name = "eds-blocks"
 version = "0.0.1"
 edition = "2024"
 authors = ["Ed Swartz (github.com/eswartz)"]
@@ -130,3 +130,6 @@ dasp-rs = "0.5.1"
 
 [dev-dependencies]
 test-log.workspace = true
+
+[lints]
+workspace = true
