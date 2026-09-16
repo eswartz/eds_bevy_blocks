@@ -160,10 +160,10 @@ x_step:
     %sphere_collider_shape = [`Sphere, 0.6]
 
     %rx: RealF = CAST %x, `coerce
-    %rx = SINR %rx
+    %rx: RealF = SYSCALL `sin, [%rx]
     %rx = MULR %rx, 3.33333
     %ry: RealF = CAST %y, `coerce
-    %ry = COSR %ry
+    %ry: RealF = SYSCALL `cos, [%ry]
     %ry = MULR %ry, 2.22222
 
     %rot = [`Rad, %rx, %ry, 0.0]
@@ -268,7 +268,7 @@ exit:
     //%dpy: IntF = SUBI %dpy, 64
     %dpy: RealF = CAST %dpy, `coerce
     %dpy = MULR %dpy, 0.01
-    %dpy = SINR %dpy
+    %dpy: RealF = SYSCALL `sin, [%dpy]
     %dpy = MULR %dpy, 2.0
 
     %dpy = ADDR %dpy, 2.5
