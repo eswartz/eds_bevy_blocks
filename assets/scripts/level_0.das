@@ -40,8 +40,9 @@
     %frame = GET_FRAME
     STORE %frame, cnt, 0
 
-    %clos = CLOSURE %update_cb
-    RETURN %clos
+    //%clos = CLOSURE %update_cb
+    //RETURN %clos
+    RETURN %update_cb
 }
 
 ///////
