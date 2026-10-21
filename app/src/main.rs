@@ -1,15 +1,17 @@
-mod menus;
+#![recursion_limit = "256"]
+
+mod actions;
 mod assets;
 mod audio;
-mod actions;
 mod camera;
 mod game;
+mod menus;
 
-use std::sync::Arc;
-use std::time::Duration;
 use bevy::render::error_handler::{RenderErrorHandler, RenderErrorPolicy};
 #[cfg(target_arch = "wasm32")]
 use console_log;
+use std::sync::Arc;
+use std::time::Duration;
 
 use bevy::camera::visibility::RenderLayers;
 use bevy::color::palettes::tailwind::{self, RED_500};
@@ -20,14 +22,14 @@ use bevy::{
     winit::WinitSettings,
 };
 
+use bevy::render::renderer::RenderDevice;
 use bevy_asset_loader::prelude::*;
 use bevy_skein::SkeinPlugin;
-use bevy::render::renderer::RenderDevice;
 
 use eds_bevy_common::midi_synth::synth::MidiSynthPlugin;
+use eds_bevy_common::physics::*;
 use eds_bevy_common::prelude::CollidersPlugin;
 use eds_bevy_common::prelude::PlayerEnvironmentPlugin;
-use eds_bevy_common::physics::*;
 use eds_bevy_common::prelude::*;
 use wgpu::wgt::error::ErrorType;
 
@@ -37,7 +39,6 @@ use crate::audio::AudioPlugin;
 use crate::camera::ensure_3d_camera;
 use crate::game::GamePlugin;
 use crate::menus::MenuPlugin;
-
 
 fn main() -> AppExit {
     let res = find_runtime_base_directory_by_folder("assets");
@@ -50,202 +51,183 @@ fn main() -> AppExit {
     };
 
     if dev_tools_enabled() {
-        eprintln!("LD_LIBRARY_PATH={}", std::env::var("LD_LIBRARY_PATH").unwrap_or_default());
+        eprintln!(
+            "LD_LIBRARY_PATH={}",
+            std::env::var("LD_LIBRARY_PATH").unwrap_or_default()
+        );
     }
 
     // #[cfg(target_arch = "wasm32")]
     // let _ = console_log::init_with_level(log::Level::Info);
 
     let mut app = App::new();
-    app
-        .insert_resource(WinitSettings {
-            focused_mode: bevy::winit::UpdateMode::Continuous,
-            unfocused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f32(
-                1.0 / 15.0,
-            )),
-        })
-
-        .insert_resource(RenderErrorHandler(
-            |error, main_world, _render_world| match error.ty {
-                ErrorType::DeviceLost => RenderErrorPolicy::Recover(default()),
-                ErrorType::OutOfMemory => {
-                    main_world.insert_resource(NextState::Pending(ProgramState::Error));
-                    RenderErrorPolicy::StopRendering
-                }
-                ErrorType::Validation => RenderErrorPolicy::Ignore,
-                ErrorType::Internal => panic!(),
-            },
-        ))
-
-        // Register our sources early.
-        .add_plugins(CommonAssetsPlugin)
-
-        .add_plugins((
-            DefaultPlugins
-                .set(AssetPlugin {
-                    // Wasm builds will check for meta files (that don't exist) if this isn't set.
-                    // This causes errors and even panics in web builds on itch.
-                    // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
-                    meta_check: if cfg!(target_arch = "wasm32") { AssetMetaCheck::Never } else { AssetMetaCheck::Always },
-                    // watch_for_changes_override: if cfg!(target_arch = "wasm32") { Some(true) } else { None },
-                    file_path: base_dir.join("assets").display().to_string(),
-                    ..default()
-                })
-                .set(ImagePlugin {
-                    default_sampler: ImageSamplerDescriptor {
-                        address_mode_u: ImageAddressMode::Repeat,
-                        address_mode_v: ImageAddressMode::Repeat,
-                        address_mode_w: ImageAddressMode::Repeat,
-                        ..ImageSamplerDescriptor::linear()
-                    },
-                })
-                .set({
-                    TaskPoolPlugin {
-                        task_pool_options: TaskPoolOptions {
-                            compute: bevy::app::TaskPoolThreadAssignmentPolicy {
-                                // Let scripts go go go.
-                                min_threads: bevy::tasks::available_parallelism(),
-                                max_threads: usize::MAX,
-                                percent: 1.0,
-                                on_thread_spawn: None,
-                                on_thread_destroy: None,
-
-                            },
-                        // async_compute: ttp.task_pool_options.async_compute,
-                        .. default()
-                    }
-                }})
-            ,
-
-            // bevy::render::experimental::occlusion_culling::OcclusionCullingPlugin, // already
-            SkeinPlugin::default(),
-        ))
-
-        .add_plugins(PhysicsPlugins::default()
-            .with_collision_hooks::<GeometryCollisionHooks>()
-            .build()
-            // .disable::<IslandPlugin>()
-            // .disable::<IslandSleepingPlugin>()
-        )
-        .insert_resource(SubstepCount(8))
-
-        // Knobs to try, which don't always work.
-        .insert_resource(ColliderTreeOptimization{
-            // use_async_tasks: false,
-            // optimize_in_place: true,
-            .. default()
-        })
-
-        // .insert_resource(SolverConfig {
-        //     contact_damping_ratio: 10.0,
-        //     contact_frequency_factor: 1.5,
-        //     max_overlap_solve_speed: 1.0,
-        //     restitution_threshold: 1.0,
-        //     restitution_iterations: 1,
-        //     ..default()
-        // })
-        .add_plugins(avian3d::debug_render::PhysicsDebugPlugin::default())
-
-        .insert_resource(TimeToSleep(1.0 / 16.0))
-
-        .insert_gizmo_config(
-             PhysicsGizmos {
-                 aabb_color: Some(Color::WHITE),
-                 island_color: Some(RED_500.into()),
-                 sleeping_color_multiplier: Some([0.1, 0.1, 0.1, 1.0]),
-                 ..default()
-             },
-            GizmoConfig {
-                // enabled: true,
-                enabled: false,
-                depth_bias: -0.1,
+    app.insert_resource(WinitSettings {
+        focused_mode: bevy::winit::UpdateMode::Continuous,
+        unfocused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f32(
+            1.0 / 15.0,
+        )),
+    })
+    .insert_resource(RenderErrorHandler(
+        |error, main_world, _render_world| match error.ty {
+            ErrorType::DeviceLost => RenderErrorPolicy::Recover(default()),
+            ErrorType::OutOfMemory => {
+                main_world.insert_resource(NextState::Pending(ProgramState::Error));
+                RenderErrorPolicy::StopRendering
+            }
+            ErrorType::Validation => RenderErrorPolicy::Ignore,
+            ErrorType::Internal => panic!(),
+        },
+    ))
+    // Register our sources early.
+    .add_plugins(CommonAssetsPlugin)
+    .add_plugins((
+        DefaultPlugins
+            .set(AssetPlugin {
+                // Wasm builds will check for meta files (that don't exist) if this isn't set.
+                // This causes errors and even panics in web builds on itch.
+                // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
+                meta_check: if cfg!(target_arch = "wasm32") {
+                    AssetMetaCheck::Never
+                } else {
+                    AssetMetaCheck::Always
+                },
+                // watch_for_changes_override: if cfg!(target_arch = "wasm32") { Some(true) } else { None },
+                file_path: base_dir.join("assets").display().to_string(),
                 ..default()
-            },
-        )
-
-        // Our game
-        .add_plugins(AppPlugin)
-
-        .add_plugins(LifecyclePlugin)
-        .add_plugins(MenuPlugin)
-        .add_plugins(GuiPlugin)
-        .add_plugins(VideoPlugin)
-        .add_plugins(WorldStatePlugin)
-        .add_plugins(LightsPlugin)
-        .add_plugins(GameActionsPlugin)
-        .add_plugins(FlashlightPlugin)
-
-        .add_plugins(CrosshairPlugin)
-        .insert_resource(CrosshairMode::AimFromCenter)
-        .add_plugins(HighlightingPlugin)
-        .add_plugins(GrabbingPlugin)
-        .insert_resource(HighlightingMode::Disabled)
-
-        .add_plugins(ActionPlugin)
-        .add_plugins(CollidersPlugin)
-        .add_plugins(SpawnHelpersPlugin)
-        .add_plugins(EffectsPlugin)
-        .add_plugins(SkyboxPlugin)
-        .add_plugins(LevelsPlugin)
-        .add_plugins(DeathboxPlugin::default())
-        .add_plugins(ParallaxDepthPlugin)
-
-        .add_plugins(AudioPlugin)
-        .add_plugins(MidiSynthPlugin)
-        .add_plugins(SynthPlugin)
-        .add_plugins(ClientSynthPlugin)
-        .add_plugins(MenuAudioPlugin)
-
-        .add_plugins(PlayerCameraPlugin)
-        .add_plugins(PlayerInputPlugin)
-        .add_plugins(PlayerClientPlugin)
-        .add_plugins(PlayerMovementPlugin)
-        .add_plugins(PlayerControllerPlugin)
-        .add_plugins(PlayerEnvironmentPlugin)
-
-        .insert_resource(OurUser(default()))
-        .insert_resource(PlayerMode::Fps)
-        .insert_resource(PlayerInputSettings {
-            max_xz_speed: 32.0,
-            max_up_speed: 128.0,
-            jump_accel: 256.0,
-            ..PlayerInputSettings::for_fps()
-        })
-        // .insert_resource(PlayerMode::Space)
-        // .insert_resource(PlayerInputSettings {
-        //     // max_xz_speed: 255.0,
-        //     // max_down_speed: 255.0,
-        //     // max_up_speed: 255.0,
-        //     // accelerate_scale: 5.0,
-        //     ..PlayerInputSettings::for_space()
-        // })
-
-        .insert_resource(GlobalAmbientLight{ brightness: 25.0,  ..default() })
-
-        .configure_loading_state(
-            LoadingStateConfig::new(ProgramState::Initializing)
-                .load_collection::<GuiAssets>()
-                .load_collection::<MapAssets>()
-                .load_collection::<ModelAssets>()
-                .load_collection::<ScriptAssets>()
-        )
-        .add_systems(
-            OnEnter(GameplayState::Playing),
-            (
-                ensure_3d_camera,
-            )
-        )
-
-        .add_systems(Startup,
-            setup_adapter)
-
-        .add_systems(OnEnter(OverlayState::GameOverScreen),
-            on_game_over_screen)
-        .add_systems(OnExit(OverlayState::GameOverScreen),
-            on_game_over_screen_finished)
-
-        .add_plugins(GamePlugin)
-    ;
+            })
+            .set(ImagePlugin {
+                default_sampler: ImageSamplerDescriptor {
+                    address_mode_u: ImageAddressMode::Repeat,
+                    address_mode_v: ImageAddressMode::Repeat,
+                    address_mode_w: ImageAddressMode::Repeat,
+                    ..ImageSamplerDescriptor::linear()
+                },
+            })
+            .set({
+                TaskPoolPlugin {
+                    task_pool_options: TaskPoolOptions {
+                        compute: bevy::app::TaskPoolThreadAssignmentPolicy {
+                            // Let scripts go go go.
+                            min_threads: bevy::tasks::available_parallelism(),
+                            max_threads: usize::MAX,
+                            percent: 1.0,
+                            on_thread_spawn: None,
+                            on_thread_destroy: None,
+                        },
+                        // async_compute: ttp.task_pool_options.async_compute,
+                        ..default()
+                    },
+                }
+            }),
+        // bevy::render::experimental::occlusion_culling::OcclusionCullingPlugin, // already
+        SkeinPlugin::default(),
+    ))
+    .add_plugins(
+        PhysicsPlugins::default()
+            .with_collision_hooks::<GeometryCollisionHooks>()
+            .build(), // .disable::<IslandPlugin>()
+                      // .disable::<IslandSleepingPlugin>()
+    )
+    .insert_resource(SubstepCount(8))
+    // Knobs to try, which don't always work.
+    .insert_resource(ColliderTreeOptimization {
+        // use_async_tasks: false,
+        // optimize_in_place: true,
+        ..default()
+    })
+    // .insert_resource(SolverConfig {
+    //     contact_damping_ratio: 10.0,
+    //     contact_frequency_factor: 1.5,
+    //     max_overlap_solve_speed: 1.0,
+    //     restitution_threshold: 1.0,
+    //     restitution_iterations: 1,
+    //     ..default()
+    // })
+    .add_plugins(avian3d::debug_render::PhysicsDebugPlugin::default())
+    .insert_resource(TimeToSleep(1.0 / 16.0))
+    .insert_gizmo_config(
+        PhysicsGizmos {
+            aabb_color: Some(Color::WHITE),
+            island_color: Some(RED_500.into()),
+            sleeping_color_multiplier: Some([0.1, 0.1, 0.1, 1.0]),
+            ..default()
+        },
+        GizmoConfig {
+            // enabled: true,
+            enabled: false,
+            depth_bias: -0.1,
+            ..default()
+        },
+    )
+    // Our game
+    .add_plugins(AppPlugin)
+    .add_plugins(LifecyclePlugin)
+    .add_plugins(MenuPlugin)
+    .add_plugins(GuiPlugin)
+    .add_plugins(VideoPlugin)
+    .add_plugins(WorldStatePlugin)
+    .add_plugins(LightsPlugin)
+    .add_plugins(GameActionsPlugin)
+    .add_plugins(FlashlightPlugin)
+    .add_plugins(CrosshairPlugin)
+    .insert_resource(CrosshairMode::AimFromCenter)
+    .add_plugins(HighlightingPlugin)
+    .add_plugins(GrabbingPlugin)
+    .insert_resource(HighlightingMode::Disabled)
+    .add_plugins(ActionPlugin)
+    .add_plugins(CollidersPlugin)
+    .add_plugins(SpawnHelpersPlugin)
+    .add_plugins(EffectsPlugin)
+    .add_plugins(SkyboxPlugin)
+    .add_plugins(LevelsPlugin)
+    .add_plugins(DeathboxPlugin::default())
+    .add_plugins(ParallaxDepthPlugin)
+    .add_plugins(AudioPlugin)
+    .add_plugins(MidiSynthPlugin)
+    .add_plugins(SynthPlugin)
+    .add_plugins(ClientSynthPlugin)
+    .add_plugins(MenuAudioPlugin)
+    .add_plugins(PlayerCameraPlugin)
+    .add_plugins(PlayerInputPlugin)
+    .add_plugins(PlayerClientPlugin)
+    .add_plugins(PlayerMovementPlugin)
+    .add_plugins(PlayerControllerPlugin)
+    .add_plugins(PlayerEnvironmentPlugin)
+    .insert_resource(OurUser(default()))
+    .insert_resource(PlayerMode::Fps)
+    .insert_resource(PlayerInputSettings {
+        max_xz_speed: 32.0,
+        max_up_speed: 128.0,
+        jump_accel: 256.0,
+        ..PlayerInputSettings::for_fps()
+    })
+    // .insert_resource(PlayerMode::Space)
+    // .insert_resource(PlayerInputSettings {
+    //     // max_xz_speed: 255.0,
+    //     // max_down_speed: 255.0,
+    //     // max_up_speed: 255.0,
+    //     // accelerate_scale: 5.0,
+    //     ..PlayerInputSettings::for_space()
+    // })
+    .insert_resource(GlobalAmbientLight {
+        brightness: 25.0,
+        ..default()
+    })
+    .configure_loading_state(
+        LoadingStateConfig::new(ProgramState::Initializing)
+            .load_collection::<GuiAssets>()
+            .load_collection::<MapAssets>()
+            .load_collection::<ModelAssets>()
+            .load_collection::<ScriptAssets>(),
+    )
+    .add_systems(OnEnter(GameplayState::Playing), (ensure_3d_camera,))
+    .add_systems(Startup, setup_adapter)
+    .add_systems(OnEnter(OverlayState::GameOverScreen), on_game_over_screen)
+    .add_systems(
+        OnExit(OverlayState::GameOverScreen),
+        on_game_over_screen_finished,
+    )
+    .add_plugins(GamePlugin);
 
     #[cfg(feature = "input_bei")]
     app.add_systems(Startup, create_input_map);
@@ -254,18 +236,15 @@ fn main() -> AppExit {
         if !app.is_plugin_added::<StatsOverlayPlugin>() {
             app.add_plugins(StatsOverlayPlugin);
         }
-        app
-            .add_plugins(DebugPlugin)
-            .add_systems(
-                First,
-                (
-                    bevy::dev_tools::states::log_transitions::<ProgramState>,
-                    bevy::dev_tools::states::log_transitions::<GameplayState>,
-                    bevy::dev_tools::states::log_transitions::<OverlayState>,
-                    bevy::dev_tools::states::log_transitions::<LevelState>,
-                ),
-            )
-        ;
+        app.add_plugins(DebugPlugin).add_systems(
+            First,
+            (
+                bevy::dev_tools::states::log_transitions::<ProgramState>,
+                bevy::dev_tools::states::log_transitions::<GameplayState>,
+                bevy::dev_tools::states::log_transitions::<OverlayState>,
+                bevy::dev_tools::states::log_transitions::<LevelState>,
+            ),
+        );
     }
 
     app.run()
@@ -283,43 +262,28 @@ fn create_input_map(mut commands: Commands) {
 
     use crate::actions::assign_extra_actions;
 
-    let menu_entity = commands.spawn((
-        MenuContext,
-        Name::new("MenuContext"),
-    )).id();
-    let include = (
-        ActionOf::<MenuContext>::new(menu_entity),
-    );
+    let menu_entity = commands.spawn((MenuContext, Name::new("MenuContext"))).id();
+    let include = (ActionOf::<MenuContext>::new(menu_entity),);
     assign_stock_common_actions(commands.reborrow(), include.clone());
     assign_stock_menu_actions(commands.reborrow(), include.clone());
 
     ///////
 
-    let player_entity = commands.spawn((
-        PlayerContext,
-        Name::new("PlayerContext"),
-    )).id();
+    let player_entity = commands
+        .spawn((PlayerContext, Name::new("PlayerContext")))
+        .id();
 
-    let include = (
-        ActionOf::<PlayerContext>::new(player_entity),
-    );
+    let include = (ActionOf::<PlayerContext>::new(player_entity),);
     assign_stock_common_actions(commands.reborrow(), include.clone());
     assign_stock_player_actions(commands.reborrow(), include.clone());
     assign_extra_actions(commands.reborrow(), include.clone());
 }
 
-
 #[derive(Component)]
 pub(crate) struct GameOverScreen;
 
-pub(crate) fn on_game_over_screen(
-    mut commands: Commands,
-    fonts: Option<Res<CommonGuiAssets>>,
-) {
-    let ent_commands = commands.spawn((
-        Name::new("GameOver"),
-        GameOverScreen,
-    ));
+pub(crate) fn on_game_over_screen(mut commands: Commands, fonts: Option<Res<CommonGuiAssets>>) {
+    let ent_commands = commands.spawn((Name::new("GameOver"), GameOverScreen));
     setup_game_over_screen(ent_commands, fonts.as_deref());
 }
 
@@ -337,52 +301,47 @@ pub(crate) fn setup_game_over_screen(
     fonts: Option<&CommonGuiAssets>,
 ) -> Entity {
     let font = fonts.map_or(default(), |fonts| fonts.std_ui.clone());
-    ent_commands.insert((
-        Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            .. default()
-        },
-        BackgroundColor(tailwind::GREEN_800.with_alpha(0.5).into()),
-        RenderLayers::from_layers(&[RENDER_LAYER_UI]),
-    ))
-    .with_children(|builder| {
-        builder.spawn((
-            Text::new(
-                "You Won!",
-            ),
-            TextFont {
-                font: font.clone().into(),
-                font_size: FontSize::Px(32.0),
-                .. default()
+    ent_commands
+        .insert((
+            Node {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
             },
-            TextColor(Color::WHITE.with_alpha(0.5)),
-        ));
-        builder.spawn((
-            Text::new(
-                "\u{a0}",
-            ),
-            TextFont {
-                font: font.clone().into(),
-                font_size: FontSize::Px(32.0),
-                .. default()
-            },
-            TextColor(Color::WHITE.with_alpha(0.5)),
-        ));
-        builder.spawn((
-            Text::new(
-                "Thanks for playing!",
-            ),
-            TextFont {
-                font: font.clone().into(),
-                font_size: FontSize::Px(32.0),
-                .. default()
-            },
-            TextColor(Color::WHITE.with_alpha(0.5)),
-        ));
-    })
-    .id()
+            BackgroundColor(tailwind::GREEN_800.with_alpha(0.5).into()),
+            RenderLayers::from_layers(&[RENDER_LAYER_UI]),
+        ))
+        .with_children(|builder| {
+            builder.spawn((
+                Text::new("You Won!"),
+                TextFont {
+                    font: font.clone().into(),
+                    font_size: FontSize::Px(32.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE.with_alpha(0.5)),
+            ));
+            builder.spawn((
+                Text::new("\u{a0}"),
+                TextFont {
+                    font: font.clone().into(),
+                    font_size: FontSize::Px(32.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE.with_alpha(0.5)),
+            ));
+            builder.spawn((
+                Text::new("Thanks for playing!"),
+                TextFont {
+                    font: font.clone().into(),
+                    font_size: FontSize::Px(32.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE.with_alpha(0.5)),
+            ));
+        })
+        .id()
 }

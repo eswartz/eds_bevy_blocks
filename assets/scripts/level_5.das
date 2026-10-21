@@ -146,7 +146,7 @@ make_worker:
 
     %mode = [`Async]
     %sci = [
-        path: `scripts/mandel_img.das,
+        path: `scripts/mandel_img.das,      // <------ we run this guy
         mode: %mode,
     ]
     %cell_data = [
