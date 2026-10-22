@@ -141,6 +141,13 @@ fn on_level_loaded(
     let runtime = scripting.runtime;
 
     let script_module = script.module();
+    // info!(
+    //     "LEVEL 0 SCRIPT: {}",
+    //     script_module.obj().rt_display(&runtime.facets())
+    // );
+    // for (k, v) in script_module.as_ref().map().iter() {
+    //     info!("{}: {}", runtime.to_str(*k), runtime.display_obj(v));
+    // }
     let cube_size =
         if let Ok(size) = runtime.get_struct_value_as_number(&script_module, "block_size") {
             size.as_real() as f32

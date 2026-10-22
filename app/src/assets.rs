@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
-use fedry_bevy_plugin::asset::ScriptModule;
 use bevy_seedling::prelude::AudioSample;
+use fedry_bevy_plugin::asset::ScriptModule;
 
 #[derive(Resource, AssetCollection)]
-pub struct GuiAssets {
-}
+pub struct GuiAssets {}
 
 #[derive(Resource, AssetCollection)]
 #[allow(unused)]
@@ -22,8 +21,7 @@ pub struct MusicAssets {
     pub song_5: Handle<AudioSample>,
 }
 
-impl MusicAssets {
-}
+impl MusicAssets {}
 
 #[derive(Resource, AssetCollection)]
 #[allow(unused)]
@@ -39,7 +37,6 @@ pub struct FxAssets {
     #[asset(path = "textures/puck_normal.webp")]
     pub puck_normal_texture: Handle<Image>,
 }
-
 
 #[derive(Resource, AssetCollection)]
 pub struct MapAssets {
@@ -69,7 +66,7 @@ pub struct ModelAssets {
 
 #[derive(Resource, AssetCollection)]
 pub struct ScriptAssets {
-    #[asset(path = "scripts/level_0.das")]
+    #[asset(path = "scripts/level_0.dry")]
     pub level_0: Handle<ScriptModule>,
     #[asset(path = "scripts/level_1.das")]
     pub level_1: Handle<ScriptModule>,

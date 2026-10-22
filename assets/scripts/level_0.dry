@@ -1,0 +1,63 @@
+use $sys.calls.*;
+
+## The plastic green field, "Please Don't Disturb",
+## vast arena of dead architecture...
+def make_on_update() {
+    var cnt: UnsF = 0
+
+    (ctx: Struct, ent: Uns64, ...) {
+        let step: UnsF = ctx.tick_count
+
+        ##print("<", step)
+
+        ##let t: UnsF = ent
+        ##let ts = char_to_string(step % 0xa00 + 0x1f400)
+
+        cnt += 1
+
+        ##print(ts)
+    }
+}
+
+def on_update = make_on_update()
+
+def on_init(ctx: Struct, ent: Uns64, ...) {
+    if true then
+        let scene_offs = [x: 20.0, y: -0.5, z: 5.0]
+        let scene_offs = [x: 15.0, y: -0.5, z: -20.0]
+
+        let scene_rot = [x: 0.0, y: 0.0, z: 0.0]
+        let scene_rot = [
+            'Degrees', scene_rot,
+        ]
+        let scene = [
+            ##'Model', "maps/school_gym.glb#Scene0",
+            'Model', "maps/classroom.glb#Scene0",
+        ]
+
+        $sys.calls.bevy_call_func('spawn_entity',
+            'shape', scene,
+            'offset', scene_offs,
+    ##        'rot', scene_rot
+        )
+    end
+}
+
+let boom = [
+    mass: 250.0,
+    x: 0.125,
+    y: 0.125,
+    shape: 'Sphere',
+]
+
+[:,
+    'boom': boom,
+    'on_init': on_init,
+    'on_update': on_update,
+
+    block_size: 0.5,
+    half_side_length: 3,
+    block_mass: 5.0,
+    static: false,
+
+]
