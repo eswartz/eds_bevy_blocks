@@ -1,0 +1,101 @@
+use $sys.calls.*;
+
+
+def hop(ent: Uns64) {
+    let vx: RealF = random_number(5.0)
+    let vy: RealF = random_number(5.0)
+    let vz: RealF = random_number(5.0)
+    let vel = [x: vx, y: vy, z: vz]
+
+    bevy_call_func(ent,
+        'add_velocity', vel, 'World'
+    )
+}
+
+
+def add_notes(ent: Uns64, channel: UnsF, program: UnsF, note: UnsF, delay: RealF) {
+    ## Write MIDI messages
+    bevy_call_func('write_message', 'MidiSynthMessage', [
+        command: 'channel_volume',
+        entity: ent,
+        velocity: 0.5
+    ])
+    bevy_call_func('write_message', 'MidiSynthMessage', [
+        command: 'program_change',
+        entity: ent,
+        channel: channel,
+        program: program,
+    ])
+    bevy_call_func('write_message', 'MidiSynthMessage', [
+        command: 'note_on',
+        entity: ent,
+        channel: channel,
+        midi: note,
+        velocity: 0.25,
+    ])
+    bevy_call_func('write_message', 'MidiSynthMessage', [
+        command: 'note_off',
+        entity: ent,
+        channel: channel,
+        midi: note,
+        delay: delay,
+    ])
+}
+
+
+## Rug and block cube pile on carpet/rug platform in huge desert.
+def make_on_update(use_synths: Bool) {
+    var cnt: UnsF = 0
+
+    (ctx: Struct, ent: Uns64, ...) {
+        let step: UnsF = ctx.tick_count
+
+        ## Startup delay
+        if step < 600 then
+            delay(ent % 127 / 1.0)
+        end
+
+        let t: UnsF = ent + step
+        let tn = t
+
+        let channel: UnsF = tn % 16
+        var program: UnsF = tn % 127
+        if channel == 9 then
+            program = 0
+        end
+
+        use delay as scdelay
+
+        let note: UnsF = (t % 0x6f) + 0x10
+        let delayi: UnsF = t % 0x1f  ## speed here
+        let delay: RealF = delayi / 256.0
+
+        if use_synths then
+            add_notes(ent, channel, program, note, delay)
+        end
+
+        let test: RealF = random_number(0.0, 50.0)
+        if test < 10.0 then
+            hop(ent)
+        end
+
+        ## Delay and update counter
+        let delay2: RealF = delay * 5.0 % 10.0
+        scdelay(delay2)
+
+    }
+}
+
+def on_update = make_on_update(true)
+
+[
+    'block_size': 0.5,
+    'half_side_length': 3,
+    'on_update': on_update,
+    'boom_mass': 5000.0,
+    'block_mass': 50.0,
+    'static': false,
+    'cube_gap': 0.02,
+    'collision_margin': 0.0,
+    'with_synth': true,
+]
