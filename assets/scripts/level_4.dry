@@ -1,0 +1,114 @@
+use $sys.calls.*;
+
+## Mandelbrot example, using one entity per grid square.
+## Each square has a script to handle its own computation,
+## and that square is moved and recolored once an answer is reached.
+## (Yes, it's ridiculously expensive.)
+
+let init_data = [
+    max_iters: 3000,
+    range_min: 2000,
+    depth_size: 4.0,
+
+    cx: 0.390018071300935778312029,
+    cy: 0.138320184041392651089585,
+    sz: 0.0000005,
+
+    grid_units: 128,
+    look_at_player: true,
+    look_at_player_delay_secs: 1.0,
+    delay_before_look_at: 10.0,
+]
+
+def on_init(ctx: Struct, ent: Uns64, data: Struct) {
+    let grid_units: UnsF = data.grid_units
+    let gridsz: RealF = 16.0
+    let unitsz: RealF = gridsz / grid_units
+    let unitsz_h: RealF = unitsz / 2.0
+    let cx: RealF = data.cx
+    let cy: RealF = data.cy
+    let sz: RealF = data.sz
+    let cellsz: RealF = sz / grid_units
+
+    let color_enum = ['Srgba', 'red', 1, 'green', 1, 'blue', 1]
+    let shape = ['Cube', 'x', unitsz_h, 'y', unitsz_h, 'z', 0.01]
+    let info = []
+    let shape_struct = [
+        kind: shape,
+        info: info,
+    ]
+
+    let rot = [
+        'Deg',
+        [x: 0.0]
+    ]
+
+    var tag = [0]
+
+    let grid_units_h: UnsF = grid_units // 2
+
+    var y: IntF = 0
+    while y < grid_units_h do
+        var x: IntF = 0
+        while x < grid_units_h do
+            let wx: RealF = (x * unitsz_h) + cx
+            let wy: RealF = (y * unitsz_h) + cy
+            let pos = [x: wx, y: wy, z: 0.0]
+            let name = to_string("(", x, ", ", y, ")")
+
+            let prod: UnsF = x * y
+            tag[0] = prod
+
+            let new_entity = bevy_call_func('spawn_entity',
+                'parent', ent,
+                ##`relative_to, %ent,
+                'scriptable', true,
+                'offset', pos,
+                'cull_face', 'None',
+                'double_sided', true,
+                'shape', shape,
+                'rotation', rot,
+                ##'rigid_body', `Static,
+
+                ##'CrosshairTargetable', nil,    // avoid unwanted crosshair activity
+                ##'NotShadowCaster', nil,    // cut down on shadow recalc overhead
+
+                'Name', name,
+                ## This is used to color the block after it's computed.
+                'MeshTag', tag,
+                'SpawnPaletteMaterial', nil,
+            )
+
+            ## print("making ", name, " -> ", new_entity, "\n")
+
+            let cr: RealF = (x * cellsz) + cx
+            let ci: RealF = (y * cellsz) + cy
+
+            var data: Struct = clone(data)
+            data.cr = cr
+            data.ci = ci
+            data.zr = 0.0
+            data.zi = 0.0
+            data.iters = 0
+            data.depth = 8.0
+            data.pos = pos
+
+            let sci = [
+                path: "scripts/mandel_ent.das",
+                mode: 'Async'
+            ]
+            bevy_call_func(new_entity, 'add_script', sci, data)
+
+            x = x + 1
+        end
+
+        y = y + 1
+    end
+}
+
+let module = [
+    on_init: on_init,
+    init_data: init_data,
+    boom_mass: 100.0,
+]
+return module

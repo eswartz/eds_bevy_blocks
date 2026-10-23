@@ -5,10 +5,10 @@
 
     %voice = COPY 1
 
-    %p = MOD %ent, 127
+    %p: UnsF = MOD %ent, 127
 
-    %n = MUL %step, 17
-    %n = MOD %n, 75
+    %n: UnsF = MUL %step, 17
+    %n: UnsF = MOD %n, 75
     %n: UnsF = ADD %n, 20
 
     %msg = [

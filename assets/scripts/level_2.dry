@@ -18,18 +18,18 @@ def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) {
 
     let pos = [:, x, y, z]
 
-    ## Make a color.
+##    ## Make a color.
     let rr = x + step
     let r = rr / 11.0 % 5.0
 
-    let gg = z + step
-    let g = gg / 11.0 % 5.0
+##    let gg = z + step
+##    let g = gg / 11.0 % 5.0
 
-    let bb = step - 17.0
-    let b = z / 13.0 % 5.0
+##    let bb = step - 17.0
+##    let b = z / 13.0 % 5.0
 
-    let hue = step % 360.0
-    let color_enum = ['Hsva', hue, 'saturation', 0.75, 'value', r]
+    let hue = step as RealF % 360.0
+    let color_enum = ['Hsva', 'hue', hue, 'saturation', 0.75, 'value', r]
 
     let rot_x = step % 45.0
     let angle = ['Deg', [y: rot_x, x: 0, z: 0]]
@@ -43,7 +43,8 @@ def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) {
 
     let rest = ['coefficient', restitution, 'combine_rule', 'Average']
 
-    let new_entity = bevy_call_func('spawn_entity',
+    ##print("color: ", color_enum, "\n")
+    let new_entity: Uns64 = bevy_call_func('spawn_entity',
         'Name', "TILE",
         'Cube', nil,
         'swept_ccd', 'linear',
@@ -75,18 +76,19 @@ def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) {
     $sys.calls.delay(delay)
 }
 
-[
-    'block_size': 0.375,
-    'side_length': 3,
-    'on_update': on_update,
-    'boom_mass': 500.0,
-    'block_mass': 50.0,
-    'static': false,
-    'center_pos': [x: 6.0, y: 5.0, z: -5.0],
-    'block_data': [
-        'fall_distance': 5.0,
-        'delay': 10.0,
-        'restitution': 0.2,
-        'lifetime': ['Temporary', 'secs', 60],
+let module = [:,
+    on_update,
+    block_size: 0.375,
+    side_length: 3,
+    boom_mass: 500.0,
+    block_mass: 50.0,
+    static: false,
+    center_pos: [x: 6.0, y: 5.0, z: -5.0],
+    block_data: [
+        fall_distance: 5.0,
+        delay: 10.0,
+        restitution: 0.2,
+        lifetime: ['Temporary', 'secs', 60],
     ],
 ]
+return module

@@ -64,8 +64,6 @@ def make_on_update(use_synths: Bool) {
             program = 0
         end
 
-        use delay as scdelay
-
         let note: UnsF = (t % 0x6f) + 0x10
         let delayi: UnsF = t % 0x1f  ## speed here
         let delay: RealF = delayi / 256.0
@@ -81,7 +79,7 @@ def make_on_update(use_synths: Bool) {
 
         ## Delay and update counter
         let delay2: RealF = delay * 5.0 % 10.0
-        scdelay(delay2)
+        $sys.calls.delay(delay2)
 
     }
 }

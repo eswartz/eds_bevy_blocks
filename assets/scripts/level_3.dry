@@ -1,0 +1,137 @@
+use $sys.calls.*;
+
+## Huge green fields with lighted bulbs floating overhead.
+
+def on_update(ctx: Struct, ent: Uns64, ...) {
+    let step: UnsF = ctx.tick_count
+
+    let tmp = step
+
+    let x: RealF = tmp % 15
+    let tmp2 = tmp / 15.0
+    let x_final = x - 8.0
+
+    let z: RealF = tmp2 % 15
+    let tmp3 = tmp2 / 15.0
+    let z_final = z + 8.0
+
+    let y: RealF = tmp3 % 15
+    let y_final = y / 4.0
+
+    let pos = [x: x_final, y: y_final, z: z_final]
+
+    let sz = tmp3 % 31
+    let tmp4 = tmp3 / 31.0
+    let sz_final = tmp4 / 4.0 + 0.5
+
+    let size = [x: sz_final, y: sz_final, z: sz_final]
+
+    let deg = step % 360.0
+    let rot = ['Deg', [y: deg]]
+
+    let rr = x_final + step
+    let r = rr / 7.0 % 5.0
+
+    let gg = z_final + rr
+    let g = gg / 11.0 % 5.0
+
+    let bb = step - 17.0
+    let b = z_final / 13.0 % 5.0
+
+    let color_enum = ['Srgba', 'red', r, 'green', g, 'blue', b, 'alpha', 0.25]
+    let r_multiplied = r * 3.0
+    let g_multiplied = g * 3.0
+    let b_multiplied = b * 2.0
+
+    let emissive = ['Srgba', 'red', r_multiplied, 'green', g_multiplied, 'blue', b_multiplied, 'alpha', 0.5]
+
+    let shape = ['Sphere', 0.5]
+
+    let mass = 0.0001
+    let friction = 0.125
+
+    let collider_shape = ['Sphere', 1.0]
+    let collider_scale = r
+    let collider_scale_final = collider_scale + 2.0
+
+    let light_img: String = if step & 1 == 0 then
+        "textures/mask_1.webp"
+    else
+        "textures/mask_2.webp"
+    end
+
+    let intense_spot = 1000000.0 * g
+    let spot_light = [
+        intensity: intense_spot,
+        range: 10.0,
+        radius: 5.0,
+        shadow_maps_enabled: false,
+    ]
+    let spot_light_tex = [
+        image: light_img,
+    ]
+
+    let intense_point = 500000.0 * b
+    let point_light = [
+        intensity: intense_point,
+        range: 50.0,
+        radius: 100.0,
+        shadow_maps_enabled: false,
+    ]
+    let pt_light_tex = [
+        image: light_img,
+        cubemap_layout: 'SequenceVertical',
+    ]
+
+    let intense_dir = 1000.0 * b + 100.0
+    let dir_light = [
+        illuminance: intense_dir,
+        shadow_maps_enabled: false,
+    ]
+    let dir_light_tex = [
+        image: "textures/spiral_1.webp",
+        tiled: false,
+    ]
+
+    let rest = ['coefficient', 1, 'combine_rule', 'Average']
+    let grav_scale = [0.125]
+
+    let pt_ent = bevy_call_func('spawn_entity',
+        'parent', ent,
+        'offset', pos,
+        'scale', size,
+        'rotation', rot,
+        'rigid_body', 'Dynamic',
+        'collider_shape', collider_shape,
+        'collider_scale', collider_scale_final,
+        'mass', mass,
+        'friction', friction,
+        'Restitution', rest,
+        'GravityScale', grav_scale,
+        'collider_shape', shape,
+        'SpotLight', spot_light,
+        'SpotLightTexture', spot_light_tex,
+        'SurfaceMaterial', 'Metal',
+        'CollisionEventsEnabled', true,
+        'Name', 'LIGHT!',
+    )
+
+    let new_entity = bevy_call_func('spawn_entity',
+        'parent', pt_ent,
+
+        'color', color_enum,
+        'roughness', 0.25,
+        'alpha_mode', 'Blend',
+        'clearcoat', 0.5,
+        'shape', shape,
+        'Name', "BALL!",
+    )
+
+    delay(0.1)
+}
+
+[
+    'on_update': on_update,
+    'boom_mass': 500.0,
+    'count': 1,
+]
