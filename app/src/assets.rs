@@ -76,8 +76,8 @@ pub struct ScriptAssets {
     pub level_3: Handle<ScriptModule>,
     #[asset(path = "scripts/level_4.dry")]
     pub level_4: Handle<ScriptModule>,
-    #[asset(path = "scripts/level_5.das")]
+    #[asset(path = "scripts/level_5.dry")]
     pub level_5: Handle<ScriptModule>,
-    #[asset(path = "scripts/level_6.das")]
+    #[asset(path = "scripts/level_6.dry")]
     pub level_6: Handle<ScriptModule>,
 }

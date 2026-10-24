@@ -1,0 +1,283 @@
+use $sys.calls.*;
+
+def min(x: RealF, y: RealF) -> RealF {
+    if x < y then x else y end
+}
+def max(x: RealF, y: RealF) -> RealF {
+    if x > y then x else y end
+}
+def clamp(v: RealF, min: RealF, max: RealF) -> RealF {
+    if v < min then min elif v > max then max else v end
+}
+def abs(x: RealF) -> RealF {
+    if x < 0 then -x else x end
+}
+
+def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
+    let entstr = bevy_call_func('ent_to_string', ent)
+    print("SMOODGE: ", entstr, "\n")
+
+    let pos = [x: 74.0, y: -48.0, z: 4.0]
+
+    let model0 = [
+        'Model', "maps/test_terrain.glb#Scene0",
+    ]
+    let scale = [x: 4, y: 4, z: 4]
+    bevy_call_func('spawn_entity',
+        'parent', ent,
+        'Name', "TERRAIN",
+        'offset', pos,
+        'shape', model0,
+        'scale', scale,
+        'Visibility', 'Inherited',
+        'RigidBody', 'Static',
+    )
+
+    let pos = [x: 0, y: 2, z: 0]
+
+    let mesh_mat = [
+        mesh: "models/smoodge.glb#Mesh0/Primitive0",
+        material: "models/smoodge.glb#Material0/std",
+    ]
+    let model = [
+        'MeshMaterial', mesh_mat,
+        ##'Model', "models/smoodge.glb#Scene0",
+    ]
+    let collider_shape = ['Cube', 'x', 1.0, 'y', 1.0, 'z', 1.0]
+    let top_ent = bevy_call_func('spawn_entity',
+        'parent', ent,
+        'Name', "WATCH",
+        'offset', pos,
+        'shape', model,
+        'CrosshairTargetable', nil,
+        'Visibility', 'Inherited',
+        'rigid_body', 'Dynamic',
+        'collider_shape', collider_shape,
+    )
+
+    let intense = random_number(1.0e6, 1.0e8)
+    let spot_light = [
+        intensity: intense,
+        range: 25.0,
+        radius: 15.0,
+        ##outer_angle: 1.0,
+        ##inner_angle: 0.25,
+        shadow_maps_enabled: false,
+    ]
+
+    var li: IntF = 10
+
+    while li > 0 do
+        var lx: RealF = random_number(-32.0, 32.0)
+        var ly: RealF = random_number(1.0, 16.0)
+        var lz: RealF = random_number(-32.0, 32.0)
+        var pos = [x: lx, y: ly, z: lz]
+
+        bevy_call_func('spawn_entity',
+            'Name', "LIGHT",
+            'offset', pos,
+            'SpotLight', spot_light,
+        )
+
+        lx = random_number(-32.0, 32.0)
+        ly = random_number(1.0, 16.0)
+        lz = random_number(-32.0, 32.0)
+        pos = [x: lx, y: ly, z: lz]
+
+        bevy_call_func('spawn_entity',
+            'Name', "LIGHT",
+            'offset', pos,
+            'SpotLight', spot_light,
+        )
+
+        li = li - 1
+    end
+
+    data.tick = 0
+    data.smoodge = top_ent
+
+    ## World grid position
+    let gridcx = 0.0
+    let gridcy = 5.0
+    let gridcz = 1.0
+
+    ## World grid size
+    let gridsz = 4.0
+
+    let unitsz_h = 0.25
+    let unitsz = 1.0
+
+    let umul: RealF = max((ent % 32) ^ 0xa, 0x4) as RealF / 0.5
+    let unitsz = clamp(unitsz * umul, 0.5, 5.0)
+    let grid_units: UnsF = data.grid_units
+
+    ## Default computation center
+    let cx_final: RealF = 0.0
+    let cy_final: RealF = 0.0
+    let cz_final: RealF = 0.0
+
+    let shape = ['Sphere', unitsz]
+    let info = [subdivisions: 1]
+    let shape_struct = [
+        kind: shape,
+        info: info,
+    ]
+
+    let grid_units_h = grid_units // 2
+    var y: IntF = -grid_units_h
+
+    while y < grid_units_h do
+        var x: IntF = -grid_units_h
+        while x < grid_units_h do
+        print(x, " / ", y, "\n")
+            let wx: RealF = (x * gridsz) + gridcx
+            let wy: RealF = (y * gridsz) + gridcy
+
+            let ccr = (wx * 555.555) % 1.0
+            let ccg = (wy * 3333.3333) % 1.0
+            let ccb = (ccr * ccg) % 1.0
+            let hue = ccb * 360.0
+
+            ## let color_enum = ['Srgba', 'red', ccr, 'green', ccg, 'blue', ccb, 'alpha', 0.25]
+            let color_enum = ['Hsla', hue, 'saturation', 1.0, 'lightness', 0.5, 'alpha', 1.0]
+
+            let pos = [x: wx, z: wy, y: 2.0]
+
+            let name = to_string("(", x, ", ", y, ")")
+
+            let mass: RealF = data.block_mass
+
+            let stone = ['Model', "models/stone.glb#Scene0"]
+            let sphere_shape = ['Sphere', 1.0]
+            let sphere_collider_shape = ['Sphere', 0.6]
+
+            let rx: RealF = sin(x as RealF * 3.33333)
+            let ry: RealF = cos(y as RealF * 2.22222)
+
+            let rot = ['Rad', rx, ry, 0.0]
+
+            let sx: RealF = (ccg as RealF + 2.0) * 0.5
+            let sx = clamp(sx, 0.5, 1.5)
+
+            let scale = [x: sx * 0.1, y: sx * 0.1, z: sx * 0.1]
+
+            let density = [100.0]
+            let new_entity: Uns64 = bevy_call_func('spawn_entity',
+                ## 'parent', ent,
+                'scriptable', true,
+                'offset', pos,
+                'rotation', rot,
+                'scale', scale,
+                'color', color_enum,
+                'color_texture', "textures/bubble.webp",
+                'normal_texture', "textures/bubble_normal.webp",
+                'emissive', 0.0,
+                'roughness', 0.0,
+                ## 'diffuse_transmission', 0.5,
+                ## 'specular_transmission', 0.5,
+                ## 'thickness', 0.5,
+                ## 'cull_face', `None,
+
+                ## 'shape', stone,
+                'shape', sphere_shape,
+                'collider_shape', sphere_collider_shape,
+                'rigid_body', 'Dynamic',
+                'mass', mass,
+                'friction', 1.0,
+                'AngularDamping', 0.5,
+                ##'ColliderDensity', density,
+                ##'CollisionMargin', 0.01,
+                ## 'CrosshairTargetable', nil,
+                'Name', name,
+                'Visibility', 'Inherited',
+                'SurfaceMaterial', 'Stone',
+                'Projectile', nil,
+                'swept_ccd', 'off',
+            )
+
+            ## State for cell.
+            let num: IntF = abs(ent as IntF)
+            let cell_data = [:,
+                pos,
+                num,
+                parent: top_ent,
+            ]
+
+            ## Package ScriptCreationInfo data.
+            let sci = [
+                path: 'scripts/automaton.das',
+                mode: 'Async',
+            ]
+            bevy_call_func(new_entity, 'add_script', sci, cell_data)
+
+            x = x + 1
+        end
+
+        y = y + 1
+    end
+}
+
+def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) -> Any {
+    let pent: Uns64 = bevy_call_func(ent, 'get_player_entity')
+    let ppos: Struct = bevy_call_func(pent, 'get_position', 'World')
+
+    let pposx: RealF = ppos.x
+    let pposy: RealF = ppos.y
+
+    let dpy: UnsF = ctx.tick_count
+    ##let dpy = dpy % 256
+    ##let dpy: IntF = dpy - 64
+    let dpy: RealF = sin(dpy as RealF * 0.01) * 2.0 + 2.5
+
+    let pposy = pposy + dpy
+    let pposz: RealF = ppos.z
+
+    let top_ent: Uns64 = data.smoodge
+    let pos: Struct = bevy_call_func(top_ent, 'get_position', 'World')
+
+    if not pos then
+        return nil
+    end
+
+    ## print(ent, " ", pos, "\n")
+
+    ##entstr = bevy_call_func('ent_to_string', ent)
+    ##print("MAIN: ", entstr, "\n")
+
+    let posx: RealF = pos.x
+    let posy: RealF = pos.y
+    let posz: RealF = pos.z
+
+    let dx: RealF = (pposx - posx) / 1.5
+    let dy: RealF = (pposy - posy) / 2 + 0.5
+
+    let dz: RealF = (pposz - posz) / 1.25
+
+    let old = bevy_call_func(top_ent, 'look_at', pent, 0.5)
+
+    let vel = [x: dx, y: dy, z: dz]
+    print(vel, "\r")
+    ##bevy_call_func(top_ent, 'set_velocity', vel)
+    bevy_call_func(top_ent, 'insert_components',
+        'LinearVelocity', vel,
+    )
+    ##print(old, "\n")
+
+    ## This is a single entity. No sleep is fine. Look at automaton for all the balls!
+    ## delay(0.05)
+    nil
+}
+
+let module = [:,
+    on_init,
+    on_update,
+    boom_mass: 100.0,
+    init_data: [
+        ## model: "models/smoodge.glb#Scene0",
+        grid_units: 20,
+        ##grid_units: 4,
+        ##grid_units: 1,
+        block_mass: 5.0,
+    ],
+]
+return module

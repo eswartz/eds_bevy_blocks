@@ -18,3 +18,11 @@ TODO
 -- Why doesn't edit of e.g. `mandel_ent.das` trigger asset events?
 
 -- Limit entity count in spawn-heavy scripts.
+
+-------
+
+
+-- !! for script entity assignments, reloading/building e.g. `scripts/cube_handler.das` literally over and over
+
+
+-- fuel is broken with .dry

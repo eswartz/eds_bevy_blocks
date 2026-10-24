@@ -1,0 +1,142 @@
+use $sys.calls.*;
+
+## Mandelbrot example, using one entity per grid square.
+
+## This script generates worker entities to compute a single pixel
+## of the Mandelbrot set.
+def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
+    let gridcx: RealF = 0.0
+    let gridcy: RealF = 4.0
+    let gridsz: RealF = 8.0
+
+    let gridsz_h: RealF = gridsz / 2.0
+
+    let num_workers: UnsF = data.num_workers
+    let grid_units: UnsF = data.grid_units
+    let cx: RealF = data.cx
+    let cy: RealF = data.cy
+    let sz: RealF = data.sz
+    let max_iters: UnsF = data.max_iters
+    let cell_sz: RealF = sz / grid_units
+
+    ## Create an entity to display the image.
+    let shape = ['Cube', 'x', gridsz, 'y', gridsz, 'z', 0.01]
+    let info = []
+    let shape_struct = [
+        kind: shape,
+        info: info,
+    ]
+
+    let pos = [x: 0.0, y: gridsz_h + 0.025, z: 5.0]
+    let rot = ['Deg', [x: -90.0]]
+
+    let imgsz = [x: grid_units, y: grid_units]
+    let imgp = [filter: 'Nearest']
+    let img_data = [
+        size: imgsz,
+        format: 'Rgba8Unorm',
+        params: imgp
+    ]
+    let img = bevy_call_func('new_image', img_data)
+
+    let color = ['Srgba', 'red', 2, 'green', 2, 'blue', 2]
+
+    ## Spawn the billboard showing the image of the render.
+    let img_ent = bevy_call_func('spawn_entity',
+        'parent', ent,
+        'Name', "Mandelbrot",
+        'texture', img,
+        'offset', pos,
+        ##'unlit', true,
+        ##'emissive', 0.05,
+        ##'double_sided', true,
+        'cull_face', 'None',
+        'color', color,
+        'shape', shape_struct,
+        ##'rotation', rot,
+        'CrosshairTargetable', nil,
+        'rigid_body', 'Static',
+    )
+
+    ## Compute the work.
+    var worklist = []
+
+    let grid_units_h: IntF = grid_units >> 1
+    var y: IntF = -grid_units_h
+
+    while y < grid_units_h do
+        var x: IntF = -grid_units_h
+        while x < grid_units_h do
+            ## State for cell.
+            let cellx: RealF = x
+            let celly: RealF = y
+            let cr: RealF = (cellx * cell_sz) + cx
+            let ci: RealF = (celly * cell_sz) + cy
+
+            let px: IntF = x + grid_units_h
+            let py: IntF = y + grid_units_h
+            let coord = [x: px, y: py]
+
+            ## Parameters for the cell.
+            let cell_data = [:,
+                cr,
+                ci,
+                max_iters,
+                ## target image
+                img,
+                ## pixel [x,y] to fill
+                coord,
+                zr: 0.0,
+                zi: 0.0,
+                iters: 0,
+            ]
+
+            sequence_append(worklist, cell_data)
+
+            x = x + 1
+        end
+
+        y = y + 1
+    end
+
+    ## Compute workers.
+    var i: UnsF = 0
+    while i < num_workers do
+        ## Package ScriptCreationInfo data.
+        let worker: Uns64 = bevy_call_func('spawn_entity',
+            'parent' ent,
+            'Name', "WORKER",
+        )
+
+        let sci = [
+            path: 'scripts/mandel_img.das',      ## <------ we run this guy
+            mode: 'Async',
+        ]
+        bevy_call_func(worker, 'add_script', sci, [:, worklist])
+
+        i = i + 1
+    end
+}
+
+let module = [
+    on_init: on_init,
+    boom_mass: 500.0,
+    init_data: [
+        ## number of entities to chug through data.
+        ## num_workers: 1024,
+        ## num_workers: 128,
+
+        num_workers: 256,
+        grid_units: 256,
+        sz: 1.0 / 1024.0 / 1048576.0 / 1024.0,
+
+        ## grid_units: 192,
+        ## grid_units: 128,
+        cx: 0.390018071300935778312029,
+        cy: 0.138320184041392651089585,
+        ## cx: -0.743_643_900_055,
+        ## cy: 0.131_828_895_901,
+        max_iters: 2500,
+    ],
+]
+return module
