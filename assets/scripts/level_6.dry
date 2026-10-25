@@ -44,7 +44,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
         ##'Model', "models/smoodge.glb#Scene0",
     ]
     let collider_shape = ['Cube', 'x', 1.0, 'y', 1.0, 'z', 1.0]
-    let top_ent = bevy_call_func('spawn_entity',
+    let top_ent: Uns64 = bevy_call_func('spawn_entity',
         'parent', ent,
         'Name', "WATCH",
         'offset', pos,
@@ -123,13 +123,12 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
         info: info,
     ]
 
-    let grid_units_h = grid_units // 2
+    let grid_units_h: IntF = grid_units // 2
     var y: IntF = -grid_units_h
 
     while y < grid_units_h do
         var x: IntF = -grid_units_h
         while x < grid_units_h do
-        print(x, " / ", y, "\n")
             let wx: RealF = (x * gridsz) + gridcx
             let wy: RealF = (y * gridsz) + gridcy
 
@@ -139,7 +138,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
             let hue = ccb * 360.0
 
             ## let color_enum = ['Srgba', 'red', ccr, 'green', ccg, 'blue', ccb, 'alpha', 0.25]
-            let color_enum = ['Hsla', hue, 'saturation', 1.0, 'lightness', 0.5, 'alpha', 1.0]
+            let color_enum = ['Hsla', 'hue', hue, 'saturation', 1.0, 'lightness', 0.5, 'alpha', 1.0]
 
             let pos = [x: wx, z: wy, y: 2.0]
 
@@ -196,7 +195,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
             )
 
             ## State for cell.
-            let num: IntF = abs(ent as IntF)
+            let num: IntF = ent as IntF
             let cell_data = [:,
                 pos,
                 num,
