@@ -22,6 +22,8 @@ let init_data = [
 
 def on_init(ctx: Struct, ent: Uns64, data: Struct) {
     let grid_units: UnsF = data.grid_units
+    let gridcx: RealF = 0.0
+    let gridcy: RealF = 4.0
     let gridsz: RealF = 16.0
     let unitsz: RealF = gridsz / grid_units
     let unitsz_h: RealF = unitsz / 2.0
@@ -45,14 +47,14 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct) {
 
     var tag = [0]
 
-    let grid_units_h: UnsF = grid_units // 2
+    let grid_units_h: IntF = grid_units // 2
 
-    var y: IntF = 0
+    var y: IntF = -grid_units_h
     while y < grid_units_h do
-        var x: IntF = 0
+        var x: IntF = -grid_units_h
         while x < grid_units_h do
-            let wx: RealF = (x * unitsz_h) + cx
-            let wy: RealF = (y * unitsz_h) + cy
+            let wx: RealF = (x * unitsz_h) + gridcx
+            let wy: RealF = (y * unitsz_h) + gridcy
             let pos = [x: wx, y: wy, z: 0.0]
             let name = to_string("(", x, ", ", y, ")")
 
