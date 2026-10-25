@@ -81,16 +81,14 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
             let cell_data = [:,
                 cr,
                 ci,
+                zr: 0.0,
+                zi: 0.0,
                 max_iters,
-                ## target image
+                iters: 0,
                 img,
                 ## pixel [x,y] to fill
                 coord,
-                zr: 0.0,
-                zi: 0.0,
-                iters: 0,
             ]
-
             sequence_append(worklist, cell_data)
 
             x = x + 1
@@ -109,7 +107,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
         )
 
         let sci = [
-            path: 'scripts/mandel_img.das',      ## <------ we run this guy
+            path: 'scripts/mandel_img.dry',      ## <------ we run this guy
             mode: 'Async',
         ]
         bevy_call_func(worker, 'add_script', sci, [:, worklist])

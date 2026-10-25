@@ -1,0 +1,114 @@
+use $sys.calls.{sequence_pop, print, bevy_call_func};
+
+def abs(x: RealF) -> RealF { if x < 0 then -x else x end }
+def min(x: RealF, y: RealF) { if x < y then x else y end }
+def max(x: RealF, y: RealF) { if x > y then x else y end }
+def clamp(v: RealF, min: RealF, max: RealF) -> RealF {
+    if v < min then min elif v > max then max else v end
+}
+
+## This computes a given coordinate in the Mandelbrot set
+## by taking an available entry from a worklist.
+def on_update(ctx: Struct, ent: Uns64, ent_data: Struct, ...) {
+    ## see if we have any work
+    let work = ent_data.worklist
+
+    ## Look for work to do.
+    while let data = sequence_pop(work) do
+        ##print(ent, "> ", data, "\n")
+
+        ## center
+        let cr: RealF = data.cr
+        let ci: RealF = data.ci
+
+        ## stop limit
+        let max_iters: UnsF = data.max_iters
+
+        ## current count; 0 means not started,
+        ## > 0 means still going;
+        ## < 0 means completed at -iters.
+        var iters: UnsF = data.iters
+
+        ## < 0 means finished @ -iters
+        if iters as IntF < 0 then
+            break
+        end
+
+        ## Enter calculation phase
+        var zr: RealF = data.zr
+        var zi: RealF = data.zi
+
+        while iters < max_iters do
+            iters += 1
+
+            ## advance z = z²+c
+            ## (a+bi) * (c+di) = ac - bd + (ad+bc)i
+            ## (zr+zi) * (zr+zi) = zr² - zi² + (2*zr*zi)
+            let zr2 = zr * zr
+            let zi2 = zi * zi
+            let zrzi = zr * zi
+
+            zr = zr2 - zi2 + cr
+            zi = 2.0 * zrzi + ci
+
+            ## check limit (|z| < 2) => |z|² < 4.0
+            if zr * zr + zi * zi >= 4.0 then
+                iters = -iters
+                break
+            end
+        end  ## compute
+
+        ## Done!
+
+        data.iters = iters
+        data.zr = zr
+        data.zi = zi
+
+        let coord = data.coord
+        let px = coord.x
+        let py = coord.y
+
+        ## Calculate depth (using abs value from iters_s which is negative)
+        ##let depth = abs((iters as IntF) as RealF / (max_iters as RealF))
+        let depth = abs(iters as IntF as RealF) / (max_iters as RealF)
+        ##print("[", iters as IntF, "/", max_iters, "=", depth, "]")
+
+        ## Color calculation
+        let c: RealF = depth * 16.0 % 1.0
+        let color_enum = ['Srgba', 'red', c, 'green', c, 'blue', c]
+
+        bevy_call_func(
+            ent,
+            'set_image_pixel',
+            data.img,
+            px,
+            py,
+            color_enum,
+        )
+
+        let sound_asset = [
+            'Asset', "common://sounds/340915__passairmangrace__metalclang1_loud_bip-03.ogg",
+        ]
+        let sound_vol = [
+            'Linear', 0.1,
+        ]
+
+        let pitch_scale: RealF = clamp((depth + 1.0) / 1.0, 0.2, 5.0)
+
+        bevy_call_func(ent, 'play_sound', [
+            'source', sound_asset,
+            'volume', sound_vol,
+            'pitch_scale', pitch_scale,
+        ])
+
+        ## Remember what we did!
+        data.iters = iters
+        data.zr = zr
+        data.zi = zi
+    end     ## work
+}
+
+let module = [
+    on_update: on_update,
+]
+module

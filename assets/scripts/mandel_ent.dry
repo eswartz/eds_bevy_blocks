@@ -1,0 +1,115 @@
+use $sys.calls.{delay, bevy_call_func, remove_script, set_position, set_mesh_tag};
+
+## This computes a given coordinate in the Mandelbrot set.
+def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
+    ## HACK: try to avoid having them all pile up at start
+    ## delay(1.0)
+    ## set_palette_material(ent)
+    ## print("New block: ", ent, "\n")
+
+    let pent: Uns64 = bevy_call_func(ent, 'get_player_entity')
+    data.player = pent
+}
+
+def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) {
+    ## print("Update: ", ent, "\n")
+
+    ## center
+    let cr: RealF = data.cr
+    let ci: RealF = data.ci
+
+    ## stop limit
+    let max_iters: UnsF = data.max_iters
+    let range_min: UnsF = data.range_min
+
+    let depth_size: RealF = data.depth_size
+
+    ## current count; 0 means not started,
+    ## > 0 means still going;
+    ## < 0 means completed at -iters.
+    let iters_signed: IntF = data.iters
+    var iters: UnsF = iters_signed as UnsF
+
+    ## < 0 means finished @ -iters
+
+    if iters_signed < 0 then
+        delay(data.look_at_player_delay_secs)
+        bevy_call_func(ent, 'look_at', data.player, 1.0)
+        return
+    end
+
+    var zr: RealF = data.zr
+    var zi: RealF = data.zi
+
+    while iters < data.max_iters do
+        let zr2 = zr * zr
+        let zi2 = zi * zi
+        let zrzi = zr * zi
+
+        let newzr = zr2 - zi2
+        let newzi = 2.0 * zrzi
+        let next_zr = newzr + cr
+        let next_zi = newzi + ci
+
+        ## check limit (|z| < 2)
+        let mag = next_zr * next_zr + next_zi * next_zi
+
+        ##print(cr, "+", ci, "i #", iters, " = ", zr, "+", zi, "i\n")
+        if mag >= 4.0 then break end
+
+        iters += 1
+        zr = next_zr
+        zi = next_zi
+    end
+
+    data.iters = iters
+    data.zr = zr
+    data.zi = zi
+
+    data.done = true
+
+    let iters_size = data.max_iters as RealF - data.range_min as RealF
+    let iters_pos = data.iters as RealF / iters_size as RealF
+    let depth = iters_pos as RealF * data.depth_size as RealF
+
+    let vec = [x: data.pos.x, y: data.pos.y, z: data.pos.z + depth]
+    bevy_call_func(ent, 'set_position', vec)
+
+    bevy_call_func(ent, 'set_mesh_tag', iters)
+
+    if data.done then
+        data.iters = -(data.iters as IntF)
+    end
+
+    ## store_iters
+    data.iters = data.iters
+    data.zr = data.zr
+    data.zi = data.zi
+
+    ## Give some time before watching user.
+    if data.look_at_player then
+        delay(data.delay_before_look_at)
+        bevy_call_func(ent, 'look_at', data.player, 1.0)
+    end
+}
+
+let module = [
+    'on_init': on_init,
+    'on_update': on_update,
+    'init_data': [
+        cr: 0.0,
+        ci: 0.0,
+        max_iters: 1000,
+        range_min: 0.0,
+        depth_size: 1.0,
+        player: nil,
+        zr: 0.0,
+        zi: 0.0,
+        iters: 0,
+        done: false,
+        look_at_player: true,
+        delay_before_look_at: 0.0,
+        look_at_player_delay_secs: 0.0,
+    ],
+]
+return module

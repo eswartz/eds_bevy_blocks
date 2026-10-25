@@ -25,4 +25,4 @@ TODO
 -- !! for script entity assignments, reloading/building e.g. `scripts/cube_handler.das` literally over and over
 
 
--- fuel is broken with .dry
+-- not reloading add_script files

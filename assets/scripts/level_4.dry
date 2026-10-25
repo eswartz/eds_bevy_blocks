@@ -96,7 +96,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct) {
             data.pos = pos
 
             let sci = [
-                path: "scripts/mandel_ent.das",
+                path: "scripts/mandel_ent.dry",
                 mode: 'Async'
             ]
             bevy_call_func(new_entity, 'add_script', sci, data)

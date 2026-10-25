@@ -255,7 +255,7 @@ def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) -> Any {
     let old = bevy_call_func(top_ent, 'look_at', pent, 0.5)
 
     let vel = [x: dx, y: dy, z: dz]
-    print(vel, "\r")
+    ##print(vel, "\r")
     ##bevy_call_func(top_ent, 'set_velocity', vel)
     bevy_call_func(top_ent, 'insert_components',
         'LinearVelocity', vel,

@@ -68,7 +68,7 @@ def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) {
 
     ## Package ScriptCreationInfo data
     let sci = [
-        path: 'scripts/cube_handler.das',
+        path: 'scripts/cube_handler.dry',
         mode: 'Async',
     ]
     bevy_call_func(new_entity, 'add_script', sci)

@@ -1,0 +1,52 @@
+use $sys.calls.{bevy_call_func,delay};
+
+## Handles MIDI pulsing and basic positional movement for a cube entity.
+def on_update(ctx: Struct, ent: Uns64, ...) {
+    let step: UnsF = ctx.tick_count
+
+    let voice: UnsF = 1
+
+    let p: UnsF = ent % 127
+
+    let n = step * 17.0 % 75.0 + 20.0
+
+    let msg1 = [
+        command: 'program_change',
+        entity: ent,
+        channel: voice,
+        program: p,
+    ]
+    bevy_call_func('write_message', 'MidiSynthMessage', msg1)
+
+    let msg2 = [
+        command: 'note_on',
+        entity: ent,
+        channel: voice,
+        midi: n,
+        drums: true,
+        velocity: 0.125,
+    ]
+    bevy_call_func('write_message', 'MidiSynthMessage', msg2)
+
+    let msg3 = [
+        command: 'note_off',
+        entity: ent,
+        channel: voice,
+        midi: n,
+        drums: true,
+        delay: 0.25,
+    ]
+    bevy_call_func('write_message', 'MidiSynthMessage', msg3)
+
+    delay(0.125)
+
+    let y = step % 8
+    let y_final = y / 2.0
+    let vec = [x: -0.1, y: y_final, z: 0.1]
+
+    return nil
+}
+
+[
+    on_update: on_update,
+]
