@@ -148,7 +148,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
 
             let stone = ['Model', "models/stone.glb#Scene0"]
             let sphere_shape = ['Sphere', 1.0]
-            let sphere_collider_shape = ['Sphere', 0.6]
+            let sphere_collider_shape = ['Sphere', 0.75]
 
             let rx: RealF = sin(x as RealF * 3.33333)
             let ry: RealF = cos(y as RealF * 2.22222)
@@ -204,7 +204,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
 
             ## Package ScriptCreationInfo data.
             let sci = [
-                path: 'scripts/automaton.das',
+                path: 'scripts/automaton.dry',
                 mode: 'Async',
             ]
             bevy_call_func(new_entity, 'add_script', sci, cell_data)

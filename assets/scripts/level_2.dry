@@ -86,7 +86,7 @@ let module = [:,
     center_pos: [x: 6.0, y: 5.0, z: -5.0],
     block_data: [
         fall_distance: 5.0,
-        delay: 10.0,
+        delay: 2.0,
         restitution: 0.2,
         lifetime: ['Temporary', 'secs', 60],
     ],

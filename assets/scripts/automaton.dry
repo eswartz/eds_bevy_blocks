@@ -1,0 +1,80 @@
+use $sys.calls.{bevy_call_func,delay};
+
+def min(x: RealF, y: RealF) -> RealF {
+    if x < y then x else y end
+}
+def max(x: RealF, y: RealF) -> RealF {
+    if x > y then x else y end
+}
+def clamp(v: RealF, min: RealF, max: RealF) -> RealF {
+    if v < min then min elif v > max then max else v end
+}
+def abs(x: RealF) -> RealF {
+    if x < 0 then -x else x end
+}
+
+## Calculates direction, applies speed adjustments, and updates velocity components.
+def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
+    let pent: Uns64 = bevy_call_func(ent, 'get_player_entity')
+    data.player = pent
+    data.speed = 4.0
+    data.hadjust = 2.0
+    data.vadjust = 1.0
+}
+
+def on_update(ctx: Struct, ent: Uns64, data: Struct, ...) {
+    let pos = bevy_call_func(ent, 'get_position', 'World')
+    let posx = pos.x
+    let posy = pos.y
+    let posz = pos.z
+
+    let goal_pos = bevy_call_func(data.parent, 'get_position', 'World')
+    let goal_posx: RealF = goal_pos.x
+    let goal_posy: RealF = goal_pos.y
+    let goal_posz: RealF = goal_pos.z
+
+    ## Directional distance from our goal.
+    let dx = goal_posx - posx
+    let dy = goal_posy - posy
+    let dz = goal_posz - posz
+
+    let hadjust = data.hadjust
+    let vadjust = data.vadjust
+    let dx_adj = dx * hadjust
+    let dy_adj = dy * vadjust
+    let dz_adj = dz * hadjust
+
+    ##vx = dx / 4
+    var vx = dx_adj / 4.0
+    var vy = dy_adj / 2.0   ## fight gravity and dip!
+    var vz = dz_adj / 4.0
+
+    ## Clamp to the maximum allowed speed.
+    let speed: RealF = data.speed
+
+    vx = min(vx, speed)
+    vy = min(vy, speed)
+    vz = min(vz, speed)
+
+    let rspeed = -speed
+    vx = max(vx, rspeed)
+    vy = max(vy, -2.0)
+    vz = max(vz, rspeed)
+
+    let vel = [x: vx, y: vy, z: vz]
+
+    bevy_call_func(ent, 'insert_components', 'LinearVelocity', vel)
+
+    ## Calculate delay based on entity ID
+    let num_f = data.num as RealF
+    let d = num_f / 17.0
+    let d_mod = d % 0.5
+    let delay_val = d_mod + 0.05 + 0.01
+
+    delay(delay_val)
+}
+
+[
+    'on_init': on_init,
+    'on_update': on_update,
+]
