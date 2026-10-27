@@ -142,7 +142,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
 
             let pos = [x: wx, z: wy, y: 2.0]
 
-            let name = to_string("(", x, ", ", y, ")")
+            let name = to_string("BALL(", x, ", ", y, ")")
 
             let mass: RealF = data.block_mass
 
