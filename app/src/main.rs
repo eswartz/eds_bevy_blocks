@@ -45,6 +45,8 @@ fn fmt_layer(_app: &mut App) -> Option<BoxedFmtLayer> {
     Some(Box::new(
         bevy::log::tracing_subscriber::fmt::Layer::default()
             .without_time()
+            .with_ansi(true)
+            .with_thread_ids(true)
             .map_fmt_fields(bevy::log::tracing_subscriber::field::MakeExt::debug_alt)
             .with_writer(std::io::stderr),
     ))
