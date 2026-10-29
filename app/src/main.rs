@@ -7,6 +7,7 @@ mod camera;
 mod game;
 mod menus;
 
+use bevy::log::{BoxedFmtLayer, LogPlugin};
 use bevy::render::error_handler::{RenderErrorHandler, RenderErrorPolicy};
 #[cfg(target_arch = "wasm32")]
 use console_log;
@@ -40,6 +41,15 @@ use crate::camera::ensure_3d_camera;
 use crate::game::GamePlugin;
 use crate::menus::MenuPlugin;
 
+fn fmt_layer(_app: &mut App) -> Option<BoxedFmtLayer> {
+    Some(Box::new(
+        bevy::log::tracing_subscriber::fmt::Layer::default()
+            .without_time()
+            .map_fmt_fields(bevy::log::tracing_subscriber::field::MakeExt::debug_alt)
+            .with_writer(std::io::stderr),
+    ))
+}
+
 fn main() -> AppExit {
     let res = find_runtime_base_directory_by_folder("assets");
     let base_dir = match res {
@@ -59,7 +69,6 @@ fn main() -> AppExit {
 
     // #[cfg(target_arch = "wasm32")]
     // let _ = console_log::init_with_level(log::Level::Info);
-
     let mut app = App::new();
     app.insert_resource(WinitSettings {
         focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -82,6 +91,10 @@ fn main() -> AppExit {
     .add_plugins(CommonAssetsPlugin)
     .add_plugins((
         DefaultPlugins
+            .set(LogPlugin {
+                fmt_layer,
+                ..default()
+            })
             .set(AssetPlugin {
                 // Wasm builds will check for meta files (that don't exist) if this isn't set.
                 // This causes errors and even panics in web builds on itch.
