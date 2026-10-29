@@ -1,11 +1,15 @@
 use std::collections::VecDeque;
 use std::{any::Any, num::NonZeroUsize};
 
-use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
+use eds_bevy_common::prelude::*;
 
-use bevy_seedling::{firewheel::Volume, prelude::*, sample::{AudioSample, SamplePlayer}};
 use bevy::prelude::*;
+use bevy_seedling::{
+    firewheel::Volume,
+    prelude::*,
+    sample::{AudioSample, SamplePlayer},
+};
 use rustc_hash::FxHashMap;
 
 use lru::LruCache;
@@ -15,18 +19,15 @@ pub(crate) struct SoundPlugin;
 
 impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .insert_resource(RetimedSamples::new(256).with_save_files(false))
+        app.insert_resource(RetimedSamples::new(256).with_save_files(false))
             .add_systems(OnEnter(ProgramState::LaunchMenu), init_samples)
-            .add_systems(Update,
-                (
-                    spawn_noise_on_collision,
-                )
+            .add_systems(
+                Update,
+                (spawn_noise_on_collision,)
                     .run_if(not(is_paused))
                     .run_if(in_state(LevelState::Playing))
-                    .run_if(in_state(GameplayState::Playing))
-            )
-        ;
+                    .run_if(in_state(GameplayState::Playing)),
+            );
     }
 }
 
@@ -42,7 +43,9 @@ impl From<QuantizedFloat> for f32 {
 impl QuantizedFloat {
     #[allow(unused)]
     pub(crate) fn rounded_to_pow2(v: f32) -> Option<Self> {
-        if v <= 0.0 { return None };
+        if v <= 0.0 {
+            return None;
+        };
         let v_l2 = v.log2();
         let res = v_l2.round().exp2();
         Some(Self(Float32(res)))
@@ -50,7 +53,9 @@ impl QuantizedFloat {
 
     #[allow(unused)]
     pub(crate) fn rounded_to_multiple(v: f32, mult: f32) -> Option<Self> {
-        if v <= 0.0 { return None };
+        if v <= 0.0 {
+            return None;
+        };
         let ret = (v / mult).ceil() * mult;
         Some(Self(Float32(ret)))
     }
@@ -67,7 +72,10 @@ pub(crate) struct RetimedSampleKey {
 }
 impl RetimedSampleKey {
     fn new(source: Handle<AudioSample>, scale_factor: Float32) -> Self {
-        Self { scale_factor, orig: source }
+        Self {
+            scale_factor,
+            orig: source,
+        }
     }
 }
 
@@ -97,37 +105,42 @@ impl RetimedSamples {
     }
 
     pub(crate) fn with_save_files(self, save_files: bool) -> Self {
-        Self {
-            save_files,
-            .. self
-        }
+        Self { save_files, ..self }
     }
 
     /// Return a version of the [AudioSample] scaled in length (but not pitch)
     /// by [`scale_factor`].
-    pub(crate) fn fetch_retimed(&mut self, mut assets: Mut<Assets<AudioSample>>, source: Handle<AudioSample>, scale_factor: f32) -> Option<Handle<AudioSample>> {
+    pub(crate) fn fetch_retimed(
+        &mut self,
+        mut assets: Mut<Assets<AudioSample>>,
+        source: Handle<AudioSample>,
+        scale_factor: f32,
+    ) -> Option<Handle<AudioSample>> {
         let key = RetimedSampleKey::new(source, Float32(scale_factor));
         let ret: Handle<AudioSample>;
         if let Some(target) = self.cache.get(&key) {
             ret = (*target).clone();
         } else {
-            debug!("retiming {} to {:.3}", key.orig.path().map_or_else(
-                    || key.orig.id().to_string(),
-                    |t| format!("{t}"),
-                ), key.scale_factor.0);
+            debug!(
+                "retiming {} to {:.3}",
+                key.orig
+                    .path()
+                    .map_or_else(|| key.orig.id().to_string(), |t| format!("{t}"),),
+                key.scale_factor.0
+            );
             if scale_factor.abs_diff_eq(&1.0, 0.001) {
                 // Remember this one in the cache instead of just cloning above
                 // in order to keep a record of usages (and log messages) complete.
                 let cloned = key.orig.clone();
                 self.cache.put(key.clone(), cloned);
-                return Some(key.orig)
+                return Some(key.orig);
             }
             let Some(source) = assets.get(key.orig.id()) else {
                 warn!("no {}", key.orig.id());
-                return None
+                return None;
             };
             let Some(new) = self.retime(&key.orig, source, key.scale_factor.0) else {
-                return None
+                return None;
             };
             ret = assets.add(new);
             self.cache.put(key, ret.clone());
@@ -135,16 +148,21 @@ impl RetimedSamples {
         Some(ret)
     }
 
-    pub(crate) fn retime(&self, src: &Handle<AudioSample>, source: &AudioSample, time_multiplier: f32) -> Option<AudioSample> {
+    pub(crate) fn retime(
+        &self,
+        src: &Handle<AudioSample>,
+        source: &AudioSample,
+        time_multiplier: f32,
+    ) -> Option<AudioSample> {
         let source = &*source.get();
         let nch = source.num_channels().get();
         if nch != 1 {
             warn!("unsupported # channels {nch}");
-            return None
+            return None;
         }
         let Some(sample_rate) = source.sample_rate() else {
             warn!("unknown sample rate");
-            return None
+            return None;
         };
 
         // let (n_fft, hop_length) = (2048, 512);
@@ -163,9 +181,8 @@ impl RetimedSamples {
         let src_frames = source.len_frames() as usize;
         let mut src_buf = vec![0.0f32; src_frames];
 
-        let src_cnt = source.fill_buffers(
-            &mut [&mut src_buf.as_mut_slice()],
-            0 .. src_frames * nch, 0);
+        let src_cnt =
+            source.fill_buffers(&mut [&mut src_buf.as_mut_slice()], 0..src_frames * nch, 0);
 
         // Accumulator of signal strength.
         let src_sum_sqr: f32 = src_buf.iter().map(|s| *s * s).sum::<f32>();
@@ -189,7 +206,10 @@ impl RetimedSamples {
             .hop_length(hop_length);
         match builder.compute() {
             Ok(mut ochunk) => target_samples.append(&mut ochunk),
-            Err(e) => { error!("time stretch failed: {e}"); return None }
+            Err(e) => {
+                error!("time stretch failed: {e}");
+                return None;
+            }
         }
 
         // Get RMS power of the signal after conversion.
@@ -209,9 +229,11 @@ impl RetimedSamples {
 
         // Clean up trailing zeroes (just because).
         let stop_zeroes = target_samples.len() - target_samples.len() / 8;
-        if let Some(index) = target_samples.iter().enumerate().rposition(
-            |(idx, s)| idx < stop_zeroes || s.abs() > MIN_AMP.amp()
-        ) {
+        if let Some(index) = target_samples
+            .iter()
+            .enumerate()
+            .rposition(|(idx, s)| idx < stop_zeroes || s.abs() > MIN_AMP.amp())
+        {
             let _ = target_samples.drain(index..);
         }
 
@@ -222,10 +244,12 @@ impl RetimedSamples {
                 || format!("{:?}", src.type_id()),
                 |path| {
                     let path_str = path.to_string();
-                    path_str[path_str.rfind('/').unwrap() + 1 ..].to_string()
-                });
+                    path_str[path_str.rfind('/').unwrap() + 1..].to_string()
+                },
+            );
 
-            let temp_path = std::env::temp_dir().join(format!("{src_name}-{time_multiplier:.3}.wav"));
+            let temp_path =
+                std::env::temp_dir().join(format!("{src_name}-{time_multiplier:.3}.wav"));
             info!("writing {temp_path:?}");
             let mut file = std::fs::File::create(temp_path).unwrap();
 
@@ -233,7 +257,10 @@ impl RetimedSamples {
             let format = WaveFmt::new_pcm_mono(sample_rate.get() as _, 16);
             let w = WaveWriter::new(&mut file, format).unwrap();
             let mut frame_writer = w.audio_frame_writer().unwrap();
-            let scaled = target_samples.iter().map(|s| (*s * 32767.0) as i16).collect::<Vec<_>>();
+            let scaled = target_samples
+                .iter()
+                .map(|s| (*s * 32767.0) as i16)
+                .collect::<Vec<_>>();
             frame_writer.write_frames(&scaled[..]).unwrap();
             // info!("wrote {}", scaled.len());
             let _ = frame_writer.end();
@@ -243,9 +270,7 @@ impl RetimedSamples {
         let target = AudioSample::new(resource, sample_rate);
         Some(target)
     }
-
 }
-
 
 type SurfaceSampleMap = FxHashMap<SurfaceMaterial, Vec<Handle<AudioSample>>>;
 
@@ -271,6 +296,7 @@ pub(crate) enum SampleSelectorType {
 
 use eds_bevy_common::prelude::surfaces;
 
+#[allow(unused)]
 impl SampleSelector {
     pub(crate) fn new(fx: &CommonFxAssets) -> Self {
         Self {
@@ -287,7 +313,7 @@ impl SampleSelector {
     pub(crate) fn set_repeat_limit(self, limit: usize) -> Self {
         Self {
             lru_cap: limit,
-            .. self
+            ..self
         }
     }
 
@@ -318,10 +344,10 @@ impl SampleSelector {
                 let lru_len = lru.len();
                 if lru_len >= self.lru_cap {
                     // Forget old history.
-                    let _ = lru.drain(0 .. self.lru_cap.min(lru_len));
+                    let _ = lru.drain(0..self.lru_cap.min(lru_len));
                 }
                 lru.push_back(key);
-                return Some(sample)
+                return Some(sample);
             }
             max_iters -= 1;
         }
@@ -353,7 +379,7 @@ fn spawn_noise_on_collision(
     mut commands: Commands,
 ) {
     if **paused {
-        return
+        return;
     }
 
     let mut rng = rand::rng();
@@ -363,7 +389,7 @@ fn spawn_noise_on_collision(
 
     for event in collisions.iter() {
         if !event.collision_started() && !event.is_touching() {
-            continue
+            continue;
         }
 
         let player_a = player_q.contains(event.collider1);
@@ -376,8 +402,12 @@ fn spawn_noise_on_collision(
 
         let get_mat = |mut ent| {
             loop {
-                if let Ok(mat) = surf_mat_q.get(ent) { return *mat };
-                let Ok(parent) = parent_q.get(ent) else { return default() };
+                if let Ok(mat) = surf_mat_q.get(ent) {
+                    return *mat;
+                };
+                let Ok(parent) = parent_q.get(ent) else {
+                    return default();
+                };
                 ent = parent.0;
             }
         };
@@ -385,23 +415,19 @@ fn spawn_noise_on_collision(
         let phys_mat_a = get_mat(event.collider1);
         let phys_mat_b = get_mat(event.collider2);
 
-        let (src, target) =
-            if has_mat_b || player_b {
-                (event.collider1, event.collider2)
-            } else if has_mat_a || player_a {
-                (event.collider2, event.collider1)
-            } else {
-                continue
-            }
-        ;
+        let (src, target) = if has_mat_b || player_b {
+            (event.collider1, event.collider2)
+        } else if has_mat_a || player_a {
+            (event.collider2, event.collider1)
+        } else {
+            continue;
+        };
 
-        if let Ok((xfrm, vel, ang_vel, mass)) = phys_info_q.get(target)
-        {
-            let (src_vel, src_ang_vel) = phys_info_q
-                .get(src)
-                .map_or_else(
-                    |_| (&Vec3::ZERO, &Vec3::ZERO),
-                    |(_, src_vel, src_ang, _)| (&*src_vel, &*src_ang));
+        if let Ok((xfrm, vel, ang_vel, mass)) = phys_info_q.get(target) {
+            let (src_vel, src_ang_vel) = phys_info_q.get(src).map_or_else(
+                |_| (&Vec3::ZERO, &Vec3::ZERO),
+                |(_, src_vel, src_ang, _)| (&*src_vel, &*src_ang),
+            );
 
             let rel_vel = *src_vel - vel.0;
             let vel_length = rel_vel.length();
@@ -409,7 +435,7 @@ fn spawn_noise_on_collision(
             let ang_length = rel_ang_abs.length() /* rad */ * std::f32::consts::PI * 0.125 /* m */;
             if vel_length + ang_length < 1.0 {
                 // They're moving slowly  other, ignore
-                continue
+                continue;
             }
 
             // Distinguish between "small" impulses and "large" impulses using the log scale.
@@ -417,7 +443,7 @@ fn spawn_noise_on_collision(
             let silent = impulse_log < 0.05;
             if silent {
                 // Too weak to make a noise.
-                continue
+                continue;
             }
 
             // Distinguish impact from sliding.
@@ -447,7 +473,7 @@ fn spawn_noise_on_collision(
                 let dist = vel_length * time.delta_secs();
                 *footstep_dist += dist;
                 if *footstep_dist < 0.0 {
-                    continue
+                    continue;
                 }
 
                 *footstep_dist -= FOOTFALL_TIMES_SAMPLE_DIST;
@@ -461,16 +487,15 @@ fn spawn_noise_on_collision(
 
                 if !sliding {
                     sample_ty = SampleSelectorType::FootstepImpact;
-                    vol_range = (dist / 1.0).clamp(0.25, 1.5) .. 1.51;
-                    speed_range = 0.75 .. 1.25;
+                    vol_range = (dist / 1.0).clamp(0.25, 1.5)..1.51;
+                    speed_range = 0.75..1.25;
                 } else if vel_length + ang_length > 0.1 {
                     sample_ty = SampleSelectorType::FootstepSlide;
-                    vol_range = (dist / 1.0).clamp(0.25, 1.25) .. 1.26;
-                    speed_range = 0.75 .. 1.25;
+                    vol_range = (dist / 1.0).clamp(0.25, 1.25)..1.26;
+                    speed_range = 0.75..1.25;
                 } else {
-                    continue
+                    continue;
                 }
-
             } else if one_has_mat {
                 // Object-object interaction.
 
@@ -482,26 +507,30 @@ fn spawn_noise_on_collision(
 
                 let vol_mid = ((vel_length + ang_length) / 2.0).min(0.95);
                 if vol_mid < 0.01 {
-                    continue
+                    continue;
                 }
 
                 let speed_mid = ang_length / mass.0 * 200.0 / 3.0;
-                speed_range = (speed_mid * 0.75).max(0.5) .. (speed_mid * 2.0).min(2.0);
+                speed_range = (speed_mid * 0.75).max(0.5)..(speed_mid * 2.0).min(2.0);
 
-                if sliding && ang_length < vel_length /*m */ {
+                if sliding && ang_length < vel_length
+                /*m */
+                {
                     sample_ty = SampleSelectorType::SurfaceImpact;
                 } else if vel_length > 0.1 {
                     sample_ty = SampleSelectorType::SurfaceSlide;
                 } else {
-                    continue
+                    continue;
                 };
 
-                vol_range = vol_mid * 0.5 .. vol_mid * 1.25;
+                vol_range = vol_mid * 0.5..vol_mid * 1.25;
             } else {
-                continue
+                continue;
             };
 
-            let Some(sample) = (*selector).pick_sample(sample_ty, phys_mat) else { continue };
+            let Some(sample) = (*selector).pick_sample(sample_ty, phys_mat) else {
+                continue;
+            };
 
             // It's cheap to change volume.
             let vol_sel = if vol_range.is_empty() {
@@ -511,8 +540,8 @@ fn spawn_noise_on_collision(
             };
             let vol = (impulse_log * vol_sel).clamp(0.1, 1.25);
 
-            let speed_range = speed_range.start.clamp(0.25, 0.75)
-                .. speed_range.end.clamp(0.751, 1.25);
+            let speed_range =
+                speed_range.start.clamp(0.25, 0.75)..speed_range.end.clamp(0.751, 1.25);
 
             // But changing speed means work (at least the first time for a given sample).
             let rate = rng.random_range(speed_range);
@@ -520,42 +549,40 @@ fn spawn_noise_on_collision(
             // let Some(rate_quant) = QuantizedFloat::rounded_to_pow2(rate) else { continue };
             // The rate is reduced to a low fraction (a slow operation)
             // and the rest as a pitch shift.
-            let Some(rate_quant) = QuantizedFloat::rounded_to_multiple(rate, 1.0 / 5.0) else { continue };
+            let Some(rate_quant) = QuantizedFloat::rounded_to_multiple(rate, 1.0 / 5.0) else {
+                continue;
+            };
             let rate_fract = rate / rate_quant.as_f32();
 
             // Stretch the sample in time.
-            let retimed_sample = retimed_samples.fetch_retimed(
-                samples.reborrow(),
-                sample.clone(),
-                rate_quant.as_f32(),
-            )
-            .unwrap_or_else(|| sample);
+            let retimed_sample = retimed_samples
+                .fetch_retimed(samples.reborrow(), sample.clone(), rate_quant.as_f32())
+                .unwrap_or_else(|| sample);
 
             commands.spawn((
                 ChildOf(target_entity),
                 Sfx,
-                SamplePlayer::new(retimed_sample)
-                    .with_volume(Volume::Linear(vol))
-                ,
+                SamplePlayer::new(retimed_sample).with_volume(Volume::Linear(vol)),
                 bevy_seedling::prelude::PlaybackSettings::default()
                     .despawn()
                     .with_playback(true)
-                    .with_play_from(PlayFrom::Seconds(rng.random_range(0.0 .. 0.05)))
-
+                    .with_play_from(PlayFrom::Seconds(rng.random_range(0.0..0.05)))
                     // Apply the rest of the "time" stretch here.
-                    .with_speed(1.0 + rate_fract as f64)
-                ,
+                    .with_speed(1.0 + rate_fract as f64),
                 sample_effects![
                     // Prepopulate offset to avoid any timing problems
                     // with very short samples being spatialized as if at origin.
-                    SpatialBasicNode { offset: (xfrm.translation() - listener_xfrm.translation()).into(), ..default() },
+                    SpatialBasicNode {
+                        offset: (xfrm.translation() - listener_xfrm.translation()).into(),
+                        ..default()
+                    },
                 ],
                 xfrm.clone(),
             ));
 
             added += 1;
             if added >= 4 {
-                break
+                break;
             }
         }
     }
