@@ -33,8 +33,6 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
         'RigidBody', 'Static',
     )
 
-    let pos = [x: 0, y: 2, z: 0]
-
     let mesh_mat = [
         mesh: "models/smoodge.glb#Mesh0/Primitive0",
         material: "models/smoodge.glb#Material0/std",
@@ -47,7 +45,7 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
     let top_ent: Uns64 = bevy_call_func('spawn_entity',
         'parent', ent,
         'Name', "WATCH",
-        'offset', pos,
+        'offset', [x: 0, y: 2, z: 0],
         'shape', model,
         'CrosshairTargetable', nil,
         'Visibility', 'Inherited',
