@@ -207,10 +207,10 @@ def on_init(ctx: Struct, ent: Uns64, data: Struct, ...) {
             ]
             bevy_call_func(new_entity, 'add_script', sci, cell_data)
 
-            x = x + 1
+            x += 1
         end
 
-        y = y + 1
+        y += 1
     end
 }
 
@@ -271,7 +271,8 @@ let module = [:,
     boom_mass: 100.0,
     init_data: [
         ## model: "models/smoodge.glb#Scene0",
-        grid_units: 20,
+        ##grid_units: 20,
+        grid_units: 16,
         ##grid_units: 4,
         ##grid_units: 1,
         block_mass: 5.0,
