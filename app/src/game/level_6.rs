@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use fedry_bevy_plugin::Scripting;
 use fedry_bevy_plugin::prelude::*;
 
-use eds_bevy_common::prelude::*;
 use eds_bevy_common::physics::*;
+use eds_bevy_common::prelude::*;
 
 use crate::assets::*;
 use crate::game::BoomMass;
@@ -28,9 +28,8 @@ impl Plugin for LevelPlugin {
         app.add_systems(OnEnter(ProgramState::New), register_level)
             .add_systems(
                 OnEnter(LevelState::LevelLoaded),
-                    on_level_loaded.run_if(is_in_level(ID)),
-            )
-        ;
+                on_level_loaded.run_if(is_in_level(ID)),
+            );
     }
 }
 
@@ -38,38 +37,36 @@ fn on_level_loaded(
     mut commands: Commands,
     world: Res<WorldMarkerEntity>,
 
-    scripting: Scripting::<GameScript>,
+    scripting: Scripting<GameScript>,
     script_assets: Res<ScriptAssets>,
 
     player_xfrm_q: Query<&Transform, With<PlayerStart>>,
 ) -> Result {
     commands.insert_resource(InstructionText(
         r#"
-        "#.to_string()
+        "#
+        .to_string(),
     ));
 
     // Get configuration data.
-    let script = scripting.new_script_from_module_id(script_assets.level_6.id(), ExecutionMode::Async)?;
+    let script =
+        scripting.new_script_from_module_id(script_assets.level_6.id(), ExecutionMode::Async)?;
     let runtime = scripting.runtime;
 
     let script_module = script.module();
 
-    // // Copy
-    // let data = script.data();
-    // for (k, v) in script_module.map().iter() {
-    //     data.map_mut().insert(k.clone(), v.clone());
-    // }
-
-    let boom_mass = if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
-        mass.as_real() as f32
-    } else {
-        5000.0f32
-    };
+    let boom_mass =
+        if let Ok(mass) = runtime.get_struct_value_as_number(&script_module, "boom_mass") {
+            mass.as_real() as f32
+        } else {
+            5000.0f32
+        };
     commands.insert_resource(BoomMass(boom_mass));
 
-    let center = player_xfrm_q.iter().next()
-        .map_or_else(|| Vec3::new(12.0, 1.0, -15.0),
-        |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0 + Vec3::Y * 2.0);
+    let center = player_xfrm_q.iter().next().map_or_else(
+        || Vec3::new(12.0, 1.0, -15.0),
+        |xfrm| xfrm.translation + xfrm.rotation * Vec3::NEG_Z * 5.0 + Vec3::Y * 2.0,
+    );
 
     // let model = if let Some(p) = scripting.get_struct_value_as_string(&script_module, "model") {
     //     Some(p.str().to_string())
@@ -81,14 +78,11 @@ fn on_level_loaded(
         ChildOf(world.0),
         Name::new("CONTROLLER"),
         CrosshairTargetable,
-
         RigidBody::Kinematic,
         Collider::cuboid(0.1, 0.1, 0.1),
         Transform::from_translation(center).with_scale(Vec3::splat(0.1)),
-
         Visibility::Inherited,
         (script.clone(),),
-
     ));
 
     Ok(())
