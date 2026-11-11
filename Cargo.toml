@@ -71,13 +71,11 @@ eds_bevy_common = { git = "https://github.com/eswartz/eds_bevy_common.git", bran
 fedry_runtime = { git = "ssh://git@github.com/eswartz/fedry.git", branch = "main" }
 fedry_bevy_plugin = { git = "ssh://git@github.com/eswartz/fedry_bevy.git", branch = "main", features = ["egui", "ebc", "midi_synth", "input_bei"] }
 
-bevy = { version = "0.19", default-features = false, features = [
-    "default_app", "default_platform", "common_api", "scene",
-    "system_font_discovery",
+bevy = { version = "0.20", default-features = false, features = [
+    "2d", "3d", "ui",
 
     # Plus...
-    "x11",
-    "wayland",
+    "system_font_discovery",
 
     "bevy_dev_tools",
     "jpeg",
@@ -95,33 +93,25 @@ bevy = { version = "0.19", default-features = false, features = [
 # Make a reference so we can override it via patch.crates-io in dependent crates.
 gltf = { version = "*" }
 
-wgpu = "29"
+wgpu = "30"
 rand = { version = "0.10.0" }
 
-
-
-# avian3d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = [
-avian3d = { version = "0.8.0-dev", default-features = false, features = [
+avian3d = { version = "0.8.0", default-features = false, features = [
 	"3d",
     "default-collider",
-	"collider-from-mesh",
-    #"f32",
+    "collider-from-mesh",
     "parry-f32",
-    # "f64", "parry-f64",
     "diagnostic_ui",
     "debug-plugin",
-    # "validate",
     "xpbd_joints",
     "bevy_scene",
     "bevy_picking",
     "serialize",
-    # "enhanced-determinism",
 ] }
-bevy_enhanced_input = { version = "0.26", features = ["reflect", "state", "serialize"] }
+bevy_enhanced_input = { version = "0.27", features = ["reflect", "state", "serialize"] }
 
-# firewheel = { version = "0.12" }
-
-bevy_seedling = { version = "0.8.0", default-features = false, features = [
+# bevy_seedling = { version = "0.9.0", default-features = false, features = [
+bevy_seedling = { git = "https://github.com/eswartz/bevy_seedling-fork.git", branch = "bevy-0.20", default-features = false, features = [
     "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
     "cpal",
@@ -137,18 +127,18 @@ bevy_seedling = { version = "0.8.0", default-features = false, features = [
     "effects",
 ] }
 
-bevy_skein = { version = "0.6.0" }
+bevy_skein = { git = "https://github.com/eswartz/skein-fork.git", branch = "main" }
+#bevy_skein = { version = "0.6.0" }
 
-bevy_asset_loader = { version = "0.27.0", features = [
+bevy_asset_loader = { version = "0.28.0", features = [
     "2d",
     "3d",
     # "progress_tracking",
 ] }
 
-bevy_mod_outline = { version = "0.13" }
-# bevy_mod_outline = { git = "https://github.com/eswartz/bevy_mod_outline-fork.git" }
+bevy_mod_outline = { version = "0.14" }
 
-bevy_tweening = "0.16.0"
+bevy_tweening = "0.17.0"
 
 serde = { version = "1.0", features = ["alloc", "derive", "serde_derive"] }
 
@@ -156,9 +146,6 @@ getrandom = { version = "0.4.1", features = ["wasm_js"]}
 image = { version = "0.25", default-features = false }
 bytemuck = "1.25.0"
 anyhow = "1.0.101"
-
-# csgrs = { version = "0.21.0", features = ["bevymesh"] }
-# csgrs = { git = "https://github.com/timschmidt/csgrs.git", default-features = false, features = ["bevymesh", "f32"] }
 
 crossbeam-channel = "0.5.15"
 

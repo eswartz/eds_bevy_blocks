@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 /// Register game-specific functions.
 ///
-/// :see [fedry_bevy_plugin::bevy_call_funcs] for the common ones.
+/// :see [fedry_bevy_plugin::bevy_funcs] for the common ones.
 ///
 pub(crate) fn register_funcs(/* mut commands: Commands, runtime: Res<ScriptRuntime> */) {
     /*

@@ -1,7 +1,6 @@
 mod action_handlers;
-mod sound;
-mod firing;
 mod bevy_funcs;
+mod firing;
 mod gravity_sleep;
 mod level_0;
 mod level_1;
@@ -10,30 +9,35 @@ mod level_3;
 mod level_4;
 mod level_5;
 mod level_6;
+mod sound;
 
 pub use action_handlers::*;
+use bevy::light::cluster::GlobalClusterSettings;
 use fedry_bevy_plugin::script_debug::ScriptDebugPlugin;
 
 use std::time::Duration;
 use strum::{EnumIter, VariantArray};
 
+use bevy::asset::uuid::Uuid;
 use bevy::color::palettes::tailwind;
+use bevy::ecs::world::CommandQueue;
 use bevy::mesh::*;
 use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::platform::collections::HashMap;
+use bevy::prelude::*;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
-use bevy::asset::uuid::Uuid;
-use bevy::ecs::world::CommandQueue;
-use bevy::prelude::*;
 use bevy::world_serialization::WorldInstanceReady;
 
-use fedry_bevy_plugin::prelude::{FedryScriptingPlugin, ScriptTypeBase, ScriptRoot, pause_scripting, register_script_key, unpause_scripting};
+use fedry_bevy_plugin::prelude::{
+    FedryScriptingPlugin, ScriptRoot, ScriptTypeBase, pause_scripting, register_script_key,
+    unpause_scripting,
+};
 use fedry_runtime::prelude::RuntimeError;
 
-use eds_bevy_common::prelude::*;
-use eds_bevy_common::physics::*;
 use eds_bevy_common::midi_synth::prelude::*;
+use eds_bevy_common::physics::*;
+use eds_bevy_common::prelude::*;
 
 use crate::game::bevy_funcs::register_funcs;
 use crate::game::firing::{FirePowerLimits, FiringPlugin, FiringState};
@@ -45,210 +49,155 @@ use crate::game::sound::SoundPlugin;
 //     Dlss, DlssProjectId, DlssRayReconstructionFeature, DlssRayReconstructionSupported,
 // };
 #[cfg(feature = "solari")]
-use bevy::solari::{
-    prelude::{RaytracingMesh3d, SolariPlugins},
-};
+use bevy::solari::prelude::{RaytracingMesh3d, SolariPlugins};
 
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-
         #[cfg(feature = "solari")]
         {
             app.add_plugins(SolariPlugins);
         }
 
-        app
-            .add_plugins(ActionHandlersPlugin)
-            .add_plugins(FiringPlugin)
-            .add_plugins(SoundPlugin)
-            .add_plugins(FedryScriptingPlugin)
-            .add_plugins(GravitySleepPlugin)
-
-            .add_plugins(ScriptDebugPlugin)
-            .add_plugins(DetailNormalPlugin)
-            .add_plugins(SplitIntoCubesPlugin)
-
-            .insert_resource(Gravity((9.8 * Vec3::NEG_Y).into()))
-
-            .add_systems(
-                PreUpdate,
-                    // wake_up_spawned_if_floating.run_if(resource_changed::<Gravity>)
-                    wake_up_spawned.run_if(resource_changed::<Gravity>)
-                    .run_if(not(is_in_menu))
-                    .run_if(in_state(ProgramState::InGame))
-                ,
-            )
-
-            .insert_resource(GrabbingBehavior {
-                ignore_mass: false,
-                .. default()
-            })
-
-            .init_resource::<LevelDifficulty>()
-
-            .add_plugins(level_0::LevelPlugin)
-            .add_plugins(level_1::LevelPlugin)
-            .add_plugins(level_2::LevelPlugin)
-            .add_plugins(level_3::LevelPlugin)
-            .add_plugins(level_4::LevelPlugin)
-            .add_plugins(level_5::LevelPlugin)
-            .add_plugins(level_6::LevelPlugin)
-
-            .insert_resource(BaseEntity(Entity::PLACEHOLDER, Transform::IDENTITY))
-
-            .add_observer(on_scene_ready)
-
-            .add_systems(
-                OnExit(ProgramState::New),
-                ensure_levels
-            )
-            .add_systems(
-                OnEnter(GameplayState::Setup),
-                (
-                    level_spawn_started,
-                    spawn_level,
-                ).chain()
-            )
-            .add_systems(
-                OnExit(GameplayState::Setup),
-                (
-                    level_spawn_finished,
-                ).chain()
-            )
-
-            .add_systems(
-                PreUpdate,
-                (
-                    add_raytracing_to_meshes,
-                    add_raytracing_to_lights,
-                )
-            )
-
-            .add_systems(
-                FixedUpdate,
-                (
-                    init_player_settings,
-                    spawn_player_on_start,
-                )
+        app.add_systems(Startup, |mut settings: ResMut<GlobalClusterSettings>| {
+            if let Some(clus) = settings.gpu_clustering.as_mut() {
+                // We make a LOT of lights, which are clusters.
+                clus.initial_index_list_capacity = 262144;
+            }
+        })
+        .add_plugins(ActionHandlersPlugin)
+        .add_plugins(FiringPlugin)
+        .add_plugins(SoundPlugin)
+        .add_plugins(FedryScriptingPlugin)
+        .add_plugins(GravitySleepPlugin)
+        .add_plugins(ScriptDebugPlugin)
+        .add_plugins(DetailNormalPlugin)
+        .add_plugins(SplitIntoCubesPlugin)
+        .insert_resource(Gravity((9.8 * Vec3::NEG_Y).into()))
+        .add_systems(
+            PreUpdate,
+            // wake_up_spawned_if_floating.run_if(resource_changed::<Gravity>)
+            wake_up_spawned
+                .run_if(resource_changed::<Gravity>)
+                .run_if(not(is_in_menu))
+                .run_if(in_state(ProgramState::InGame)),
+        )
+        .insert_resource(GrabbingBehavior {
+            ignore_mass: false,
+            ..default()
+        })
+        .init_resource::<LevelDifficulty>()
+        .add_plugins(level_0::LevelPlugin)
+        .add_plugins(level_1::LevelPlugin)
+        .add_plugins(level_2::LevelPlugin)
+        .add_plugins(level_3::LevelPlugin)
+        .add_plugins(level_4::LevelPlugin)
+        .add_plugins(level_5::LevelPlugin)
+        .add_plugins(level_6::LevelPlugin)
+        .insert_resource(BaseEntity(Entity::PLACEHOLDER, Transform::IDENTITY))
+        .add_observer(on_scene_ready)
+        .add_systems(OnExit(ProgramState::New), ensure_levels)
+        .add_systems(
+            OnEnter(GameplayState::Setup),
+            (level_spawn_started, spawn_level).chain(),
+        )
+        .add_systems(
+            OnExit(GameplayState::Setup),
+            (level_spawn_finished,).chain(),
+        )
+        .add_systems(
+            PreUpdate,
+            (add_raytracing_to_meshes, add_raytracing_to_lights),
+        )
+        .add_systems(
+            FixedUpdate,
+            (init_player_settings, spawn_player_on_start)
                 .chain()
                 .run_if(added_player_start) // <<< only once per session, in practice
-                .run_if(in_state(GameplayState::Playing))
+                .run_if(in_state(GameplayState::Playing)),
+        )
+        .add_systems(Startup, register_funcs)
+        .add_systems(
+            OnEnter(LevelState::LevelLoaded),
+            (
+                |mut commands: Commands| {
+                    commands.set_state(LevelState::Configuring);
+                },
+                setup_skybox,
+                unpause_scripting,
             )
-
-            .add_systems(
-                Startup,
-                register_funcs,
-            )
-            .add_systems(OnEnter(LevelState::LevelLoaded),
-                (
-                    |mut commands: Commands| {
-                        commands.set_state(LevelState::Configuring);
-                    },
-                    setup_skybox,
-                    unpause_scripting,
-                ).chain()
-            )
-            .add_systems(OnExit(LevelState::Playing),
-                (
-                    pause_scripting,
-                )
-            )
-            .add_systems(
-                Update,
-                (
-                    report_raycast,
-                )
+                .chain(),
+        )
+        .add_systems(OnExit(LevelState::Playing), (pause_scripting,))
+        .add_systems(
+            Update,
+            (report_raycast,)
                 .run_if(not(is_paused))
                 .run_if(not(is_in_menu))
                 .run_if(is_level_active)
                 .run_if(not(debug_gui_wants_direct_input))
                 .run_if(in_state(LevelState::Playing))
+                .run_if(in_state(ProgramState::InGame)),
+        )
+        .add_systems(OnEnter(LevelState::Playing), show_power_bar)
+        .add_systems(OnExit(LevelState::Playing), remove_power_bar)
+        .add_systems(
+            Update,
+            update_power_bar
+                .run_if(not(is_paused))
                 .run_if(in_state(ProgramState::InGame))
+                .run_if(in_state(GameplayState::Playing)),
+        )
+        .add_systems(OnEnter(LevelState::Won), won_level)
+        .add_systems(OnEnter(LevelState::Lost), lost_level)
+        .add_systems(OnEnter(LevelState::Enter), start_game)
+        .add_systems(OnEnter(LevelState::Advance), advance_level)
+        .add_systems(
+            FixedUpdate,
+            (update_current_score,)
+                .run_if(not(is_in_menu))
+                .run_if(in_state(LevelState::Playing))
+                .run_if(in_state(ProgramState::InGame)),
+        )
+        .add_systems(
+            FixedUpdate,
+            (
+                check_next_level,
+                check_won_level
+                    .run_if(in_state(LevelState::Won))
+                    .run_if(not(is_paused)),
+                check_lost_level
+                    .run_if(in_state(LevelState::Lost))
+                    .run_if(not(is_paused)),
             )
-
-            .add_systems(OnEnter(LevelState::Playing),
-                show_power_bar
-            )
-            .add_systems(OnExit(LevelState::Playing),
-                remove_power_bar
-            )
-            .add_systems(
-                Update,
-                update_power_bar
-                    .run_if(not(is_paused))
-                    .run_if(in_state(ProgramState::InGame))
-                    .run_if(in_state(GameplayState::Playing))
-            )
-
-            .add_systems(
-                OnEnter(LevelState::Won),
-                won_level,
-            )
-            .add_systems(
-                OnEnter(LevelState::Lost),
-                lost_level
-            )
-
-            .add_systems(
-                OnEnter(LevelState::Enter),
-                start_game
-            )
-            .add_systems(
-                OnEnter(LevelState::Advance),
-                advance_level
-            )
-
-            .add_systems(
-                FixedUpdate,
-                (
-                    update_current_score,
-                )
-                    .run_if(not(is_in_menu))
-                    .run_if(in_state(LevelState::Playing))
-                    .run_if(in_state(ProgramState::InGame))
-                ,
-            )
-
-            .add_systems(
-                FixedUpdate,
-                (
-                    check_next_level,
-                    check_won_level.run_if(in_state(LevelState::Won)).run_if(not(is_paused)),
-                    check_lost_level.run_if(in_state(LevelState::Lost)).run_if(not(is_paused)),
-                )
-                    .run_if(not(is_in_menu))
-                    .run_if(in_state(ProgramState::InGame))
-                ,
-            )
-
-            .add_systems(First,
-                spawn_midi_synths.run_if(resource_exists::<CommonSoundFontAssets>)
-                    .run_if(not(is_in_menu))
-                    .run_if(in_state(ProgramState::InGame)),
-            )
-
-            .insert_resource(PaletteMaterialHandles(default()))
-            .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>::default())
-            .add_systems(PreUpdate, handle_palette)
-
-            .insert_resource(DepthMapStorage { orig_to_edited: default() })
-            .add_systems(PreUpdate, (
-                handle_depth_map,
-                tick_depth_map,
-            ).chain())
-
-            .add_systems(OnEnter(LevelState::Advance), cleanup_palette_materials)
-        ;
+                .run_if(not(is_in_menu))
+                .run_if(in_state(ProgramState::InGame)),
+        )
+        .add_systems(
+            First,
+            spawn_midi_synths
+                .run_if(resource_exists::<CommonSoundFontAssets>)
+                .run_if(not(is_in_menu))
+                .run_if(in_state(ProgramState::InGame)),
+        )
+        .insert_resource(PaletteMaterialHandles(default()))
+        .add_plugins(MaterialPlugin::<
+            ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>,
+        >::default())
+        .add_systems(PreUpdate, handle_palette)
+        .insert_resource(DepthMapStorage {
+            orig_to_edited: default(),
+        })
+        .add_systems(PreUpdate, (handle_depth_map, tick_depth_map).chain())
+        .add_systems(OnEnter(LevelState::Advance), cleanup_palette_materials);
 
         register_script_key::<GameScript>(app);
     }
 }
 
 #[derive(Resource, Default)]
-pub struct PaletteMaterialHandles
-(
+pub struct PaletteMaterialHandles(
     HashMap<
         Handle<StandardMaterial>,
         Handle<ExtendedMaterial<StandardMaterial, PaletteMaterialExtension>>,
@@ -256,8 +205,7 @@ pub struct PaletteMaterialHandles
 );
 
 #[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
-pub struct PaletteMaterialExtension {
-}
+pub struct PaletteMaterialExtension {}
 
 const PM_SHADER_ASSET_PATH: &str = "shaders/palette_material.wgsl";
 
@@ -294,11 +242,11 @@ pub(crate) fn handle_palette(
     for (entity, std_mat_handle) in mat_q.iter() {
         let mut ent_commands = commands.entity(entity);
 
-        let std_mat = std_mats.get(std_mat_handle.id())
-            .ok_or_else(|| RuntimeError::LiteralError(
-                format!("no StandardMaterial on {entity}")
-            ))?;
-        let pal_mat = pal_mat_cache.0
+        let std_mat = std_mats.get(std_mat_handle.id()).ok_or_else(|| {
+            RuntimeError::LiteralError(format!("no StandardMaterial on {entity}"))
+        })?;
+        let pal_mat = pal_mat_cache
+            .0
             .entry(std_mat_handle.0.clone())
             .or_insert_with(|| {
                 pal_mats.add(ExtendedMaterial {
@@ -400,7 +348,6 @@ pub(crate) struct Cube;
 #[type_path = "game"]
 pub(crate) struct BaseEntity(pub Entity, pub Transform);
 
-
 // Player state
 
 /// Marker for an object (e.g. net) in the hand.
@@ -416,17 +363,15 @@ fn on_scene_ready(
 ) {
     for entity in children_q.iter_descendants(ready.entity) {
         if meshes_q.contains(entity) {
-            commands.entity(entity).insert((
-                CollisionLayers::new(
+            commands.entity(entity).insert((CollisionLayers::new(
+                GameLayer::World,
+                [
+                    GameLayer::Default,
                     GameLayer::World,
-                    [
-                        GameLayer::Default,
-                        GameLayer::World,
-                        GameLayer::Player,
-                        GameLayer::Projectiles,
-                    ],
-                ),
-            ));
+                    GameLayer::Player,
+                    GameLayer::Projectiles,
+                ],
+            ),));
         }
     }
 }
@@ -446,19 +391,15 @@ pub(crate) fn level_spawn_started(mut commands: Commands, mut pause: ResMut<Paus
 pub(crate) fn level_spawn_finished(
     mut commands: Commands,
     mut pause: ResMut<PauseState>,
-    sensable_q: Query<Entity, Or<(
-        With<DeathboxCollider>,
-    )>>,
+    sensable_q: Query<Entity, Or<(With<DeathboxCollider>,)>>,
     // coll_floor_q: Query<Entity, (With<Mesh3d>, With<Floor>),
     // floor_q: Query<Entity, (With<Floor>, With<RigidBody>),
     // floor_q: Query<Entity, (With<Floor>, Without<ColliderConstructor>)>,
 ) {
     for ent in sensable_q.iter() {
-        commands.entity(ent).insert((
-            Sensor,
-            CollisionEventsEnabled,
-            CollidingEntities::default(),
-        ));
+        commands
+            .entity(ent)
+            .insert((Sensor, CollisionEventsEnabled, CollidingEntities::default()));
     }
 
     commands.set_state(OverlayState::Hidden);
@@ -473,10 +414,7 @@ fn add_raytracing_to_meshes() {}
 
 #[cfg(feature = "solari")]
 fn add_raytracing_to_meshes(
-    mesh_query: Query<(
-        Entity,
-        &Mesh3d,
-    ), Changed<Mesh3d>>,
+    mesh_query: Query<(Entity, &Mesh3d), Changed<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut commands: Commands,
 ) {
@@ -484,7 +422,9 @@ fn add_raytracing_to_meshes(
         let Mesh3d(mesh_handle) = mesh3d;
 
         // Ensure meshes are Solari compatible, editing them in-place.
-        let Some(mut mesh) = meshes.get_mut(mesh_handle.id()) else { continue };
+        let Some(mut mesh) = meshes.get_mut(mesh_handle.id()) else {
+            continue;
+        };
         if !mesh.contains_attribute(Mesh::ATTRIBUTE_UV_0) {
             let vertex_count = mesh.count_vertices();
             mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0, 0.0]; vertex_count]);
@@ -505,7 +445,6 @@ fn add_raytracing_to_meshes(
         commands
             .entity(ent)
             .insert(RaytracingMesh3d(mesh_handle.clone()));
-
     }
 }
 
@@ -551,17 +490,23 @@ pub(crate) fn spawn_player_on_start(world: &mut World) {
     let xfrm = xfrm.clone();
 
     // Make the player collision model and Player
-    let player_ent = spawn_fps_player(world, Uuid::default(),
+    let player_ent = spawn_fps_player(
+        world,
+        Uuid::default(),
         Vec3::new(0.5, 1.5, 0.3),
-        xfrm.clone());
+        xfrm.clone(),
+    );
 
     let mut queue = CommandQueue::default();
     let mut commands = Commands::new(&mut queue, world);
 
     // Put and orient the new Player where the PlayerStart is.
     commands.entity(player_ent).insert((
-        PlayerLook { rotation: xfrm.rotation, .. default() },
-        xfrm
+        PlayerLook {
+            rotation: xfrm.rotation,
+            ..default()
+        },
+        xfrm,
     ));
 
     queue.apply(world);
@@ -581,7 +526,10 @@ pub(crate) fn setup_level(
     }
 
     let level = &level_list.0[level_index.0];
-    commands.insert_resource(CurrentLevel{ index, info: level.clone() });
+    commands.insert_resource(CurrentLevel {
+        index,
+        info: level.clone(),
+    });
 }
 
 pub(crate) fn spawn_level(
@@ -609,10 +557,9 @@ pub(crate) fn spawn_level(
             WorldAssetRoot(level.scene.clone()),
             ChildOf(world.0),
         ))
-        .observe(|_event: On<WorldInstanceReady>, mut commands: Commands,| {
+        .observe(|_event: On<WorldInstanceReady>, mut commands: Commands| {
             commands.set_state(GameplayState::Playing);
-        })
-    ;
+        });
 
     commands.insert_resource(CurrentScore::default());
 }
@@ -641,9 +588,7 @@ pub(crate) fn start_game(mut commands: Commands) {
     commands.set_state(LevelState::Advance);
 }
 
-pub(crate) fn advance_level(
-    mut commands: Commands,
-) {
+pub(crate) fn advance_level(mut commands: Commands) {
     commands.set_state(OverlayState::Loading);
     commands.set_state(GameplayState::Setup);
 }
@@ -657,7 +602,9 @@ fn update_current_score(
     mut score_q: Query<(&mut Text, &mut TextColor)>,
 ) {
     gui_area.with_first(GuiAreaMarker::ScoreArea, |ent| {
-        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else { return };
+        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else {
+            return;
+        };
         if score.is_some() {
             if *level_state == LevelState::Playing {
                 // let won = score.score >= goal.goal as _;
@@ -705,11 +652,15 @@ fn won_level(
     mut score_q: Query<(&mut Text, &mut TextColor)>,
 ) {
     gui_area.with_first(GuiAreaMarker::ScoreArea, |ent| {
-        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else { return };
+        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else {
+            return;
+        };
         text.0 = "Passed!".to_string();
         color.0 = Color::Srgba(tailwind::LIME_300);
     });
-    commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(END_LEVEL_DELAY_SECS)));
+    commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(
+        END_LEVEL_DELAY_SECS,
+    )));
 }
 
 fn lost_level(
@@ -718,11 +669,15 @@ fn lost_level(
     mut score_q: Query<(&mut Text, &mut TextColor)>,
 ) {
     gui_area.with_first(GuiAreaMarker::GameStatusArea, |ent| {
-        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else { return };
+        let Ok((ref mut text, ref mut color)) = score_q.get_mut(ent) else {
+            return;
+        };
         text.0 = "Failed...\nTry again!".to_string();
         color.0 = Color::Srgba(tailwind::RED_700);
     });
-    commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(END_LEVEL_DELAY_SECS)));
+    commands.insert_resource(AutoEndLevelTimer::new(Duration::from_secs(
+        END_LEVEL_DELAY_SECS,
+    )));
 }
 
 fn check_won_level(
@@ -733,7 +688,7 @@ fn check_won_level(
     level_list: Res<LevelList>,
 ) {
     if !end_timer.timer.tick(time.delta()).is_finished() {
-        return
+        return;
     }
 
     let next_index = level_index.0 + 1;
@@ -781,7 +736,8 @@ fn show_power_bar(
     assets: Res<CommonGuiAssets>,
 ) {
     gui_area.with_first(GuiAreaMarker::HandStatusArea, |ent| {
-        commands.entity(ent)
+        commands
+            .entity(ent)
             .insert(UiNodeAlpha(0.0))
             .with_children(|builder| {
                 builder.spawn((
@@ -789,8 +745,7 @@ fn show_power_bar(
                     PowerBarBorder,
                     Visibility::Inherited,
                     UiNodeAlpha(1.0),
-                    ImageNode::new(assets.power_bar_border.clone())
-                        .with_color(Color::WHITE),
+                    ImageNode::new(assets.power_bar_border.clone()).with_color(Color::WHITE),
                     ZIndex(1),
                     Node {
                         position_type: PositionType::Absolute,
@@ -808,8 +763,7 @@ fn show_power_bar(
                     PowerBarStrength,
                     Visibility::Inherited,
                     UiNodeAlpha(1.0),
-                    ImageNode::new(assets.power_bar_strength.clone())
-                        .with_color(Color::WHITE),
+                    ImageNode::new(assets.power_bar_strength.clone()).with_color(Color::WHITE),
                     ZIndex(0),
                     Node {
                         position_type: PositionType::Absolute,
@@ -835,7 +789,7 @@ fn show_power_bar(
                         font: assets.std_ui.clone().into(),
                         font_size: FontSize::Px(24.0),
                         weight: FontWeight::BOLD,
-                        .. default()
+                        ..default()
                     },
                     TextColor(Color::Srgba(tailwind::RED_700)),
                     TextShadow {
@@ -844,7 +798,7 @@ fn show_power_bar(
                     },
                     Text::new("POWER"),
                 ));
-        });
+            });
     });
 }
 
@@ -870,7 +824,9 @@ fn update_power_bar(
     image_q: Single<&mut ImageNode, With<PowerBarStrength>>,
 ) {
     gui_area.with_first(GuiAreaMarker::HandStatusArea, move |ent| {
-        let Ok(mut alpha) = ui_alpha_q.get_mut(ent) else { return };
+        let Ok(mut alpha) = ui_alpha_q.get_mut(ent) else {
+            return;
+        };
         if fire_power.is_active() {
             let a = (fire_power.power() / limits.max).clamp(0.0, 1.0);
             alpha.0 = 1.0;
@@ -913,7 +869,7 @@ fn setup_skybox(
             brightness: bevy::prelude::light_consts::lux::HALLWAY,
             mapping: CubemapMapping::PxNxPyFxFyNyFxFyPzNz,
             with_reflection_probe,
-            .. default()
+            ..default()
         });
     }
     commands.insert_resource(SkyboxSetup::WaitingSkybox);
@@ -944,10 +900,7 @@ pub(crate) fn spawn_midi_synths(
             sample_sender,
             sample_receiver,
         )?;
-        commands.entity(ent).insert((
-            synth,
-            Sfx,
-        ));
+        commands.entity(ent).insert((synth, Sfx));
 
         synth_map.register_synth(ent);
 
@@ -961,7 +914,7 @@ pub(crate) fn spawn_midi_synths(
 #[derive(Component, Debug, Reflect, Clone, PartialEq)]
 #[reflect(Component, Debug)]
 #[component(storage = "SparseSet")]
-pub struct OrigGravityScale{
+pub struct OrigGravityScale {
     pub orig_scale: Scalar,
     pub restore_next_time: bool,
 }
@@ -976,15 +929,19 @@ fn report_raycast(
     mut last_target_desc: Local<(CrosshairTargets, String)>,
 ) {
     if !dev_tools_enabled() {
-        return
+        return;
     }
 
     gui_area.with_first(GuiAreaMarker::InfoArea, |ent| {
-        let Ok((ref mut text, ref mut color, ref mut visibility)) = info_q.get_mut(ent) else { return };
-        if highlighting_mode.as_ref().is_none_or(|highlighting_mode| !highlighting_mode.is_disabled())
-        && gui_state.enabled
-        && !crosshair_target.targets.is_empty()
-        && let Some(message) = if last_target_desc.0 == **crosshair_target {
+        let Ok((ref mut text, ref mut color, ref mut visibility)) = info_q.get_mut(ent) else {
+            return;
+        };
+        if highlighting_mode
+            .as_ref()
+            .is_none_or(|highlighting_mode| !highlighting_mode.is_disabled())
+            && gui_state.enabled
+            && !crosshair_target.targets.is_empty()
+            && let Some(message) = if last_target_desc.0 == **crosshair_target {
                 // Same as last tick.
                 Some(last_target_desc.1.clone())
             } else {
@@ -1024,16 +981,14 @@ fn report_raycast(
 /// when changing Gravity. Maybe that's intentional, maybe a bug?
 fn wake_up_spawned(
     mut commands: Commands,
-    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>, Without<Player>)>
+    sleep_q: Query<Entity, (With<Sleeping>, With<Spawned>, Without<Player>)>,
 ) {
     for ent in sleep_q.iter() {
         commands.entity(ent).remove::<Sleeping>();
     }
 }
 
-fn cleanup_palette_materials(
-    pal_mats: Option<ResMut<PaletteMaterialHandles>>,
-) {
+fn cleanup_palette_materials(pal_mats: Option<ResMut<PaletteMaterialHandles>>) {
     if let Some(mut pal_mats) = pal_mats {
         pal_mats.0.clear();
     }
