@@ -22,7 +22,7 @@ def make_on_update() {
 def on_update = make_on_update()
 
 def on_init(ctx: Struct, ent: Uns64, ...) {
-    if true then
+    if false then
         let scene_offs = [x: 20.0, y: -0.5, z: 5.0]
         let scene_offs = [x: 15.0, y: -0.5, z: -20.0]
 
@@ -30,9 +30,10 @@ def on_init(ctx: Struct, ent: Uns64, ...) {
         let scene_rot = [
             'Degrees', scene_rot,
         ]
+
         let scene = [
-            ##'Model', "maps/school_gym.glb#Scene0",
-            'Model', "maps/classroom.glb#Scene0",
+            'Model', "maps/school_gym.glb#Scene0",
+            ##'Model', "maps/classroom.glb#Scene0",
         ]
 
         $sys.calls.bevy_call_func('spawn_entity',

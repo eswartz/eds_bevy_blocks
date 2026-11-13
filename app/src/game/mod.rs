@@ -925,7 +925,7 @@ fn report_raycast(
     highlighting_mode: Option<Res<HighlightingMode>>,
     crosshair_target: If<Res<CrosshairTargets>>,
     names_q: Query<Option<&Name>>,
-    gui_state: Res<GuiState>,
+    gui_state: Res<DevGuiState>,
     mut last_target_desc: Local<(CrosshairTargets, String)>,
 ) {
     if !dev_tools_enabled() {
