@@ -91,9 +91,7 @@ fn main() -> AppExit {
     ))
     // Register our sources early.
     .add_plugins(CommonAssetsPlugin)
-    .add_plugins(DevGuiPlugin {
-        debug_key_code: KeyCode::ScrollLock,
-    })
+    .add_plugins(DevGuiPlugin)
     .add_plugins((
         DefaultPlugins
             .set(LogPlugin {
