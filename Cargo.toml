@@ -110,8 +110,8 @@ avian3d = { version = "0.8.0", default-features = false, features = [
 ] }
 bevy_enhanced_input = { version = "0.27", features = ["reflect", "state", "serialize"] }
 
-# bevy_seedling = { version = "0.9.0", default-features = false, features = [
-bevy_seedling = { git = "https://github.com/eswartz/bevy_seedling-fork.git", branch = "bevy-0.20", default-features = false, features = [
+bevy_seedling = { version = "0.9.0", default-features = false, features = [
+# bevy_seedling = { git = "https://github.com/eswartz/bevy_seedling-fork.git", branch = "bevy-0.20", default-features = false, features = [
     "wav", "ogg", "rand", "reflect", "diagnostics",
     "hrtf",
     "cpal",
