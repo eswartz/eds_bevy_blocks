@@ -112,7 +112,7 @@ def on_update(ctx: Struct, ent: Uns64, ...) {
         'SpotLight', spot_light,
         'SpotLightTexture', spot_light_tex,
         'SurfaceMaterial', 'Metal',
-        'CollisionEventsEnabled', true,
+        'CollisionEventsEnabled', nil,
         'Name', 'LIGHT!',
     )
 
